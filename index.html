@@ -585,26 +585,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Upcoming collections -->
   <div class="two">
     <!-- Collections scorecards -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
       <div class="cm g">
         <div class="cml">YTD Collected</div>
         <div class="cmv g" id="col_ytd">—</div>
         <div class="cms">Actual cash in Jan–today</div>
       </div>
-      <div class="cm t">
-        <div class="cml">Forecast (No Pipeline)</div>
-        <div class="cmv t" id="col_fcst_np">—</div>
-        <div class="cms">Full year forecast</div>
+      <div class="cm r">
+        <div class="cml">Invoices Outstanding</div>
+        <div class="cmv r" id="col_inv_outstanding">—</div>
+        <div class="cms">Status=Invoiced · col U</div>
       </div>
       <div class="cm t">
-        <div class="cml">Forecast Incl Pipeline</div>
-        <div class="cmv t" id="col_fcst_p">—</div>
-        <div class="cms">High + Medium pipeline</div>
+        <div class="cml">Not Yet Invoiced</div>
+        <div class="cmv t" id="col_not_inv">—</div>
+        <div class="cms">Status=Not Invoiced · col K</div>
       </div>
       <div class="cm a">
         <div class="cml">Pipeline H+M</div>
         <div class="cmv a" id="col_pipeline_hm">—</div>
         <div class="cms">High $158K · Medium $173K</div>
+      </div>
+      <div class="cm" style="border-color:rgba(46,204,143,.4);background:rgba(46,204,143,.06);">
+        <div class="cml">Total Forecast Incl Pipeline</div>
+        <div class="cmv g" id="col_fcst_p">—</div>
+        <div class="cms">Outstanding + Not inv + Pipeline</div>
       </div>
     </div>
     <div class="card mb">
@@ -1107,7 +1112,7 @@ function processCash(rows){
   document.getElementById('cm_banks').textContent='$63,852';
   document.getElementById('cm_safe').textContent='$12,414';
   document.getElementById('cm_projects').textContent='$39,719';
-  document.getElementById('cm_invoices').textContent='$104,779';
+  // cm_invoices set by processInvoices (live from invoice tracker)
   document.getElementById('cm_runway').textContent=latestActual.runway>0?latestActual.runway.toFixed(2):'—';
   document.getElementById('cm_loans').textContent='-$65,117';
   document.getElementById('cm_taxes').textContent='-$31,561';
@@ -1415,17 +1420,21 @@ function buildDSO(){
   const colMedPM   = [0,0,0,0,0,0,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,0];
 
   // Update scorecards
-  const ytdCollected = colActual.reduce((s,v)=>s+v,0);
-  const fcstTotal    = colActual.reduce((s,v)=>s+v,0) + colFcstNP.reduce((s,v)=>s+v,0);
-  const fcstWithPipe = fcstTotal + HIGH_TOTAL + MED_TOTAL;
-  const c_ytd=document.getElementById('col_ytd');
-  const c_fnp=document.getElementById('col_fcst_np');
-  const c_fp =document.getElementById('col_fcst_p');
-  const c_hm =document.getElementById('col_pipeline_hm');
-  if(c_ytd) c_ytd.textContent=fC(ytdCollected);
-  if(c_fnp) c_fnp.textContent=fC(fcstTotal);
-  if(c_fp)  c_fp.textContent=fC(fcstWithPipe);
-  if(c_hm)  c_hm.textContent=fC(HIGH_TOTAL+MED_TOTAL);
+  const ytdCollected  = colActual.reduce((s,v)=>s+v,0);
+  const invOutstanding= window._invoicesOutstanding || 104779; // from processInvoices (Status=Invoiced, col U)
+  const notInvoiced   = window._notInvoiced || 284852; // live from processInvoices
+  const pipelineHM    = HIGH_TOTAL + MED_TOTAL;
+  const totalFcst     = invOutstanding + notInvoiced + pipelineHM;
+  const c_ytd  = document.getElementById('col_ytd');
+  const c_inv  = document.getElementById('col_inv_outstanding');
+  const c_ni   = document.getElementById('col_not_inv');
+  const c_hm   = document.getElementById('col_pipeline_hm');
+  const c_fp   = document.getElementById('col_fcst_p');
+  if(c_ytd)  c_ytd.textContent  = fC(ytdCollected);
+  if(c_inv)  c_inv.textContent  = fC(invOutstanding);
+  if(c_ni)   c_ni.textContent   = fC(notInvoiced);
+  if(c_hm)   c_hm.textContent   = fC(pipelineHM);
+  if(c_fp)   c_fp.textContent   = fC(totalFcst);
 
   function buildColChart(){
     const usePipe=(document.getElementById('colFcstTog')?.value||'nopipe')==='pipe';
@@ -1589,11 +1598,19 @@ function processInvoices(rows){
     const byCustomer = {};
     let grandTotal = 0;
 
+    let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
       const status = (r[3]||'').trim().toLowerCase();
-      if(status !== 'invoiced') continue;  // only Invoiced rows
+
+      // Not Invoiced: col K (index 10)
+      if(status === 'not invoiced'){
+        notInvoicedTotal += pv(r[10]);
+        continue;
+      }
+
+      if(status !== 'invoiced') continue;  // skip other statuses
       const customer = (r[6]||'').trim();
       const outstanding = pv(r[20]);  // col U = Amount Outstanding
       if(!customer || outstanding <= 0) continue;
@@ -1602,21 +1619,37 @@ function processInvoices(rows){
       byCustomer[customer] += outstanding;
       grandTotal += outstanding;
     }
+    window._notInvoiced = notInvoicedTotal;
 
     // Sort by amount desc
     const sorted = Object.entries(byCustomer)
       .sort((a,b)=>b[1]-a[1])
       .filter(([,v])=>v>0);
 
-    // Update total in hero card
+    // Update ALL outstanding invoice displays
+    window._invoicesOutstanding = grandTotal;
+
+    // Collections tab hero
     const heroEl = document.getElementById('col_outstanding');
     const subEl  = document.getElementById('col_outstanding_sub');
     if(heroEl) heroEl.textContent = fC(grandTotal);
     if(subEl)  subEl.textContent  = sorted.length + ' invoices outstanding';
 
-    // Update table footer
+    // Collections tab table footer
     const totEl = document.getElementById('out_total_val');
     if(totEl) totEl.textContent = fC(grandTotal);
+
+    // Cash Flow tab hero card
+    const cfEl = document.getElementById('cm_invoices');
+    if(cfEl) cfEl.textContent = fC(grandTotal);
+
+    // Collections tab outstanding scorecard
+    const cinvEl = document.getElementById('col_inv_outstanding');
+    if(cinvEl) cinvEl.textContent = fC(grandTotal);
+
+    // DSO hero card
+    const dsoEl = document.getElementById('dso_outstanding');
+    if(dsoEl) dsoEl.textContent = fC(grandTotal);
 
     // Build table
     const tbody = document.getElementById('out_tbody');
@@ -1651,8 +1684,7 @@ function processDB1(rows){
       const val=pv(rows[i][12]);
       if(val>0&&val<5000000){
         window._invoicesOutstanding=val;
-        const el=document.getElementById('cm_invoices');
-        if(el) el.textContent=fC(val);
+        // cm_invoices is now set by processInvoices (filtered by Status=Invoiced)
         const el2=document.getElementById('col_outstanding');
         if(el2) el2.textContent=fC(val);
         const sub=document.getElementById('col_outstanding_sub');
