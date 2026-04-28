@@ -220,8 +220,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
-          <div class="sc" id="svc1"><div class="slb">Variance $ (completed)</div><div class="sv" id="sva">—</div></div>
-          <div class="sc" id="svc2"><div class="slb">Variance %</div><div class="sv" id="svp">—</div></div>
+          <div class="sc t"><div class="slb">Full Year Sales (F)</div><div class="sv t" id="sc_sales_fy">—</div></div>
+          <div class="sc g" id="sc_op_fy_wrap"><div class="slb">Full Year Op Profit (F)</div><div class="sv g" id="sc_op_fy">—</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="tl">Forecast</span>
@@ -450,12 +450,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="card accent mb">
     <div class="ch">
       <div>
-        <div class="ctitle">Cash Runway — No Loans vs Incl Loans</div>
-        <div class="csub">Teal = no loan repayment (col T) · Coral = incl loan repayment (col U)</div>
+        <div class="ctitle">Cash Runway</div>
+        <div class="csub">Months of cash remaining based on current burn rate</div>
       </div>
-      <div class="scr">
-        <div class="sc t"><div class="slb">Runway (no loans)</div><div class="sv t" id="sc_rwy_noloan">—</div></div>
-        <div class="sc r"><div class="slb">Runway (incl loans)</div><div class="sv r" id="sc_rwy_loans">—</div></div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div class="scr">
+          <div class="sc" id="sc_rwy_wrap"><div class="slb" id="sc_rwy_label">Runway</div><div class="sv" id="sc_rwy_val">—</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="tl">Scenario</span>
+          <select class="ts" id="rwyChartTog" onchange="buildRunwayChart()">
+            <option value="noloan">No Loan Repayment</option>
+            <option value="loans">Incl Loan Repayment</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="cw"><canvas id="rwy"></canvas></div>
@@ -510,6 +518,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 
 
+  <!-- Scenario forecast table -->
+  <div class="card mb" style="border-color:rgba(15,184,184,.28);">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">📋 Scenario Projection — Monthly Detail</div>
+    <div style="overflow-x:auto;">
+      <table class="vt" id="scen_table" style="min-width:900px;">
+        <thead>
+          <tr>
+            <th style="text-align:left">Month</th>
+            <th>Type</th>
+            <th>Revenue In</th>
+            <th>Pipeline High</th>
+            <th>Pipeline Med</th>
+            <th>Total In</th>
+            <th>Cash Out</th>
+            <th>Net Flow</th>
+            <th>Balance</th>
+            <th>Runway</th>
+          </tr>
+        </thead>
+        <tbody id="scen_tbody"></tbody>
+        <tfoot id="scen_tfoot"></tfoot>
+      </table>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
+      * Payroll reduction and loan repayment rates applied as per scenario controls above · Pipeline: High×70% Jun–Aug · Medium×35% Jul–Nov · 2-month CCC applied
+    </div>
+  </div>
+
 </div>
 
 <!-- ══════════════════════════ PIPELINE ══════════════════════════ -->
@@ -542,13 +578,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="dso-grid">
     <div class="cm t">
       <div class="cml">Avg DSO (all time)</div>
-      <div class="cmv t">49 days</div>
-      <div class="cms">Invoice to collection</div>
+      <div class="cmv t" id="dso_avg">— days</div>
+      <div class="cms">Invoice to collection · live</div>
     </div>
     <div class="cm a">
       <div class="cml">Median DSO</div>
-      <div class="cmv a">31 days</div>
-      <div class="cms">50th percentile</div>
+      <div class="cmv a" id="dso_med">— days</div>
+      <div class="cms">50th percentile · live</div>
     </div>
     <div class="cm r">
       <div class="cml">Outstanding Invoices</div>
@@ -593,25 +629,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div class="cm r">
         <div class="cml">Invoices Outstanding</div>
-        <div class="cmv r" id="col_inv_outstanding">—</div>
+        <div class="cmv r" id="col_inv_out">—</div>
         <div class="cms">Status=Invoiced · col U</div>
       </div>
-      <div class="cm t">
+      <div class="cm a">
         <div class="cml">Not Yet Invoiced</div>
-        <div class="cmv t" id="col_not_inv">—</div>
+        <div class="cmv a" id="col_not_inv">—</div>
         <div class="cms">Status=Not Invoiced · col K</div>
       </div>
-      <div class="cm a">
-        <div class="cml">Pipeline H+M</div>
-        <div class="cmv a" id="col_pipeline_hm">—</div>
-        <div class="cms">High $158K · Medium $173K</div>
+      <div class="cm t">
+        <div class="cml">Base Forecast</div>
+        <div class="cmv t" id="col_fcst_np">—</div>
+        <div class="cms">No pipeline · full year</div>
       </div>
-      <div class="cm" style="border-color:rgba(46,204,143,.4);background:rgba(46,204,143,.06);">
-        <div class="cml">Total Forecast Incl Pipeline</div>
-        <div class="cmv g" id="col_fcst_p">—</div>
-        <div class="cms">Outstanding + Not inv + Pipeline</div>
+      <div class="cm t">
+        <div class="cml">Total Forecast + Pipeline</div>
+        <div class="cmv t" id="col_fcst_p">—</div>
+        <div class="cms">Base + High + Medium</div>
       </div>
     </div>
+    
     <div class="card mb">
       <div class="ch">
         <div><div class="ctitle">Collections — Actual vs Forecast</div><div class="csub">Cash received vs expected · Full year 2026</div></div>
@@ -711,6 +748,7 @@ async function loadAllData(){
     processRevenues(revRows);
     processDB1(db1Rows);
     processInvoices(invRows);
+    setTimeout(buildScenChart,300); // after all data loaded
     document.getElementById('hDate').textContent='v28Apr · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
@@ -835,7 +873,7 @@ function processStaging(rows){
       {label:'Sales (A/F)',data:fd.map(r=>r.s||null),backgroundColor:fcstBgSales,stack:'r',order:2,borderRadius:2,
        borderColor:fd.map(r=>r.done?teal:'rgba(15,184,184,0.5)'),borderWidth:fd.map(r=>r.done?0:1)},
       {label:'Grants (A/F)',data:fd.map(r=>r.g||null),backgroundColor:fcstBgGrant,stack:'r',order:2,borderRadius:2},
-      {label:'Pipeline',data:fd.map(r=>r.pl||null),backgroundColor:'rgba(103,232,249,0.35)',stack:'r',order:2,borderRadius:2},
+      {label:'Pipeline',data:fd.map(r=>r.pl||null),backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.8)',borderWidth:1,stack:'r',order:2,borderRadius:2},
       {label:'Expenses (A/F)',data:fd.map(r=>r.e||null),backgroundColor:fcstBgExp,stack:'r',order:2,borderRadius:2,
        borderColor:fd.map(r=>r.done?coral:'rgba(255,107,107,0.45)'),borderWidth:fd.map(r=>r.done?0:1)},
       {label:'Op Profit',data:fd.map(r=>r.pr),type:'line',
@@ -863,15 +901,15 @@ function buildSalesChart(){
   const s26=window._s26||[];if(!s26.length)return;
   const usePipe=(document.getElementById('salesFcstTog')?.value||'pipe')==='pipe';
   const doneRows=s26.filter(r=>r.done);
-  const totSA=doneRows.reduce((s,r)=>s+r.sA,0);
-  const totSF=doneRows.reduce((s,r)=>s+(usePipe?(r.sF_pipe||0):(r.sF_nopipe||0)),0);
-  const sv=totSA-totSF,svp=totSF?(sv/Math.abs(totSF)*100).toFixed(1):0;
-  const svaEl=document.getElementById('sva'),svpEl=document.getElementById('svp');
-  if(svaEl){svaEl.textContent=fmt(sv);svaEl.className='sv '+(sv>=0?'g':'r');}
-  if(svpEl){svpEl.textContent=(sv>=0?'+':'')+svp+'%';svpEl.className='sv '+(sv>=0?'g':'r');}
-  const c1=document.getElementById('svc1'),c2=document.getElementById('svc2');
-  if(c1)c1.className='sc '+(sv>=0?'g':'r');
-  if(c2)c2.className='sc '+(sv>=0?'g':'r');
+  // Full year Sales and Op Profit forecast scorecards
+  const totSF_fy=s26.reduce((s,r)=>s+(usePipe?(r.sF_pipe||0):(r.sF_nopipe||0)),0);
+  const totPF_fy=s26.reduce((s,r)=>s+(usePipe?(r.pFp||0):(r.pFn||0)),0);
+  const scSales=document.getElementById('sc_sales_fy');
+  const scOp=document.getElementById('sc_op_fy');
+  const scOpW=document.getElementById('sc_op_fy_wrap');
+  if(scSales)scSales.textContent=fmt(totSF_fy);
+  if(scOp){scOp.textContent=fmt(totPF_fy);scOp.className='sv '+(totPF_fy>=0?'g':'r');}
+  if(scOpW)scOpW.className='sc '+(totPF_fy>=0?'g':'r');
   const fcstData=s26.map(r=>usePipe?(r.sF_pipe||null):(r.sF_nopipe||null));
   const fcstLabel=usePipe?'Sales (F) — Incl Pipeline':'Sales (F) — No Pipeline';
   destroyChart('salesVs');
@@ -1108,14 +1146,10 @@ function processCash(rows){
   const actualCount=actualMonths.length;
   const latestActual=actualMonths.length?actualMonths[actualMonths.length-1]:cash[0];
 
-  // Hero metrics from PDF data (these come from DB1 in practice)
-  document.getElementById('cm_banks').textContent='$63,852';
-  document.getElementById('cm_safe').textContent='$12,414';
-  document.getElementById('cm_projects').textContent='$39,719';
+  // cm_banks, cm_safe, cm_projects, cm_loans, cm_taxes set by processDB1 (live)
   // cm_invoices set by processInvoices (live from invoice tracker)
-  document.getElementById('cm_runway').textContent=latestActual.runway>0?latestActual.runway.toFixed(2):'—';
-  document.getElementById('cm_loans').textContent='-$65,117';
-  document.getElementById('cm_taxes').textContent='-$31,561';
+  // Update runway card from live cash data
+  document.getElementById('cm_runway') && (document.getElementById('cm_runway').textContent=latestActual.runway>0?latestActual.runway.toFixed(2)+' mo':'—');
 
   const ytdCashIn=cash.reduce((s,c)=>s+(c.cIA||0),0);
   const ytdCashOut=cash.reduce((s,c)=>s+(c.cOA_op||0),0);
@@ -1127,7 +1161,7 @@ function processCash(rows){
   window._cash=cash;window._actualCount=actualCount;window._latestActual=latestActual;
   window._ytdCashIn=ytdCashIn;window._ytdCashOut=ytdCashOut;
   buildCashChart();
-  setTimeout(buildScenChart,200);
+  // buildScenChart called at end of loadAllData
 
   // Chart 1: Actual — Cash In/Out bars + Balance line on right axis
   const cInData   = cash.map((c,i)=>i<actualCount?(c.cIA||null):null);
@@ -1162,43 +1196,41 @@ function processCash(rows){
     }});
 
   // Runway — two scenarios: T=no loans, U=incl loans
-  const latestT = cash.filter(c=>c.runwayT!==0);
-  const latestU = cash.filter(c=>c.runwayU!==0);
-  const curT = latestT.length ? latestT[latestT.length-1].runwayT : 0;
-  const curU = latestU.length ? latestU[latestU.length-1].runwayU : 0;
-  const scRwyN=document.getElementById('sc_rwy_noloan');
-  const scRwyL=document.getElementById('sc_rwy_loans');
-  if(scRwyN) scRwyN.textContent=curT.toFixed(1)+' mo';
-  if(scRwyL) scRwyL.textContent=curU.toFixed(1)+' mo';
-  // Store for toggle
-  window._runwayT = curT;
-  window._runwayU = curU;
+  // Runway — single chart with toggle
+  const latestT=cash.filter(c=>c.runwayT!==0);
+  const latestU=cash.filter(c=>c.runwayU!==0);
+  window._runwayT=latestT.length?latestT[latestT.length-1].runwayT:0;
+  window._runwayU=latestU.length?latestU[latestU.length-1].runwayU:0;
   updateRunwayCard();
-  destroyChart('rwy');
-  charts['rwy']=new Chart(document.getElementById('rwy'),{type:'line',
-    data:{labels:L26.slice(0,cash.length),datasets:[
-      {label:'No Loan Repayment',data:cash.map(c=>c.runwayT||null),
-       borderColor:teal,borderWidth:2.5,pointRadius:4,
-       pointBackgroundColor:cash.map(c=>(c.runwayT||0)<0?coral:teal),
-       fill:false,tension:0.3,
-       segment:{borderColor:ctx=>(cash[ctx.p1DataIndex]?.runwayT||0)<0?coral:teal}},
-      {label:'Incl Loan Repayment',data:cash.map(c=>c.runwayU||null),
-       borderColor:coral,borderWidth:2,borderDash:[5,4],pointRadius:4,
-       pointBackgroundColor:cash.map(c=>(c.runwayU||0)<0?'rgba(255,107,107,0.4)':coral),
-       fill:false,tension:0.3,
-       segment:{borderColor:ctx=>(cash[ctx.p1DataIndex]?.runwayU||0)<0?'rgba(255,107,107,0.4)':coral}}
-    ]},
-    options:{...bO(),
-      plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.parsed.y.toFixed(1)+' months'}}},
-      scales:{
-        x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)',
-                 lineWidth:ctx=>ctx.tick.value===0?1.5:1},
-           ticks:{callback:v=>v.toFixed(1)+'m',color:'#64748b'}}
+
+  function buildRunwayChart(){
+    const noLoan=(document.getElementById('rwyChartTog')?.value||'noloan')==='noloan';
+    const rwyData=cash.map(c=>noLoan?(c.runwayT||null):(c.runwayU||null));
+    const curVal=noLoan?window._runwayT:window._runwayU;
+    const scV=document.getElementById('sc_rwy_val');
+    const scL=document.getElementById('sc_rwy_label');
+    const scW=document.getElementById('sc_rwy_wrap');
+    if(scV){scV.textContent=curVal?curVal.toFixed(1)+' mo':'—';scV.style.color=curVal<0?'var(--coral)':curVal<2?'var(--amber)':'var(--teal)';}
+    if(scL)scL.textContent=noLoan?'No Loan Repayment':'Incl Loan Repayment';
+    if(scW){scW.style.borderColor=curVal<0?'rgba(255,107,107,.5)':curVal<2?'rgba(245,166,35,.5)':'rgba(15,184,184,.5)';scW.style.background=curVal<0?'var(--cDim)':curVal<2?'var(--aDim)':'var(--tDim)';}
+    destroyChart('rwy');
+    charts['rwy']=new Chart(document.getElementById('rwy'),{type:'bar',
+      data:{labels:L26.slice(0,cash.length),datasets:[{
+        label:noLoan?'No Loan Repayment':'Incl Loan Repayment',
+        data:rwyData,
+        backgroundColor:rwyData.map(v=>v==null?tDim:v<0?cDim:v<2?aDim:tDim),
+        borderColor:rwyData.map(v=>v==null?teal:v<0?coral:v<2?amber:teal),
+        borderWidth:1.5,borderRadius:4
+      }]},
+      options:{...bO(),
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' Runway: '+c.parsed.y.toFixed(1)+' months'}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+          y:{grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?1.5:1},
+             ticks:{callback:v=>v.toFixed(1)+'m',color:'#64748b'}}}
       }
-    }});
-}
+    });
+  }
+  buildRunwayChart();
 
 function tog(){return(document.getElementById('cashTog')?.value||'noloan')==='noloan';}
 function buildCashChart(){
@@ -1278,17 +1310,22 @@ function buildScenChart(){
   const MED_EXP   = (window._pipeMed ||184214) * 0.35;
   const highPerMo = HIGH_EXP / 3;
   const medPerMo  = MED_EXP  / 5;
-  const pipePM_base = [0,0,0,0,0,highPerMo,highPerMo+medPerMo,highPerMo+medPerMo,medPerMo,medPerMo,medPerMo,0];
+  // Separate High and Medium pipeline monthly arrays (for colour-coded stacking)
+  const highPM_base = [0,0,0,0,0,highPerMo,highPerMo,highPerMo,0,0,0,0];          // Jun-Aug
+  const medPM_base  = [0,0,0,0,0,0,medPerMo,medPerMo,medPerMo,medPerMo,medPerMo,0]; // Jul-Nov
+  const pipePM_base = highPM_base.map((v,i)=>v+medPM_base[i]); // combined for balance calc
 
   // Monthly payroll (from Payroll sheet, all months $20,250)
-  const MONTHLY_PAYROLL = 20250;
+  const MONTHLY_PAYROLL = window._monthlyPayroll || 20250; // from Payroll sheet row 73
 
   // Build scenario month by month
-  const startBal    = cash[actualCount-1]?.balA || 96328;
+  const startBal    = cash[actualCount-1]?.balA || cash[actualCount-1]?.balF2 || 0;
   const scenBal     = [];
   const scenCashIn  = [];  // for stacked bars
   const scenRevIn   = [];  // base revenue in (F)
-  const scenPipeIn  = [];  // pipeline component
+  const scenPipeIn  = [];  // pipeline combined (for balance calc)
+  const scenHighIn  = [];  // High pipeline (coral)
+  const scenMedIn   = [];  // Medium pipeline (amber)
   const scenCashOut = [];  // total outflows
   let runBal = startBal;
 
@@ -1297,11 +1334,15 @@ function buildScenChart(){
       scenBal.push(c.balA);
       scenRevIn.push(c.cIA||null);
       scenPipeIn.push(null);
+      scenHighIn.push(null);
+      scenMedIn.push(null);
       scenCashOut.push(c.cOA_op||null);
       runBal = c.balA;
     } else {
       const baseIn       = c.cIF || 0;
       const pipelineIn   = (pipePM_base[i]||0) * pipeRate;
+      const pipeHighIn   = (highPM_base[i]||0) * pipeRate;
+      const pipeMedIn    = (medPM_base[i]||0)  * pipeRate;
       const baseOut      = c.cOutF2 || 0;
       const loanExtra    = (c.cOutF3||0) - (c.cOutF2||0);
       const payrollSave  = MONTHLY_PAYROLL * payrollCut;
@@ -1310,6 +1351,8 @@ function buildScenChart(){
       scenBal.push(runBal);
       scenRevIn.push(baseIn||null);
       scenPipeIn.push(pipelineIn||null);
+      scenHighIn.push(pipeHighIn||null);
+      scenMedIn.push(pipeMedIn||null);
       scenCashOut.push(cashOut||null);  // cashOut is negative
     }
   });
@@ -1334,8 +1377,12 @@ function buildScenChart(){
       {label:'Revenue In (F)',data:scenRevIn,
        backgroundColor:cash.map((_,i)=>i<actualCount?tA:'rgba(15,184,184,0.35)'),
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
-      // Stacked bars — pipeline (different colour: cyan/gold)
-      {label:'Pipeline In',data:scenPipeIn,
+      // Stacked bars — High pipeline (coral) and Medium pipeline (amber)
+      {label:'Pipeline — High',data:scenHighIn,
+       backgroundColor:'rgba(255,107,107,0.55)',
+       borderColor:'rgba(255,107,107,0.8)',borderWidth:1,
+       borderRadius:2,order:2,yAxisID:'y',stack:'s'},
+      {label:'Pipeline — Medium',data:scenMedIn,
        backgroundColor:'rgba(245,166,35,0.55)',
        borderColor:'rgba(245,166,35,0.8)',borderWidth:1,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
@@ -1375,17 +1422,64 @@ function buildScenChart(){
             title:{display:true,text:'Balance ($)',color:green,font:{size:10}}}
       }
     }});
+  // Scenario detail table
+  const tbody=document.getElementById('scen_tbody');
+  const tfoot_el=document.getElementById('scen_tfoot');
+  const L26_t=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  if(tbody){
+    tbody.innerHTML='';
+    let totRevIn=0,totHigh=0,totMed=0,totOut=0;
+    scenBal.forEach(function(_,i){
+      if(i>=cash.length)return;
+      const isAct=i<actualCount;
+      const revIn=scenRevIn[i]||0,hIn=scenHighIn[i]||0,mIn=scenMedIn[i]||0;
+      const totalIn=revIn+hIn+mIn,cashOut=scenCashOut[i]||0,net=totalIn+cashOut,bal=scenBal[i];
+      totRevIn+=revIn;totHigh+=hIn;totMed+=mIn;totOut+=cashOut;
+      const tr=document.createElement('tr');
+      tr.innerHTML='<td style="text-align:left;font-family:var(--font)">'+(L26_t[i]||i)+'</td>'
+        +'<td style="font-size:10px;color:'+(isAct?'var(--teal)':'var(--amber)')+';">'+(isAct?'ACTUAL':'FORECAST')+'</td>'
+        +'<td>'+fC(revIn)+'</td><td style="color:var(--coral)">'+(hIn?fC(hIn):'—')+'</td>'
+        +'<td style="color:var(--amber)">'+(mIn?fC(mIn):'—')+'</td>'
+        +'<td style="font-weight:600">'+fC(totalIn)+'</td><td class="neg">'+fC(cashOut)+'</td>'
+        +'<td class="'+(net>=0?'pos':'neg')+'">'+fC(net)+'</td>'
+        +'<td class="'+(bal<0?'neg':'pos')+'" style="font-weight:700">'+fC(bal)+'</td>';
+      tbody.appendChild(tr);
+    });
+    if(tfoot_el){
+      const fb=scenBal[scenBal.length-1];
+      tfoot_el.innerHTML='<tr><td style="text-align:left"><strong>Total</strong></td><td></td>'
+        +'<td>'+fC(totRevIn)+'</td><td style="color:var(--coral)">'+fC(totHigh)+'</td>'
+        +'<td style="color:var(--amber)">'+fC(totMed)+'</td>'
+        +'<td><strong>'+fC(totRevIn+totHigh+totMed)+'</strong></td>'
+        +'<td class="neg">'+fC(totOut)+'</td>'
+        +'<td class="'+(totRevIn+totHigh+totMed+totOut>=0?'pos':'neg')+'"><strong>'+fC(totRevIn+totHigh+totMed+totOut)+'</strong></td>'
+        +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
+    }
+  }
+
 }
 function buildDSO(){
   // ── Static data from invoice tracker analysis
   const months = ["Jan '25","Feb '25","Mar '25","Apr '25","Jun '25","Jul '25","Aug '25","Sep '25","Oct '25","Nov '25","Dec '25","Jan '26","Feb '26","Mar '26","Apr '26"];
-  const dsoVals= [25,50,30,60,31,46,76,61,0,43,130,22,34,37,18];
-  const collected=[35385,5166,85466,104585,11000,1960,106332,82414,2500,150483,82428,65945,89536,83308,32908];
+  // DSO — live from invoice tracker (calculated in processInvoices)
+  const dsoVals  = window._dsoVals   || [25,50,30,60,31,46,76,61,0,43,130,22,34,37,18];
+  const dsoMonths= window._dsoMonths || ["Jan'25","Feb'25","Mar'25","Apr'25","Jun'25","Jul'25","Aug'25","Sep'25","Oct'25","Nov'25","Dec'25","Jan'26","Feb'26","Mar'26","Apr'26"];
+  const dsoAvg   = window._dsoAvg    || 49;
+  const dsoMed   = window._dsoMedian || 31;
+  // Collections from live cash data
+  const _cashLive = window._cash || [];
+  const collected = _cashLive.map(c=>c.cIA||0).filter(v=>v>0);
 
-  // DSO trend
+  // Update DSO scorecards
+  const dsoAvgEl=document.getElementById('dso_avg');
+  const dsoMedEl=document.getElementById('dso_med');
+  if(dsoAvgEl) dsoAvgEl.textContent=dsoAvg+' days';
+  if(dsoMedEl) dsoMedEl.textContent=dsoMed+' days';
+
+  // DSO trend — live data
   destroyChart('dso_trend');
   charts['dso_trend']=new Chart(document.getElementById('dso_trend'),{type:'line',
-    data:{labels:months,datasets:[
+    data:{labels:dsoMonths,datasets:[
       {label:'DSO (days)',data:dsoVals,borderColor:amber,borderWidth:2.5,pointRadius:5,
        pointBackgroundColor:dsoVals.map(v=>v>60?coral:v>30?amber:green),
        pointBorderColor:dsoVals.map(v=>v>60?coral:v>30?amber:green),
@@ -1401,7 +1495,7 @@ function buildDSO(){
   // Invoiced vs Collected
   const s26=window._s26||[];
   const inv2026=s26.map(r=>r.rA||0);
-  const col2026=[67978,95558,84106,34478,0,0,0,0,0,0,0,0];
+  const col2026=(_cash.length?_cash:window._cash||[]).map(c=>c.cIA||0);
   const L26short=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   destroyChart('inv_vs_col');
   charts['inv_vs_col']=new Chart(document.getElementById('inv_vs_col'),{type:'bar',
@@ -1411,11 +1505,14 @@ function buildDSO(){
     ]},options:{...bO(),plugins:{...bO().plugins,tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}}}});
 
   // Collections data
-  const colActual  = [67978,95558,84106,34478,0,0,0,0,0,0,0,0];
-  const colFcstNP  = [0,0,0,0,24161,110932,6204,0,24300,5190,0,0]; // forecast only (no pipeline, future months)
+  // Pull live from Google Sheet (window._cash populated by processCash)
+  const _cash = window._cash || [];
+  const colActual = _cash.map(c => c.cIA || 0);          // col G - Cash In (A)
+  const colFcstNP = _cash.map(c => c.cIA ? 0 : (c.cIF || 0)); // col F forecast, only future months
   const colL26_c   = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   // Pipeline by priority spread across months (High Jun-Aug, Medium Jul-Nov)
-  const HIGH_TOTAL = 158435, MED_TOTAL = 173214;
+  const HIGH_TOTAL = window._pipeHigh || 158435;
+  const MED_TOTAL  = window._pipeMed  || 173214;
   const colHighPM  = [0,0,0,0,0,HIGH_TOTAL/3,HIGH_TOTAL/3,HIGH_TOTAL/3,0,0,0,0];
   const colMedPM   = [0,0,0,0,0,0,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,0];
 
@@ -1426,15 +1523,19 @@ function buildDSO(){
   const pipelineHM    = HIGH_TOTAL + MED_TOTAL;
   const totalFcst     = invOutstanding + notInvoiced + pipelineHM;
   const c_ytd  = document.getElementById('col_ytd');
-  const c_inv  = document.getElementById('col_inv_outstanding');
+  const c_inv  = document.getElementById('col_inv_out');
   const c_ni   = document.getElementById('col_not_inv');
-  const c_hm   = document.getElementById('col_pipeline_hm');
+  const c_fnp  = document.getElementById('col_fcst_np');
   const c_fp   = document.getElementById('col_fcst_p');
+  const baseFcst = ytdCollected + colFcstNP.reduce((s,v)=>s+v,0);
   if(c_ytd)  c_ytd.textContent  = fC(ytdCollected);
   if(c_inv)  c_inv.textContent  = fC(invOutstanding);
-  if(c_ni)   c_ni.textContent   = fC(notInvoiced);
-  if(c_hm)   c_hm.textContent   = fC(pipelineHM);
-  if(c_fp)   c_fp.textContent   = fC(totalFcst);
+  if(c_ni)   c_ni.textContent   = fC(window._notInvoiced||290042);
+  if(c_fnp)  c_fnp.textContent  = fC(baseFcst);
+  if(c_fp)   c_fp.textContent   = fC(baseFcst + HIGH_TOTAL + MED_TOTAL);
+  // Also update cm_invoices in cash flow tab
+  const cfInvEl = document.getElementById('cm_invoices');
+  if(cfInvEl) cfInvEl.textContent = fC(invOutstanding);
 
   function buildColChart(){
     const usePipe=(document.getElementById('colFcstTog')?.value||'nopipe')==='pipe';
@@ -1602,15 +1703,12 @@ function processInvoices(rows){
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
-      const status = (r[3]||'').trim().toLowerCase();
-
-      // Not Invoiced: col K (index 10)
-      if(status === 'not invoiced'){
-        notInvoicedTotal += pv(r[10]);
+      const status=(r[3]||'').trim().toLowerCase();
+      if(status==='not invoiced'){
+        notInvoicedTotal+=pv(r[10]); // col K
         continue;
       }
-
-      if(status !== 'invoiced') continue;  // skip other statuses
+      if(status !== 'invoiced') continue;
       const customer = (r[6]||'').trim();
       const outstanding = pv(r[20]);  // col U = Amount Outstanding
       if(!customer || outstanding <= 0) continue;
@@ -1626,8 +1724,51 @@ function processInvoices(rows){
       .sort((a,b)=>b[1]-a[1])
       .filter(([,v])=>v>0);
 
+    // Live DSO calculation
+    const dsoByMonth={};
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];if(!r[0]||!r[0].trim())continue;
+      if((r[3]||'').trim().toLowerCase()!=='invoiced')continue;
+      if(!r[15]||!r[16]||!pv(r[17]))continue;
+      const invD=new Date(r[0]),colD=new Date(r[15]),colMo=(r[16]||'').trim();
+      if(isNaN(invD)||isNaN(colD)||!colMo)continue;
+      const dso=Math.round((colD-invD)/(86400000));
+      if(dso<0||dso>500)continue;
+      if(!dsoByMonth[colMo]){dsoByMonth[colMo]={sum:0,n:0};}
+      dsoByMonth[colMo].sum+=dso;dsoByMonth[colMo].n+=1;
+    }
+    const dsoSorted=Object.keys(dsoByMonth).sort();
+    const mN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    window._dsoMonths=dsoSorted.map(m=>{const p=m.split('-');return mN[parseInt(p[1])-1]+"'"+(p[0].slice(2));});
+    window._dsoVals  =dsoSorted.map(m=>Math.round(dsoByMonth[m].sum/dsoByMonth[m].n));
+
     // Update ALL outstanding invoice displays
     window._invoicesOutstanding = grandTotal;
+    window._notInvoiced = notInvoicedTotal;
+
+    // ── Live DSO calculation
+    // col [0]=Invoice Date, [15]=Actual Collection Date, [16]=Collection Month, [17]=Actual Payment
+    const dsoByMonth={};
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      if(!r[0]||!r[15]||!r[16]) continue;
+      if(pv(r[17])<=0) continue;
+      const invDate=new Date(r[0]), colDate=new Date(r[15]);
+      const colMo=(r[16]||'').toString().trim();
+      if(isNaN(invDate)||isNaN(colDate)||!colMo) continue;
+      const dso=Math.round((colDate-invDate)/(86400000));
+      if(dso<0||dso>365) continue;
+      if(!dsoByMonth[colMo]) dsoByMonth[colMo]={total:0,count:0};
+      dsoByMonth[colMo].total+=dso; dsoByMonth[colMo].count+=1;
+    }
+    const sortedMos=Object.keys(dsoByMonth).sort();
+    const moNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    window._dsoMonths=sortedMos.map(m=>{const d=m.split('-');return moNames[parseInt(d[1])-1]+"'"+d[0].slice(2);});
+    window._dsoVals  =sortedMos.map(m=>Math.round(dsoByMonth[m].total/dsoByMonth[m].count));
+    window._dsoAvg   =window._dsoVals.length?Math.round(window._dsoVals.reduce((s,v)=>s+v,0)/window._dsoVals.length):49;
+    const sv=[...window._dsoVals].sort((a,b)=>a-b);
+    const mi=Math.floor(sv.length/2);
+    window._dsoMedian=sv.length%2?sv[mi]:Math.round((sv[mi-1]+sv[mi])/2);
 
     // Collections tab hero
     const heroEl = document.getElementById('col_outstanding');
@@ -1678,34 +1819,79 @@ function processInvoices(rows){
 }
 
 function processDB1(rows){
-  // Find invoices outstanding = col M (index 12), first row with numeric value
+  // DB1 Cash Today row: [1]=Banks [2]=Safe [3]=Projects [13]=Loans [14]=Taxes
   try {
-    for(let i=1;i<rows.length;i++){
-      const val=pv(rows[i][12]);
-      if(val>0&&val<5000000){
-        window._invoicesOutstanding=val;
-        // cm_invoices is now set by processInvoices (filtered by Status=Invoiced)
-        const el2=document.getElementById('col_outstanding');
-        if(el2) el2.textContent=fC(val);
-        const sub=document.getElementById('col_outstanding_sub');
-        if(sub) sub.textContent='From DB1 · live';
-        const tot=document.getElementById('out_total_val');
-        if(tot) tot.textContent=fC(val);
-        break;
+    let dataRow = null;
+    for(let i=0;i<rows.length;i++){
+      if((rows[i][0]||'').toString().trim()==='Cash Today'){
+        dataRow=rows[i]; break;
       }
     }
-  } catch(e){ console.warn('DB1 parse failed',e); }
+    if(!dataRow) dataRow=rows[10];
+    if(dataRow){
+      const banks=pv(dataRow[1]),safe=pv(dataRow[2]),projects=pv(dataRow[3]);
+      const loans=pv(dataRow[13]),taxes=pv(dataRow[14]);
+      window._db1Banks=banks;window._db1Safe=safe;window._db1Projects=projects;
+      window._db1Loans=loans;window._db1Taxes=taxes;
+      const s=(id,v,neg=false)=>{const el=document.getElementById(id);if(el)el.textContent=neg?(v?'-'+fC(Math.abs(v)):'—'):fC(v);};
+      s('cm_banks',banks);s('cm_safe',safe);s('cm_projects',projects);
+      s('cm_loans',loans,true);s('cm_taxes',taxes,true);
+      // Reference date from row 12 col 1 (B13)
+      const dateRow=rows[12]||rows[11];
+      const refDate=(dateRow&&dateRow[1])?dateRow[1].toString().trim():'';
+      if(refDate){
+        window._refDate=refDate;
+        // Update all date displays across dashboard
+        document.querySelectorAll('.ref-date').forEach(el=>el.textContent=refDate);
+        const hDate=document.getElementById('cm_banks_date');
+        if(hDate)hDate.textContent=refDate;
+      }
+    }
+  } catch(e){console.warn('DB1 parse failed',e);}
 }
 
-function goTab(id,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('page-'+id).classList.add('active');
-  setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}}),50);
+  // Scenario detail table
+  const tbody=document.getElementById('scen_tbody');
+  const tfoot_el=document.getElementById('scen_tfoot');
+  const L26_t=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  if(tbody){
+    tbody.innerHTML='';
+    let totRevIn=0,totHigh=0,totMed=0,totOut=0;
+    scenBal.forEach(function(_,i){
+      if(i>=cash.length)return;
+      var isAct=i<actualCount;
+      var revIn=scenRevIn[i]||0;
+      var hIn=scenHighIn[i]||0;
+      var mIn=scenMedIn[i]||0;
+      var totalIn=revIn+hIn+mIn;
+      var cashOut=scenCashOut[i]||0;
+      var net=totalIn+cashOut;
+      var bal=scenBal[i];
+      totRevIn+=revIn;totHigh+=hIn;totMed+=mIn;totOut+=cashOut;
+      var tr=document.createElement('tr');
+      tr.innerHTML='<td style="text-align:left;font-family:var(--font)">'+(L26_t[i]||i)+'</td>'
+        +'<td style="font-size:10px;color:'+(isAct?'var(--teal)':'var(--amber)')+';">'+(isAct?'ACTUAL':'FORECAST')+'</td>'
+        +'<td>'+fC(revIn)+'</td>'
+        +'<td style="color:var(--coral)">'+(hIn?fC(hIn):'—')+'</td>'
+        +'<td style="color:var(--amber)">'+(mIn?fC(mIn):'—')+'</td>'
+        +'<td style="font-weight:600">'+fC(totalIn)+'</td>'
+        +'<td class="neg">'+fC(cashOut)+'</td>'
+        +'<td class="'+(net>=0?'pos':'neg')+'">'+fC(net)+'</td>'
+        +'<td class="'+(bal<0?'neg':'pos')+'" style="font-weight:700">'+fC(bal)+'</td>';
+      tbody.appendChild(tr);
+    });
+    if(tfoot_el){
+      var finalBal=scenBal[scenBal.length-1];
+      tfoot_el.innerHTML='<tr>'
+        +'<td style="text-align:left"><strong>Total</strong></td><td></td>'
+        +'<td>'+fC(totRevIn)+'</td>'
+        +'<td style="color:var(--coral)">'+fC(totHigh)+'</td>'
+        +'<td style="color:var(--amber)">'+fC(totMed)+'</td>'
+        +'<td><strong>'+fC(totRevIn+totHigh+totMed)+'</strong></td>'
+        +'<td class="neg">'+fC(totOut)+'</td>'
+        +'<td class="'+(totRevIn+totHigh+totMed+totOut>=0?'pos':'neg')+'"><strong>'+fC(totRevIn+totHigh+totMed+totOut)+'</strong></td>'
+        +'<td class="'+(finalBal<0?'neg':'pos')+'"><strong>'+fC(finalBal)+'</strong></td></tr>';
+    }
+  }
 }
 
-loadAllData();
-</script>
-</body>
-</html>
