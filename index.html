@@ -584,6 +584,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- Upcoming collections -->
   <div class="two">
+    <!-- Collections scorecards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+      <div class="cm g">
+        <div class="cml">YTD Collected</div>
+        <div class="cmv g" id="col_ytd">—</div>
+        <div class="cms">Actual cash in Jan–today</div>
+      </div>
+      <div class="cm t">
+        <div class="cml">Forecast (No Pipeline)</div>
+        <div class="cmv t" id="col_fcst_np">—</div>
+        <div class="cms">Full year forecast</div>
+      </div>
+      <div class="cm t">
+        <div class="cml">Forecast Incl Pipeline</div>
+        <div class="cmv t" id="col_fcst_p">—</div>
+        <div class="cms">High + Medium pipeline</div>
+      </div>
+      <div class="cm a">
+        <div class="cml">Pipeline H+M</div>
+        <div class="cmv a" id="col_pipeline_hm">—</div>
+        <div class="cms">High $158K · Medium $173K</div>
+      </div>
+    </div>
     <div class="card mb">
       <div class="ch">
         <div><div class="ctitle">Collections — Actual vs Forecast</div><div class="csub">Cash received vs expected · Full year 2026</div></div>
@@ -1382,22 +1405,66 @@ function buildDSO(){
       {label:'Cash Collected (A)',data:col2026.map(v=>v||null),backgroundColor:'rgba(46,204,143,0.6)',borderRadius:3,order:2}
     ]},options:{...bO(),plugins:{...bO().plugins,tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}}}});
 
-  // Collections: Actual vs Forecast (with pipeline toggle)
-  // Data from Staging_cash: cIA = actual, cIF = forecast no pipeline, cStatic = incl pipeline
+  // Collections data
   const colActual  = [67978,95558,84106,34478,0,0,0,0,0,0,0,0];
-  const colFcstNP  = [67978,95558,84106,43012,24161,110932,6204,0,24300,5190,0,0]; // cIF no pipeline
-  const colFcstPip = [67978,95558,84106,70700,31459,72766,102404,54750,24300,5190,0,0]; // static incl pipeline
-  const colL26     = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
-  function getColFcst(){ return (document.getElementById('colFcstTog')?.value||'nopipe')==='pipe'?colFcstPip:colFcstNP; }
-  destroyChart('col_fwd');
-  charts['col_fwd']=new Chart(document.getElementById('col_fwd'),{type:'bar',
-    data:{labels:colL26,datasets:[
-      {label:'Actual Collections',data:colActual.map(v=>v||null),backgroundColor:tA,borderRadius:3,order:2},
-      {label:'Forecast Collections',data:getColFcst().map((v,i)=>colActual[i]===0&&v?v:null),
-       backgroundColor:'rgba(15,184,184,0.28)',borderRadius:3,order:2,
+  const colFcstNP  = [0,0,0,0,24161,110932,6204,0,24300,5190,0,0]; // forecast only (no pipeline, future months)
+  const colL26_c   = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  // Pipeline by priority spread across months (High Jun-Aug, Medium Jul-Nov)
+  const HIGH_TOTAL = 158435, MED_TOTAL = 173214;
+  const colHighPM  = [0,0,0,0,0,HIGH_TOTAL/3,HIGH_TOTAL/3,HIGH_TOTAL/3,0,0,0,0];
+  const colMedPM   = [0,0,0,0,0,0,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,0];
+
+  // Update scorecards
+  const ytdCollected = colActual.reduce((s,v)=>s+v,0);
+  const fcstTotal    = colActual.reduce((s,v)=>s+v,0) + colFcstNP.reduce((s,v)=>s+v,0);
+  const fcstWithPipe = fcstTotal + HIGH_TOTAL + MED_TOTAL;
+  const c_ytd=document.getElementById('col_ytd');
+  const c_fnp=document.getElementById('col_fcst_np');
+  const c_fp =document.getElementById('col_fcst_p');
+  const c_hm =document.getElementById('col_pipeline_hm');
+  if(c_ytd) c_ytd.textContent=fC(ytdCollected);
+  if(c_fnp) c_fnp.textContent=fC(fcstTotal);
+  if(c_fp)  c_fp.textContent=fC(fcstWithPipe);
+  if(c_hm)  c_hm.textContent=fC(HIGH_TOTAL+MED_TOTAL);
+
+  function buildColChart(){
+    const usePipe=(document.getElementById('colFcstTog')?.value||'nopipe')==='pipe';
+    destroyChart('col_fwd');
+    const el=document.getElementById('col_fwd');if(!el)return;
+    const datasets = [
+      {label:'Actual',data:colActual.map(v=>v||null),
+       backgroundColor:tA,borderRadius:3,order:3,stack:'s'},
+      {label:'Forecast (base)',data:colFcstNP.map(v=>v||null),
+       backgroundColor:'rgba(15,184,184,0.3)',borderRadius:3,order:3,stack:'s',
        borderColor:'rgba(15,184,184,0.6)',borderWidth:1}
-    ]},options:{...bO(),plugins:{...bO().plugins,
-      tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}}}});
+    ];
+    if(usePipe){
+      datasets.push({
+        label:'Pipeline — High',
+        data:colHighPM.map(v=>v||null),
+        backgroundColor:'rgba(255,107,107,0.55)',borderRadius:3,order:3,stack:'s'
+      });
+      datasets.push({
+        label:'Pipeline — Medium',
+        data:colMedPM.map(v=>v||null),
+        backgroundColor:'rgba(245,166,35,0.55)',borderRadius:3,order:3,stack:'s'
+      });
+    }
+    charts['col_fwd']=new Chart(el,{type:'bar',
+      data:{labels:colL26_c,datasets},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+        scales:{
+          x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+          y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
+        }
+      }});
+  }
+  buildColChart();
+  // patch toggle to rebuild chart
+  const colTogEl=document.getElementById('colFcstTog');
+  if(colTogEl) colTogEl.onchange=buildColChart;
 
   // Invoice gap — invoiced minus collected
   const gap2026=inv2026.map((v,i)=>v-(col2026[i]||0));
@@ -1516,9 +1583,8 @@ function processRevenues(rows){
 }
 
 function processInvoices(rows){
-  // Invoice Tracker columns (from sheet analysis):
-  // [0]=Invoice Date, [3]=Status, [6]=Customer, [10]=Amount (no VAT)
-  // [17]=Actual Payment, [20]=Amount Outstanding
+  // Invoice Tracker columns:
+  // [3]=Status (must be 'Invoiced'), [6]=Customer, [20]=Amount Outstanding (col U)
   try {
     const byCustomer = {};
     let grandTotal = 0;
@@ -1526,8 +1592,10 @@ function processInvoices(rows){
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
+      const status = (r[3]||'').trim().toLowerCase();
+      if(status !== 'invoiced') continue;  // only Invoiced rows
       const customer = (r[6]||'').trim();
-      const outstanding = pv(r[20]);
+      const outstanding = pv(r[20]);  // col U = Amount Outstanding
       if(!customer || outstanding <= 0) continue;
 
       if(!byCustomer[customer]) byCustomer[customer]=0;
