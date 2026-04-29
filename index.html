@@ -1830,7 +1830,7 @@ function buildRefTable(){
     ['Cash Flow','Invoices Outstanding',fC(window._invoicesOutstanding||0),'Invoice Tracker','Col U [20]','Filter: Col D = Invoiced'],
     ['Cash Flow','Not Yet Invoiced',fC(window._notInvoiced||0),'Invoice Tracker','Col K [10]','Filter: Col D = Not Invoiced'],
     ['Cash Flow','Cash In YTD',fC(ytdIn),'Staging_cash','Col G [6] · 2026 rows','Sum of actual months'],
-    ['Cash Flow','Cash Out YTD',fC(ytdOut),'Staging_cash','Col H [7] · 2026 rows','Sum of actual months'],
+    ['Cash Flow','Cash Out YTD',fC(ytdOut),'Staging_cash','Col I [8] · 2026 rows','Cash Out (A) Op+fin · sum actual months'],
     ['Cash Flow','Cash Balance (A)',fC(latA.balA||0),'Staging_cash','Col O [14]','Latest actual month'],
     ['Cash Flow','Balance F2 (no loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast · no loans'],
     ['Cash Flow','Balance F3 (incl loans)',fC(cash.length?cash[cash.length-1].balF3||0:0),'Staging_cash','Col Q [16]','Dec forecast · incl loans'],
