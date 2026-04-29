@@ -184,6 +184,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="tab" onclick="goTab('cash',this)">💰 Cash Flow</div>
   <div class="tab" onclick="goTab('pipe',this)">🔮 Pipeline</div>
   <div class="tab" onclick="goTab('dso',this)">📬 Collections</div>
+  <div class="tab" onclick="goTab('ref',this)">📎 Data Reference</div>
 </div>
 
 <!-- ══════════════════════════ 2026 FINANCIALS ══════════════════════════ -->
@@ -690,6 +691,33 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 </div>
+
+<!-- ══════════════════════════ DATA REFERENCE ══════════════════════════ -->
+<div class="page" id="page-ref">
+  <div class="slabel"><span>Data Reference</span> — Live Google Sheet Source Mapping</div>
+  <div class="card mb" style="border-color:rgba(15,184,184,.28);">
+    <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;">
+      Every value below is fetched live from your Google Sheet on every page load. Values update automatically when the sheet changes.
+      <br>Sheet ID: <span style="font-family:var(--mono);font-size:11px;color:var(--teal)">2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="vt" id="ref_table" style="min-width:900px;">
+        <thead>
+          <tr>
+            <th style="text-align:left">Dashboard Tab</th>
+            <th style="text-align:left">Metric</th>
+            <th style="text-align:right">Live Value</th>
+            <th style="text-align:left">Sheet Tab</th>
+            <th style="text-align:left">Column(s)</th>
+            <th style="text-align:left">Filter / Notes</th>
+          </tr>
+        </thead>
+        <tbody id="ref_tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <script>
 const URLS={
   staging:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=914674636&single=true&output=csv',
@@ -751,6 +779,7 @@ async function loadAllData(){
     setTimeout(buildScenChart,300); // after all data loaded
     document.getElementById('hDate').textContent='v28Apr · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
+    buildRefTable();
   }catch(e){
     console.error('Load error:', e);
     // Try each URL individually to find which one fails
@@ -1231,6 +1260,7 @@ function processCash(rows){
     });
   }
   buildRunwayChart();
+}
 
 function tog(){return(document.getElementById('cashTog')?.value||'noloan')==='noloan';}
 function buildCashChart(){
@@ -1423,41 +1453,44 @@ function buildScenChart(){
       }
     }});
   // Scenario detail table
-  const tbody=document.getElementById('scen_tbody');
-  const tfoot_el=document.getElementById('scen_tfoot');
-  const L26_t=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
-  if(tbody){
-    tbody.innerHTML='';
-    let totRevIn=0,totHigh=0,totMed=0,totOut=0;
-    scenBal.forEach(function(_,i){
+  const t_body=document.getElementById('scen_tbody');
+  const t_foot=document.getElementById('scen_tfoot');
+  const t_L26=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  if(t_body){
+    t_body.innerHTML='';
+    var tRI=0,tH=0,tM=0,tO=0;
+    scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
-      const isAct=i<actualCount;
-      const revIn=scenRevIn[i]||0,hIn=scenHighIn[i]||0,mIn=scenMedIn[i]||0;
-      const totalIn=revIn+hIn+mIn,cashOut=scenCashOut[i]||0,net=totalIn+cashOut,bal=scenBal[i];
-      totRevIn+=revIn;totHigh+=hIn;totMed+=mIn;totOut+=cashOut;
-      const tr=document.createElement('tr');
-      tr.innerHTML='<td style="text-align:left;font-family:var(--font)">'+(L26_t[i]||i)+'</td>'
-        +'<td style="font-size:10px;color:'+(isAct?'var(--teal)':'var(--amber)')+';">'+(isAct?'ACTUAL':'FORECAST')+'</td>'
-        +'<td>'+fC(revIn)+'</td><td style="color:var(--coral)">'+(hIn?fC(hIn):'—')+'</td>'
-        +'<td style="color:var(--amber)">'+(mIn?fC(mIn):'—')+'</td>'
-        +'<td style="font-weight:600">'+fC(totalIn)+'</td><td class="neg">'+fC(cashOut)+'</td>'
-        +'<td class="'+(net>=0?'pos':'neg')+'">'+fC(net)+'</td>'
-        +'<td class="'+(bal<0?'neg':'pos')+'" style="font-weight:700">'+fC(bal)+'</td>';
-      tbody.appendChild(tr);
+      var ia=i<actualCount;
+      var ri=scenRevIn[i]||0,hi=scenHighIn[i]||0,mi=scenMedIn[i]||0;
+      var ti=ri+hi+mi,co=scenCashOut[i]||0,nt=ti+co;
+      tRI+=ri;tH+=hi;tM+=mi;tO+=co;
+      var tr=document.createElement('tr');
+      var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
+      tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
+        +td(ia?'ACTUAL':'FORECAST','','font-size:10px;color:'+(ia?'var(--teal)':'var(--amber)'))
+        +td(fC(ri))
+        +td(hi?fC(hi):'—','','color:var(--coral)')
+        +td(mi?fC(mi):'—','','color:var(--amber)')
+        +td(fC(ti),'','font-weight:600')
+        +td(fC(co),'neg')
+        +td(fC(nt),nt>=0?'pos':'neg')
+        +td(fC(bv),bv<0?'neg':'pos','font-weight:700');
+      t_body.appendChild(tr);
     });
-    if(tfoot_el){
-      const fb=scenBal[scenBal.length-1];
-      tfoot_el.innerHTML='<tr><td style="text-align:left"><strong>Total</strong></td><td></td>'
-        +'<td>'+fC(totRevIn)+'</td><td style="color:var(--coral)">'+fC(totHigh)+'</td>'
-        +'<td style="color:var(--amber)">'+fC(totMed)+'</td>'
-        +'<td><strong>'+fC(totRevIn+totHigh+totMed)+'</strong></td>'
-        +'<td class="neg">'+fC(totOut)+'</td>'
-        +'<td class="'+(totRevIn+totHigh+totMed+totOut>=0?'pos':'neg')+'"><strong>'+fC(totRevIn+totHigh+totMed+totOut)+'</strong></td>'
+    if(t_foot){
+      var fb=scenBal[scenBal.length-1];
+      t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total</strong></td><td></td>'
+        +'<td>'+fC(tRI)+'</td><td style="color:var(--coral)">'+fC(tH)+'</td>'
+        +'<td style="color:var(--amber)">'+fC(tM)+'</td>'
+        +'<td><strong>'+fC(tRI+tH+tM)+'</strong></td>'
+        +'<td class="neg">'+fC(tO)+'</td>'
+        +'<td class="'+(tRI+tH+tM+tO>=0?'pos':'neg')+'"><strong>'+fC(tRI+tH+tM+tO)+'</strong></td>'
         +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
     }
   }
-
 }
+
 function buildDSO(){
   // ── Static data from invoice tracker analysis
   const months = ["Jan '25","Feb '25","Mar '25","Apr '25","Jun '25","Jul '25","Aug '25","Sep '25","Oct '25","Nov '25","Dec '25","Jan '26","Feb '26","Mar '26","Apr '26"];
@@ -1747,24 +1780,7 @@ function processInvoices(rows){
     window._notInvoiced = notInvoicedTotal;
 
     // ── Live DSO calculation
-    // col [0]=Invoice Date, [15]=Actual Collection Date, [16]=Collection Month, [17]=Actual Payment
-    const dsoByMonth={};
-    for(let i=1;i<rows.length;i++){
-      const r=rows[i];
-      if(!r[0]||!r[15]||!r[16]) continue;
-      if(pv(r[17])<=0) continue;
-      const invDate=new Date(r[0]), colDate=new Date(r[15]);
-      const colMo=(r[16]||'').toString().trim();
-      if(isNaN(invDate)||isNaN(colDate)||!colMo) continue;
-      const dso=Math.round((colDate-invDate)/(86400000));
-      if(dso<0||dso>365) continue;
-      if(!dsoByMonth[colMo]) dsoByMonth[colMo]={total:0,count:0};
-      dsoByMonth[colMo].total+=dso; dsoByMonth[colMo].count+=1;
-    }
-    const sortedMos=Object.keys(dsoByMonth).sort();
-    const moNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    window._dsoMonths=sortedMos.map(m=>{const d=m.split('-');return moNames[parseInt(d[1])-1]+"'"+d[0].slice(2);});
-    window._dsoVals  =sortedMos.map(m=>Math.round(dsoByMonth[m].total/dsoByMonth[m].count));
+    
     window._dsoAvg   =window._dsoVals.length?Math.round(window._dsoVals.reduce((s,v)=>s+v,0)/window._dsoVals.length):49;
     const sv=[...window._dsoVals].sort((a,b)=>a-b);
     const mi=Math.floor(sv.length/2);
@@ -1850,48 +1866,86 @@ function processDB1(rows){
   } catch(e){console.warn('DB1 parse failed',e);}
 }
 
-  // Scenario detail table
-  const tbody=document.getElementById('scen_tbody');
-  const tfoot_el=document.getElementById('scen_tfoot');
-  const L26_t=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
-  if(tbody){
-    tbody.innerHTML='';
-    let totRevIn=0,totHigh=0,totMed=0,totOut=0;
-    scenBal.forEach(function(_,i){
-      if(i>=cash.length)return;
-      var isAct=i<actualCount;
-      var revIn=scenRevIn[i]||0;
-      var hIn=scenHighIn[i]||0;
-      var mIn=scenMedIn[i]||0;
-      var totalIn=revIn+hIn+mIn;
-      var cashOut=scenCashOut[i]||0;
-      var net=totalIn+cashOut;
-      var bal=scenBal[i];
-      totRevIn+=revIn;totHigh+=hIn;totMed+=mIn;totOut+=cashOut;
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td style="text-align:left;font-family:var(--font)">'+(L26_t[i]||i)+'</td>'
-        +'<td style="font-size:10px;color:'+(isAct?'var(--teal)':'var(--amber)')+';">'+(isAct?'ACTUAL':'FORECAST')+'</td>'
-        +'<td>'+fC(revIn)+'</td>'
-        +'<td style="color:var(--coral)">'+(hIn?fC(hIn):'—')+'</td>'
-        +'<td style="color:var(--amber)">'+(mIn?fC(mIn):'—')+'</td>'
-        +'<td style="font-weight:600">'+fC(totalIn)+'</td>'
-        +'<td class="neg">'+fC(cashOut)+'</td>'
-        +'<td class="'+(net>=0?'pos':'neg')+'">'+fC(net)+'</td>'
-        +'<td class="'+(bal<0?'neg':'pos')+'" style="font-weight:700">'+fC(bal)+'</td>';
-      tbody.appendChild(tr);
-    });
-    if(tfoot_el){
-      var finalBal=scenBal[scenBal.length-1];
-      tfoot_el.innerHTML='<tr>'
-        +'<td style="text-align:left"><strong>Total</strong></td><td></td>'
-        +'<td>'+fC(totRevIn)+'</td>'
-        +'<td style="color:var(--coral)">'+fC(totHigh)+'</td>'
-        +'<td style="color:var(--amber)">'+fC(totMed)+'</td>'
-        +'<td><strong>'+fC(totRevIn+totHigh+totMed)+'</strong></td>'
-        +'<td class="neg">'+fC(totOut)+'</td>'
-        +'<td class="'+(totRevIn+totHigh+totMed+totOut>=0?'pos':'neg')+'"><strong>'+fC(totRevIn+totHigh+totMed+totOut)+'</strong></td>'
-        +'<td class="'+(finalBal<0?'neg':'pos')+'"><strong>'+fC(finalBal)+'</strong></td></tr>';
+function buildRefTable(){
+  var tbody=document.getElementById('ref_tbody');
+  if(!tbody)return;
+  tbody.innerHTML='';
+  var s26=window._s26||[];
+  var cash=window._cash||[];
+  var actM=cash.filter(function(c){return c.cIA!==0;});
+  var ytdIn=cash.reduce(function(s,c){return s+(c.cIA||0);},0);
+  var ytdOut=cash.reduce(function(s,c){return s+(c.cOA_op||0);},0);
+  var t26=s26.filter(function(r){return r.done;});
+  var totRA=t26.reduce(function(s,r){return s+r.rA;},0);
+  var totPA=t26.reduce(function(s,r){return s+r.pA;},0);
+  var totSA=t26.reduce(function(s,r){return s+r.sA;},0);
+  var totGA=t26.reduce(function(s,r){return s+r.gA;},0);
+  var totEA=t26.reduce(function(s,r){return s+r.eA;},0);
+  var totRF=s26.reduce(function(s,r){return s+r.rF;},0);
+  var latA=actM.length?actM[actM.length-1]:cash[0]||{};
+  var refDate=window._refDate||'—';
+
+  var rows=[
+    ['Cash Flow','Cash Banks',fC(window._db1Banks||0),'DB 1','Row 11 · Col B [1]','Updates on each load'],
+    ['Cash Flow','Cash Safe',fC(window._db1Safe||0),'DB 1','Row 11 · Col C [2]',''],
+    ['Cash Flow','Cash in Projects',fC(window._db1Projects||0),'DB 1','Row 11 · Col D [3]',''],
+    ['Cash Flow','Loans Due','-'+fC(Math.abs(window._db1Loans||0)),'DB 1','Row 11 · Col N [13]',''],
+    ['Cash Flow','Taxes Due','-'+fC(Math.abs(window._db1Taxes||0)),'DB 1','Row 11 · Col O [14]',''],
+    ['Cash Flow','Reference Date',refDate,'DB 1','Row 13 · Col B [1]','Format DD.MM'],
+    ['Cash Flow','Invoices Outstanding',fC(window._invoicesOutstanding||0),'Invoice Tracker','Col U [20]','Filter: Col D = Invoiced'],
+    ['Cash Flow','Not Yet Invoiced',fC(window._notInvoiced||0),'Invoice Tracker','Col K [10]','Filter: Col D = Not Invoiced'],
+    ['Cash Flow','Cash In YTD',fC(ytdIn),'Staging_cash','Col G [6] · 2026 rows','Sum of actual months'],
+    ['Cash Flow','Cash Out YTD',fC(ytdOut),'Staging_cash','Col H [7] · 2026 rows','Sum of actual months'],
+    ['Cash Flow','Cash Balance (A)',fC(latA.balA||0),'Staging_cash','Col O [14]','Latest actual month'],
+    ['Cash Flow','Balance F2 (no loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast · no loans'],
+    ['Cash Flow','Balance F3 (incl loans)',fC(cash.length?cash[cash.length-1].balF3||0:0),'Staging_cash','Col Q [16]','Dec forecast · incl loans'],
+    ['Cash Flow','Runway (no loans)',(latA.runwayT?latA.runwayT.toFixed(2)+' mo':'—'),'Staging_cash','Col T [19]','Latest actual month'],
+    ['Cash Flow','Runway (incl loans)',(latA.runwayU?latA.runwayU.toFixed(2)+' mo':'—'),'Staging_cash','Col U [20]','Latest actual month'],
+    ['Cash Flow','Pipeline High (scenario)',fC(window._pipeHigh||0),'Revenues','Row 58 · Col M [12]','Used in scenario · weighted 70%'],
+    ['Cash Flow','Pipeline Medium (scenario)',fC(window._pipeMed||0),'Revenues','Row 59 · Col M [12]','Used in scenario · weighted 35%'],
+    ['2026 Financials','Revenue (A) YTD',fC(totRA),'Staging','Col D [3] · done rows','Total Revenue Invoiced (A)'],
+    ['2026 Financials','Sales (A) YTD',fC(totSA),'Staging','Col T [19] · done rows','Sales (A)'],
+    ['2026 Financials','Grants (A) YTD',fC(totGA),'Staging','Col Z [25] · done rows','Grants (A)'],
+    ['2026 Financials','Expenses (A) YTD',fC(totEA),'Staging','Col N [13] or O [14]','N if filled else O'],
+    ['2026 Financials','Op Profit (A) YTD',fC(totPA),'Staging','Col S [18] · done rows','Operating Profit (A)'],
+    ['2026 Financials','Full Year Revenue Target',fC(totRF),'Staging','Col H [7] · all 2026 rows','Total Revenue (F) incl pipeline'],
+    ['Pipeline','High Probability',fC(window._pipeHigh||0),'Pipeline','Col C [2] · Status=High','AMOUNT est.'],
+    ['Pipeline','Medium Probability',fC(window._pipeMed||0),'Pipeline','Col C [2] · Status=Medium','AMOUNT est.'],
+    ['Collections','YTD Collected',fC(ytdIn),'Staging_cash','Col G [6] · 2026 rows','Sum where cIA > 0'],
+    ['Collections','Invoices Outstanding',fC(window._invoicesOutstanding||0),'Invoice Tracker','Col U [20]','Filter: Col D = Invoiced'],
+    ['Collections','Not Yet Invoiced',fC(window._notInvoiced||0),'Invoice Tracker','Col K [10]','Filter: Col D = Not Invoiced'],
+    ['Collections','DSO Trend','live calc','Invoice Tracker','Col A [0] and Col P [15]','Days between invoice date and collection'],
+    ['Collections','Collected by Month',fC(ytdIn),'Staging_cash','Col G [6] · 2026 rows','Monthly cIA values'],
+  ];
+
+  var lastTab='';
+  rows.forEach(function(r){
+    var tab=r[0],metric=r[1],val=r[2],sheet=r[3],cols=r[4],notes=r[5];
+    if(tab!==lastTab){
+      lastTab=tab;
+      var hr=document.createElement('tr');
+      hr.innerHTML='<td colspan="6" style="background:var(--bg3);color:var(--teal);font-weight:700;font-size:11px;padding:8px 13px;text-align:left;letter-spacing:.5px">'+tab.toUpperCase()+'</td>';
+      tbody.appendChild(hr);
     }
-  }
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:left;color:var(--text3)">'+tab+'</td>'
+      +'<td style="text-align:left;font-weight:600">'+metric+'</td>'
+      +'<td style="font-family:var(--mono);color:var(--teal);text-align:right">'+val+'</td>'
+      +'<td style="color:#6699CC;text-align:left">'+sheet+'</td>'
+      +'<td style="color:#66AA66;text-align:left;font-size:11px">'+cols+'</td>'
+      +'<td style="color:var(--text3);font-size:11px;text-align:left">'+notes+'</td>';
+    tbody.appendChild(tr);
+  });
 }
 
+function goTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('page-'+id).classList.add('active');
+  setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}}),50);
+}
+
+loadAllData();
+</script></body>
+</html>
