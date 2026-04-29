@@ -488,9 +488,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <span class="tl">Sort by</span>
           <select class="ts" id="pipeSortTog" onchange="sortPipeline()" style="font-size:11px;">
             <option value="val">Value ↓</option>
-            <option value="high">High first</option>
-            <option value="med">Medium first</option>
-            <option value="low">Low first</option>
+            <option value="prob">Probability ↓ (H→M→L)</option>
+            <option value="high">High only first</option>
+            <option value="med">Medium only first</option>
+            <option value="low">Low only first</option>
           </select>
         </div>
       </div>
@@ -640,7 +641,6 @@ async function loadAllData(){
     setTimeout(buildScenChart,300); // after all data loaded
     document.getElementById('hDate').textContent='v28Apr · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
-    buildRefTable();
   }catch(e){
     console.error('Load error:', e);
     // Try each URL individually to find which one fails
@@ -1441,6 +1441,11 @@ function buildDSO(){
   if(cfInvEl) cfInvEl.textContent = fC(invOutstanding);
 
   function buildColChart(){
+    // Recalculate pipeline values fresh on each call
+    const _H = window._pipeHigh || 158435;
+    const _M = window._pipeMed  || 173214;
+    const colHighPM = [0,0,0,0,0,_H/3,_H/3,_H/3,0,0,0,0];
+    const colMedPM  = [0,0,0,0,0,0,_M/5,_M/5,_M/5,_M/5,_M/5,0];
     const usePipe=(document.getElementById('colFcstTog')?.value||'nopipe')==='pipe';
     destroyChart('col_fwd');
     const el=document.getElementById('col_fwd');if(!el)return;
@@ -1505,6 +1510,7 @@ function sortPipeline(){
   var sp;
   var order={High:0,Medium:1,Low:2};
   if(sortBy==='val') sp=[...pipeline].sort((a,b)=>b.a-a.a);
+  else if(sortBy==='prob') sp=[...pipeline].sort((a,b)=>{var oa=(order[a.s]||3),ob=(order[b.s]||3);return oa!==ob?oa-ob:b.a-a.a;});
   else if(sortBy==='high') sp=[...pipeline].sort((a,b)=>(order[a.s]||3)-(order[b.s]||3));
   else if(sortBy==='med') sp=[...pipeline].sort((a,b)=>{var ia=a.s==='Medium'?0:a.s==='High'?1:2;var ib=b.s==='Medium'?0:b.s==='High'?1:2;return ia-ib;});
   else sp=[...pipeline].sort((a,b)=>{var ia=a.s==='Low'?0:a.s==='Medium'?1:2;var ib=b.s==='Low'?0:b.s==='Medium'?1:2;return ia-ib;});
@@ -1793,7 +1799,7 @@ function processDB1(rows){
 
 function buildRefTable(){
   var tbody=document.getElementById('ref_tbody');
-  if(!tbody)return;
+  if(!tbody){ console.log('ref_tbody not in DOM - reference data available in window._refData'); return; }
   tbody.innerHTML='';
   var s26=window._s26||[];
   var cash=window._cash||[];
