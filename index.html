@@ -543,13 +543,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="two">
     <div class="card mb">
       <div class="ch">
-        <div><div class="ctitle">Collections — Actual vs Forecast</div><div class="csub">Cash received vs expected · Full year 2026</div></div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="tl">Forecast</span>
-          <select class="ts" id="colFcstTog" style="font-size:11px;">
-            <option value="nopipe">No Pipeline</option>
-            <option value="pipe">Incl Pipeline</option>
-          </select>
+        <div><div class="ctitle">Collections — Actual vs Forecast</div><div class="csub">Line = actual · Bars = forecast</div></div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div class="scr">
+            <div class="sc g"><div class="slb">YTD Actual</div><div class="sv g" id="col_sc_actual">—</div></div>
+            <div class="sc t"><div class="slb">Full Year Forecast</div><div class="sv t" id="col_sc_fcst">—</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="tl">Forecast</span>
+            <select class="ts" id="colFcstTog" style="font-size:11px;">
+              <option value="nopipe">No Pipeline</option>
+              <option value="pipe">Incl Pipeline</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="cw short"><canvas id="col_fwd"></canvas></div>
@@ -588,6 +594,7 @@ const URLS={
   pipeline:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=376865117&single=true&output=csv',
   revenues:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1731705433&single=true&output=csv',
   invoices:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1097401785&single=true&output=csv',
+  cff:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1467204008&single=true&output=csv',
   db1:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1289407979&single=true&output=csv',
 };
 
@@ -632,13 +639,14 @@ async function loadAllData(){
     return;
   }
   try{
-    const[stRows,cashRows,pipeRows,revRows,db1Rows,invRows]=await Promise.all([fetchCSV(URLS.staging),fetchCSV(URLS.cash),fetchCSV(URLS.pipeline),fetchCSV(URLS.revenues),fetchCSV(URLS.db1),fetchCSV(URLS.invoices)]);
+    const[stRows,cashRows,pipeRows,revRows,db1Rows,invRows,cffRows]=await Promise.all([fetchCSV(URLS.staging),fetchCSV(URLS.cash),fetchCSV(URLS.pipeline),fetchCSV(URLS.revenues),fetchCSV(URLS.db1),fetchCSV(URLS.invoices),fetchCSV(URLS.cff)]);
     processStaging(stRows);
     processCash(cashRows);
     processPipeline(pipeRows);
     processRevenues(revRows);
     processDB1(db1Rows);
     processInvoices(invRows);
+    processCFF(cffRows);
     setTimeout(buildScenChart,300); // after all data loaded
     document.getElementById('hDate').textContent='v29Apr-colI · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
@@ -1232,17 +1240,22 @@ function buildScenChart(){
   const actualCount = window._actualCount||0;
 
   // Pipeline: probability-weighted, CCC-adjusted (no cash before Jun)
-  const HIGH_EXP  = (window._pipeHigh||158735) * 0.70;
-  const MED_EXP   = (window._pipeMed ||184214) * 0.35;
-  const highPerMo = HIGH_EXP / 3;
-  const medPerMo  = MED_EXP  / 5;
-  // Separate High and Medium pipeline monthly arrays (for colour-coded stacking)
-  const highPM_base = [0,0,0,0,0,highPerMo,highPerMo,highPerMo,0,0,0,0];          // Jun-Aug
-  const medPM_base  = [0,0,0,0,0,0,medPerMo,medPerMo,medPerMo,medPerMo,medPerMo,0]; // Jul-Nov
-  const pipePM_base = highPM_base.map((v,i)=>v+medPM_base[i]); // combined for balance calc
+  // Pipeline: 100% face value (no probability weighting) — slider = % of full amount
+  // CCC: current month + 4 → cash starts arriving in August (month index 7)
+  // Remaining months after August split equally for both High and Medium
+  const pipeHigh = window._pipeHigh || 158435;
+  const pipeMed  = window._pipeMed  || 173214;
+  const cccStart = 7; // August = index 7 (0=Jan)
+  const highMonths = 12 - cccStart;          // Aug through Dec = 5 months
+  const medMonths  = 12 - cccStart;          // same spread
+  const highPerMo  = pipeHigh / highMonths;
+  const medPerMo   = pipeMed  / medMonths;
+  const highPM_base = Array.from({length:12},(_,i)=>i>=cccStart?highPerMo:0);
+  const medPM_base  = Array.from({length:12},(_,i)=>i>=cccStart?medPerMo:0);
+  const pipePM_base = highPM_base.map((v,i)=>v+medPM_base[i]);
 
-  // Monthly payroll (from Payroll sheet, all months $20,250)
-  const MONTHLY_PAYROLL = window._monthlyPayroll || 20250; // from Payroll sheet row 73
+  // Monthly payroll from CF_f sheet (live per month)
+  const PAYROLL_MONTHLY = window._payrollMonthly || [18870,30376,17147,20700,20700,20700,20700,20700,20700,20700,20700,20700];
 
   // Build scenario month by month
   const startBal    = cash[actualCount-1]?.balA || cash[actualCount-1]?.balF2 || 0;
@@ -1271,7 +1284,8 @@ function buildScenChart(){
       const pipeMedIn    = (medPM_base[i]||0)  * pipeRate;
       const baseOut      = c.cOutF2 || 0;
       const loanExtra    = (c.cOutF3||0) - (c.cOutF2||0);
-      const payrollSave  = MONTHLY_PAYROLL * payrollCut;
+      const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
+      const payrollSave  = monthPayroll * payrollCut;
       const cashOut      = baseOut + loanExtra * oblRate + payrollSave; // payrollSave is positive = reduces cost
       runBal = runBal + baseIn + pipelineIn + cashOut;
       scenBal.push(runBal);
@@ -1795,6 +1809,23 @@ function processInvoices(rows){
   } catch(e){ console.warn('Invoice parse failed', e); }
 }
 
+function processCFF(rows){
+  // CF_f sheet — Row 35 = Payroll (col B='Payroll', C='Salaries', D='Payroll'), 2026 months at cols 17-28 (Jan-Dec)
+  try {
+    for(let i=0;i<rows.length;i++){
+      const r=rows[i];
+      if((r[1]||'').toString().trim()==='Payroll' && (r[2]||'').toString().trim()==='Salaries' && (r[3]||'').toString().trim()==='Payroll'){
+        // Found payroll row — extract 12 monthly values at cols 17-28
+        const payroll=[];
+        for(let m=0;m<12;m++) payroll.push(Math.abs(pv(r[17+m]))||0);
+        window._payrollMonthly=payroll;
+        console.log('Payroll loaded:',payroll);
+        break;
+      }
+    }
+  } catch(e){ console.warn('CF_f parse failed',e); }
+}
+
 function processDB1(rows){
   // DB1 Cash Today row: [1]=Banks [2]=Safe [3]=Projects [13]=Loans [14]=Taxes
   try {
@@ -1900,33 +1931,71 @@ function buildRefTable(){
 }
 
 function buildColChart(){
-  // colHighPM/colMedPM from outer buildDSO scope (recalculated each time buildDSO is called)
   const colActual=window._colActual||[];
   const colFcstNP=window._colFcstNP||[];
   const colL26_c=window._colL26_c||["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   const _H=window._pipeHigh||158435;
   const _M=window._pipeMed||173214;
-  const colHighPM=[0,0,0,0,0,_H/3,_H/3,_H/3,0,0,0,0];
-  const colMedPM=[0,0,0,0,0,0,_M/5,_M/5,_M/5,_M/5,_M/5,0];
+  const _ccc=7; // CCC: cash starts Aug (month index 7)
+  const _hpm=_H/(12-_ccc), _mpm=_M/(12-_ccc);
+  const colHighPM=Array.from({length:12},(_,i)=>i>=_ccc?_hpm:0);
+  const colMedPM =Array.from({length:12},(_,i)=>i>=_ccc?_mpm:0);
   const usePipe=(document.getElementById('colFcstTog')?.value||'nopipe')==='pipe';
+
+  // Scorecards
+  const ytdAct=colActual.reduce((s,v)=>s+(v||0),0);
+  const fcstFull=colFcstNP.reduce((s,v)=>s+(v||0),0)+(usePipe?(_H+_M):0);
+  const scAct=document.getElementById('col_sc_actual');
+  const scFcst=document.getElementById('col_sc_fcst');
+  if(scAct) scAct.textContent=fC(ytdAct);
+  if(scFcst) scFcst.textContent=fC(fcstFull);
+
   destroyChart('col_fwd');
   const el=document.getElementById('col_fwd');if(!el)return;
+
   const datasets=[
-    {label:'Actual',data:colActual.map(v=>v||null),backgroundColor:tA,borderRadius:3,order:3,stack:'s'},
-    {label:'Forecast (base)',data:colFcstNP.map(v=>v||null),backgroundColor:'rgba(15,184,184,0.3)',borderRadius:3,order:3,stack:'s',borderColor:'rgba(15,184,184,0.6)',borderWidth:1}
+    {label:'Base Forecast',data:colFcstNP.map(v=>v||null),type:'bar',
+     backgroundColor:'rgba(15,184,184,0.25)',borderColor:'rgba(15,184,184,0.5)',
+     borderWidth:1,borderRadius:3,order:2,stack:'s'}
   ];
   if(usePipe){
-    datasets.push({label:'Pipeline — High',data:colHighPM.map(v=>v||null),backgroundColor:'rgba(255,107,107,0.55)',borderRadius:3,order:3,stack:'s'});
-    datasets.push({label:'Pipeline — Medium',data:colMedPM.map(v=>v||null),backgroundColor:'rgba(245,166,35,0.55)',borderRadius:3,order:3,stack:'s'});
+    datasets.push({label:'Pipeline — High',data:colHighPM.map(v=>v||null),type:'bar',
+      backgroundColor:'rgba(255,107,107,0.45)',borderRadius:3,order:2,stack:'s'});
+    datasets.push({label:'Pipeline — Medium',data:colMedPM.map(v=>v||null),type:'bar',
+      backgroundColor:'rgba(245,166,35,0.45)',borderRadius:3,order:2,stack:'s'});
   }
+  // Actual as green line with value labels
+  datasets.push({
+    label:'Actual Collected',
+    data:colActual.map(v=>v>0?v:null),
+    type:'line',
+    borderColor:green,borderWidth:2.5,
+    pointRadius:5,pointBackgroundColor:green,
+    pointBorderColor:green,
+    fill:false,tension:0.3,order:1
+  });
+
   charts['col_fwd']=new Chart(el,{type:'bar',
     data:{labels:colL26_c,datasets},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+      plugins:{
+        legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}},
+        annotation:{annotations:
+          colActual.reduce((acc,v,i)=>{
+            if(v>0){
+              acc['lbl'+i]={type:'label',xValue:i,yValue:v,
+                content:'$'+Math.round(v/1000)+'K',
+                color:green,font:{size:9,weight:'600'},
+                position:{x:'center',y:'end'},yAdjust:-8};
+            }
+            return acc;
+          },{})
+        }
+      },
       scales:{
         x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
+        y:{stacked:false,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
       }
     }});
 }
