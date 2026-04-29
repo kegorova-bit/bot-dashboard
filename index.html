@@ -640,7 +640,7 @@ async function loadAllData(){
     processDB1(db1Rows);
     processInvoices(invRows);
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v28Apr · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v29Apr-colI · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
