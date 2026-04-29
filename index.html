@@ -1018,17 +1018,43 @@ function buildQ1(s26,s25){
 
 // ─── CASH ─────────────────────────────────────────────────────────
 function processCash(rows){
+  // Resolve column indices from header row — immune to sheet column reordering
+  const hdr = rows[0] || [];
+  const _ci = (fn) => { for(let i=0;i<hdr.length;i++){if(hdr[i]&&fn(hdr[i].toString()))return i;} return -1; };
+  const COL = {
+    cIF   : _ci(h=>h.includes('Cash in (F)')&&!h.includes('static')),      // col F dynamic forecast
+    cIA   : _ci(h=>h.includes('Cash In (A)')),                              // col G actual in
+    cOA   : _ci(h=>h.includes('Op+fin')),                                   // col I actual out Op+fin
+    cOF2  : _ci(h=>h.includes('F2')&&h.toLowerCase().includes('cash out')), // col K forecast no loans
+    cOF3  : _ci(h=>h.includes('F3')&&h.toLowerCase().includes('cash out')&&!h.includes('static')), // col L
+    balA  : _ci(h=>h.toLowerCase().includes('balance')&&h.includes('(A)')), // col O actual balance
+    balF2 : _ci(h=>h.toLowerCase().includes('balance')&&h.includes('F2')),  // col P
+    balF3 : _ci(h=>h.toLowerCase().includes('balance')&&h.includes('F3')),  // col Q
+    burn  : _ci(h=>h.includes('Burn 3M')&&!h.includes('.')),               // col R
+    rwyT  : _ci(h=>h==='Cash Runway'),                                      // col T no loans
+    rwyU  : _ci(h=>h==='Cash Runway.1'),                                    // col U incl loans
+  };
+  // Fallback to known indices if header lookup fails
+  const c = (key,fb) => COL[key]>-1 ? COL[key] : fb;
+  console.log('Staging_cash COL map:', JSON.stringify(COL));
+
   const cash=[];
   for(let i=1;i<rows.length;i++){
-    const r=rows[i];if(!r[0]||!r[0].trim())continue; const yr2=parseInt(r[2]); if(yr2!==2026)continue;
+    const r=rows[i];if(!r[0]||!r[0].trim())continue;
+    const yr2=parseInt(r[2]);if(yr2!==2026)continue;
     cash.push({
       date:r[0].trim(),
-      cIF:pv(r[5]),cIA:pv(r[6]),
-      cOutF2:pv(r[10]),cOutF3:pv(r[11]),
-      balA:pv(r[14]),balF2:pv(r[15]),balF3:pv(r[16]),
-      cOA_op:pv(r[8]),burn3m:pv(r[17]), // col I = Cash Out (A) Op+fin
-      runwayT:pv(r[19]), // col T no loans
-      runwayU:pv(r[20])  // col U incl loans
+      cIF:    pv(r[c('cIF',5)]),
+      cIA:    pv(r[c('cIA',6)]),
+      cOA_op: pv(r[c('cOA',8)]),   // Cash Out (A) Op+fin — col I
+      cOutF2: pv(r[c('cOF2',10)]),
+      cOutF3: pv(r[c('cOF3',11)]),
+      balA:   pv(r[c('balA',14)]),
+      balF2:  pv(r[c('balF2',15)]),
+      balF3:  pv(r[c('balF3',16)]),
+      burn3m: pv(r[c('burn',17)]),
+      runwayT:pv(r[c('rwyT',19)]),
+      runwayU:pv(r[c('rwyU',20)])
     });
   }
   if(!cash.length)return;
