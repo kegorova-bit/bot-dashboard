@@ -467,7 +467,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </table>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
-      * Table reflects scenario controls above · Pipeline High (coral) · Pipeline Medium (amber) · 2-month CCC applied
+      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
     </div>
   </div>
 </div>
@@ -1026,23 +1026,22 @@ function buildQ1(s26,s25){
 
 // ─── CASH ─────────────────────────────────────────────────────────
 function processCash(rows){
-  // Resolve column indices from header row — immune to sheet column reordering
+  // Resolve column indices from header row using EXACT header names from the sheet
   const hdr = rows[0] || [];
-  const _ci = (fn) => { for(let i=0;i<hdr.length;i++){if(hdr[i]&&fn(hdr[i].toString()))return i;} return -1; };
+  const _ci = (name) => hdr.findIndex(h=>h&&h.toString().trim()===name);
   const COL = {
-    cIF   : _ci(h=>h.includes('Cash in (F)')&&!h.includes('static')),      // col F dynamic forecast
-    cIA   : _ci(h=>h.includes('Cash In (A)')),                              // col G actual in
-    cOA   : _ci(h=>h.includes('Op+fin')),                                   // col I actual out Op+fin
-    cOF2  : _ci(h=>h.includes('F2')&&h.toLowerCase().includes('cash out')), // col K forecast no loans
-    cOF3  : _ci(h=>h.includes('F3')&&h.toLowerCase().includes('cash out')&&!h.includes('static')), // col L
-    balA  : _ci(h=>h.toLowerCase().includes('balance')&&h.includes('(A)')), // col O actual balance
-    balF2 : _ci(h=>h.toLowerCase().includes('balance')&&h.includes('F2')),  // col P
-    balF3 : _ci(h=>h.toLowerCase().includes('balance')&&h.includes('F3')),  // col Q
-    burn  : _ci(h=>h.includes('Burn 3M')&&!h.includes('.')),               // col R
-    rwyT  : _ci(h=>h==='Cash Runway'),                                      // col T no loans
-    rwyU  : _ci(h=>h==='Cash Runway.1'),                                    // col U incl loans
+    cIF  : _ci('Cash in (F)'),                                        // [5]  col F  dynamic forecast
+    cIA  : _ci('Cash In (A) (op)'),                                   // [6]  col G  actual in
+    cOA  : _ci('Cash Out (A) (Op+fin)'),                              // [8]  col I  actual out Op+fin ← KEY
+    cOF2 : _ci('Cash out (F2) (incl tax no loans)'),                  // [10] col K  forecast no loans
+    cOF3 : _ci('Cash out (F3) (incl tax and loans)'),                 // [11] col L  forecast incl loans
+    balA : _ci('Cash Balance (end of period) (A) op+fin'),            // [14] col O  actual balance
+    balF2: _ci('Cash Balance (end of period) (F2) (incl tax no loans)'), // [15] col P
+    balF3: _ci('Cash Balance (end of period) (F3) (incl tax and loans)'),// [16] col Q
+    burn : _ci('Burn 3M Trailing Avg'),                               // [17] col R
+    rwyT : _ci('Cash Runway (no loan repmt)') >-1 ? _ci('Cash Runway (no loan repmt)') : _ci('Cash Runway'),   // col U no loans
+    rwyU : _ci('Cash Runway (incl loan repaymt)') >-1 ? _ci('Cash Runway (incl loan repaymt)') : _ci('Cash Runway.1'), // col V incl loans
   };
-  // Fallback to known indices if header lookup fails
   const c = (key,fb) => COL[key]>-1 ? COL[key] : fb;
   console.log('Staging_cash COL map:', JSON.stringify(COL));
 
@@ -1061,8 +1060,8 @@ function processCash(rows){
       balF2:  pv(r[c('balF2',15)]),
       balF3:  pv(r[c('balF3',16)]),
       burn3m: pv(r[c('burn',17)]),
-      runwayT:pv(r[c('rwyT',19)]),
-      runwayU:pv(r[c('rwyU',20)])
+      runwayT:pv(r[c('rwyT',20)]),  // col U no loans
+      runwayU:pv(r[c('rwyU',21)])   // col V incl loans
     });
   }
   if(!cash.length)return;
@@ -1077,7 +1076,7 @@ function processCash(rows){
   document.getElementById('cm_runway') && (document.getElementById('cm_runway').textContent=latestActual.runway>0?latestActual.runway.toFixed(2)+' mo':'—');
 
   const ytdCashIn=cash.reduce((s,c)=>s+(c.cIA||0),0);
-  const ytdCashOut=cash.reduce((s,c)=>s+(c.cOA_op||0),0);
+  const ytdCashOut=cash.filter((_,i)=>i<actualCount).reduce((s,c)=>s+(c.cOA_op||0),0);
   const sinceJan=cash.slice(1).reduce((s,c)=>s+(c.cIA||0),0);
   document.getElementById('cm_ytd_in').textContent=fC(ytdCashIn);
   document.getElementById('cm_ytd_out').textContent=fC(ytdCashOut);
@@ -1172,7 +1171,8 @@ function buildCashChart(){
   const actualCount=window._actualCount||0;
   const noLoan=tog();
   const balF=cash.map(c=>noLoan?c.balF2:c.balF3);
-  const cOutF=noLoan?cash.map(c=>c.cOutF2):cash.map(c=>c.cOutF3);
+  // Actual months: col I (cOA_op), Forecast months: col K (cOutF2) or col L (cOutF3)
+  const cOutF=cash.map((c,i)=>i<actualCount ? c.cOA_op : (noLoan?c.cOutF2:c.cOutF3));
 
   // Negative month detection
   const negMonth=cash.find((c,i)=>i>=actualCount&&(noLoan?c.balF2:c.balF3)<0);
@@ -1317,10 +1317,10 @@ function buildScenChart(){
       {label:'Revenue In (F)',data:scenRevIn,
        backgroundColor:cash.map((_,i)=>i<actualCount?tA:'rgba(15,184,184,0.35)'),
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
-      // Stacked bars — High pipeline (coral) and Medium pipeline (amber)
+      // Stacked bars — High pipeline (blue) and Medium pipeline (amber)
       {label:'Pipeline — High',data:scenHighIn,
-       backgroundColor:'rgba(255,107,107,0.55)',
-       borderColor:'rgba(255,107,107,0.8)',borderWidth:1,
+       backgroundColor:'rgba(99,179,237,0.6)',
+       borderColor:'rgba(99,179,237,0.85)',borderWidth:1,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
       {label:'Pipeline — Medium',data:scenMedIn,
        backgroundColor:'rgba(245,166,35,0.55)',
@@ -1953,15 +1953,16 @@ function buildColChart(){
   destroyChart('col_fwd');
   const el=document.getElementById('col_fwd');if(!el)return;
 
+  // Only show base forecast bar where cIF > 0 (not zero-padded months)
   const datasets=[
-    {label:'Base Forecast',data:colFcstNP.map(v=>v||null),type:'bar',
-     backgroundColor:'rgba(15,184,184,0.25)',borderColor:'rgba(15,184,184,0.5)',
+    {label:'Base Forecast',data:colFcstNP.map((v,i)=>colActual[i]>0?null:(v>0?v:null)),type:'bar',
+     backgroundColor:tA,borderColor:teal,
      borderWidth:1,borderRadius:3,order:2,stack:'s'}
   ];
   if(usePipe){
-    datasets.push({label:'Pipeline — High',data:colHighPM.map(v=>v||null),type:'bar',
-      backgroundColor:'rgba(255,107,107,0.45)',borderRadius:3,order:2,stack:'s'});
-    datasets.push({label:'Pipeline — Medium',data:colMedPM.map(v=>v||null),type:'bar',
+    datasets.push({label:'Pipeline — High',data:colHighPM.map((v,i)=>colActual[i]>0?null:(v||null)),type:'bar',
+      backgroundColor:'rgba(99,179,237,0.55)',borderRadius:3,order:2,stack:'s'});
+    datasets.push({label:'Pipeline — Medium',data:colMedPM.map((v,i)=>colActual[i]>0?null:(v||null)),type:'bar',
       backgroundColor:'rgba(245,166,35,0.45)',borderRadius:3,order:2,stack:'s'});
   }
   // Actual as green line with value labels
@@ -1980,22 +1981,11 @@ function buildColChart(){
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{
         legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}},
-        annotation:{annotations:
-          colActual.reduce((acc,v,i)=>{
-            if(v>0){
-              acc['lbl'+i]={type:'label',xValue:i,yValue:v,
-                content:'$'+Math.round(v/1000)+'K',
-                color:green,font:{size:9,weight:'600'},
-                position:{x:'center',y:'end'},yAdjust:-8};
-            }
-            return acc;
-          },{})
-        }
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}
       },
       scales:{
         x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{stacked:false,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
       }
     }});
 }
