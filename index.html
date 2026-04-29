@@ -1528,7 +1528,7 @@ function buildDSO(){
   // Invoiced vs Collected
   const s26=window._s26||[];
   const inv2026=s26.map(r=>r.rA||0);
-  const col2026=(_cash.length?_cash:window._cash||[]).map(c=>c.cIA||0);
+  const col2026=(window._cash||[]).map(c=>c.cIA||0);
   const L26short=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   destroyChart('inv_vs_col');
   charts['inv_vs_col']=new Chart(document.getElementById('inv_vs_col'),{type:'bar',
@@ -1539,9 +1539,9 @@ function buildDSO(){
 
   // Collections data
   // Pull live from Google Sheet (window._cash populated by processCash)
-  const _cash = window._cash || [];
-  const colActual = _cash.map(c => c.cIA || 0);          // col G - Cash In (A)
-  const colFcstNP = _cash.map(c => c.cIA ? 0 : (c.cIF || 0)); // col F forecast, only future months
+  const _cashData = window._cash || [];
+  const colActual = _cashData.map(c => c.cIA || 0);          // col G - Cash In (A)
+  const colFcstNP = _cashData.map(c => c.cIA ? 0 : (c.cIF || 0)); // col F forecast, only future months
   const colL26_c   = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   // Pipeline by priority spread across months (High Jun-Aug, Medium Jul-Nov)
   const HIGH_TOTAL = window._pipeHigh || 158435;
