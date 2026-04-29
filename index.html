@@ -362,6 +362,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="scr">
         <div class="sc g"><div class="slb">YTD Cash In</div><div class="sv g" id="sc_ytd_in">—</div></div>
         <div class="sc r"><div class="slb">YTD Cash Out</div><div class="sv r" id="sc_ytd_out">—</div></div>
+        <div class="sc" id="sc_net_cf_wrap"><div class="slb">Net CF YTD</div><div class="sv" id="sc_net_cf">—</div></div>
       </div>
     </div>
     <div class="cw tall"><canvas id="cInOut"></canvas></div>
@@ -1025,7 +1026,7 @@ function processCash(rows){
       cIF:pv(r[5]),cIA:pv(r[6]),
       cOutF2:pv(r[10]),cOutF3:pv(r[11]),
       balA:pv(r[14]),balF2:pv(r[15]),balF3:pv(r[16]),
-      cOA_op:pv(r[7]),burn3m:pv(r[17]),
+      cOA_op:pv(r[8]),burn3m:pv(r[17]), // col I = Cash Out (A) Op+fin
       runwayT:pv(r[19]), // col T no loans
       runwayU:pv(r[20])  // col U incl loans
     });
@@ -1059,8 +1060,16 @@ function processCash(rows){
   const balAData  = cash.map((c,i)=>i<actualCount?(c.balA||null):null);
   const scYtdIn   = document.getElementById('sc_ytd_in');
   const scYtdOut  = document.getElementById('sc_ytd_out');
+  const scNetCF   = document.getElementById('sc_net_cf');
+  const scNetWrap = document.getElementById('sc_net_cf_wrap');
+  const netCF     = ytdCashIn + ytdCashOut; // ytdCashOut is negative
   if(scYtdIn)  scYtdIn.textContent  = fC(ytdCashIn);
   if(scYtdOut) scYtdOut.textContent = fC(ytdCashOut);
+  if(scNetCF){
+    scNetCF.textContent = fC(netCF);
+    scNetCF.className   = 'sv '+(netCF>=0?'g':'r');
+  }
+  if(scNetWrap) scNetWrap.className = 'sc '+(netCF>=0?'g':'r');
   destroyChart('cInOut');
   charts['cInOut']=new Chart(document.getElementById('cInOut'),{type:'bar',
     data:{labels:L26.slice(0,cash.length),datasets:[
@@ -1410,9 +1419,12 @@ function buildDSO(){
   // Collections data
   // Pull live from Google Sheet (window._cash populated by processCash)
   const _cashData = window._cash || [];
-  const colActual = _cashData.map(c => c.cIA || 0);          // col G - Cash In (A)
-  const colFcstNP = _cashData.map(c => c.cIF || 0); // col F = full year forecast
-  const colL26_c   = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  window._colActual = _cashData.map(c => c.cIA || 0);
+  window._colFcstNP = _cashData.map(c => c.cIF || 0);
+  window._colL26_c  = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  const colActual = window._colActual;
+  const colFcstNP = window._colFcstNP;
+  const colL26_c  = window._colL26_c;
   // Pipeline by priority spread across months (High Jun-Aug, Medium Jul-Nov)
   const HIGH_TOTAL = window._pipeHigh || 158435;
   const MED_TOTAL  = window._pipeMed  || 173214;
@@ -1440,46 +1452,7 @@ function buildDSO(){
   const cfInvEl = document.getElementById('cm_invoices');
   if(cfInvEl) cfInvEl.textContent = fC(invOutstanding);
 
-  function buildColChart(){
-    // Recalculate pipeline values fresh on each call
-    const _H = window._pipeHigh || 158435;
-    const _M = window._pipeMed  || 173214;
-    const colHighPM = [0,0,0,0,0,_H/3,_H/3,_H/3,0,0,0,0];
-    const colMedPM  = [0,0,0,0,0,0,_M/5,_M/5,_M/5,_M/5,_M/5,0];
-    const usePipe=(document.getElementById('colFcstTog')?.value||'nopipe')==='pipe';
-    destroyChart('col_fwd');
-    const el=document.getElementById('col_fwd');if(!el)return;
-    const datasets = [
-      {label:'Actual',data:colActual.map(v=>v||null),
-       backgroundColor:tA,borderRadius:3,order:3,stack:'s'},
-      {label:'Forecast (base)',data:colFcstNP.map(v=>v||null),
-       backgroundColor:'rgba(15,184,184,0.3)',borderRadius:3,order:3,stack:'s',
-       borderColor:'rgba(15,184,184,0.6)',borderWidth:1}
-    ];
-    if(usePipe){
-      datasets.push({
-        label:'Pipeline — High',
-        data:colHighPM.map(v=>v||null),
-        backgroundColor:'rgba(255,107,107,0.55)',borderRadius:3,order:3,stack:'s'
-      });
-      datasets.push({
-        label:'Pipeline — Medium',
-        data:colMedPM.map(v=>v||null),
-        backgroundColor:'rgba(245,166,35,0.55)',borderRadius:3,order:3,stack:'s'
-      });
-    }
-    charts['col_fwd']=new Chart(el,{type:'bar',
-      data:{labels:colL26_c,datasets},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
-        scales:{
-          x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-          y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
-        }
-      }});
-  }
-  buildColChart();
+  buildColChart(); // defined at top level below
   // patch toggle to rebuild chart
   const colTogEl=document.getElementById('colFcstTog');
   if(colTogEl) colTogEl.onchange=buildColChart;
@@ -1509,11 +1482,28 @@ function sortPipeline(){
   var pipeline=window._pipelineData||[];
   var sp;
   var order={High:0,Medium:1,Low:2};
-  if(sortBy==='val') sp=[...pipeline].sort((a,b)=>b.a-a.a);
-  else if(sortBy==='prob') sp=[...pipeline].sort((a,b)=>{var oa=(order[a.s]||3),ob=(order[b.s]||3);return oa!==ob?oa-ob:b.a-a.a;});
-  else if(sortBy==='high') sp=[...pipeline].sort((a,b)=>(order[a.s]||3)-(order[b.s]||3));
-  else if(sortBy==='med') sp=[...pipeline].sort((a,b)=>{var ia=a.s==='Medium'?0:a.s==='High'?1:2;var ib=b.s==='Medium'?0:b.s==='High'?1:2;return ia-ib;});
-  else sp=[...pipeline].sort((a,b)=>{var ia=a.s==='Low'?0:a.s==='Medium'?1:2;var ib=b.s==='Low'?0:b.s==='Medium'?1:2;return ia-ib;});
+  var byVal=function(a,b){return b.a-a.a;};
+  if(sortBy==='val'){
+    sp=[...pipeline].sort(byVal);
+  } else if(sortBy==='prob'){
+    // High first sorted by val, then Medium, then Low
+    var h=pipeline.filter(function(p){return p.s==='High';}).sort(byVal);
+    var m=pipeline.filter(function(p){return p.s==='Medium';}).sort(byVal);
+    var l=pipeline.filter(function(p){return p.s==='Low';}).sort(byVal);
+    sp=h.concat(m).concat(l);
+  } else if(sortBy==='high'){
+    var h=pipeline.filter(function(p){return p.s==='High';}).sort(byVal);
+    var rest=pipeline.filter(function(p){return p.s!=='High';}).sort(byVal);
+    sp=h.concat(rest);
+  } else if(sortBy==='med'){
+    var m=pipeline.filter(function(p){return p.s==='Medium';}).sort(byVal);
+    var rest=pipeline.filter(function(p){return p.s!=='Medium';}).sort(byVal);
+    sp=m.concat(rest);
+  } else {
+    var l=pipeline.filter(function(p){return p.s==='Low';}).sort(byVal);
+    var rest=pipeline.filter(function(p){return p.s!=='Low';}).sort(byVal);
+    sp=l.concat(rest);
+  }
   var pb=document.getElementById('pb');if(!pb)return;
   pb.innerHTML='';var n=1;
   sp.forEach(function(p){
@@ -1535,6 +1525,12 @@ function processPipeline(rows){
     pipeline.push({c:r[0].trim(),s:r[1]?r[1].trim():'',a:r[2]?pv(r[2]):0});
   }
   window._pipelineData=pipeline;
+  // ALWAYS set from Pipeline tab (most reliable source)
+  const _pH=pipeline.filter(function(p){return p.s==='High';}).reduce(function(s,p){return s+p.a;},0);
+  const _pM=pipeline.filter(function(p){return p.s==='Medium';}).reduce(function(s,p){return s+p.a;},0);
+  window._pipeHigh=_pH;
+  window._pipeMed=_pM;
+  console.log('processPipeline: High='+_pH+' Med='+_pM);
   const sp=[...pipeline].sort((a,b)=>b.a-a.a);
   const high=pipeline.filter(p=>p.s==='High').reduce((s,p)=>s+p.a,0);
   const med =pipeline.filter(p=>p.s==='Medium').reduce((s,p)=>s+p.a,0);
@@ -1613,15 +1609,23 @@ function updateRunwayCard(){
 }
 
 function processRevenues(rows){
-  // Find M59 (High pipeline) and M60 (Medium pipeline) — row 58 and 59 (0-indexed)
-  // Col M = index 12
+  // Scan all columns of each row - the M col index may vary in CSV
+  // Find row where col A = exactly 'Pipeline - High', then find the largest numeric value > 1000
   try {
-    const highRow = rows.find(r=>r[0]&&r[0].toLowerCase().includes('high'));
-    const medRow  = rows.find(r=>r[0]&&r[0].toLowerCase().includes('medium'));
-    if(highRow && highRow[12]) window._pipeHigh = pv(highRow[12]);
-    if(medRow  && medRow[12])  window._pipeMed  = pv(medRow[12]);
-    if(window._pipeHigh || window._pipeMed){
-      console.log('Pipeline live: High='+window._pipeHigh+' Med='+window._pipeMed);
+    for(let i=0;i<rows.length;i++){
+      const r=rows[i];
+      const a=(r[0]||'').trim();
+      if(/^pipeline\s*-\s*high$/i.test(a)){
+        // Find biggest value in this row (that's the total)
+        let best=0;
+        for(let j=1;j<r.length;j++){const v=pv(r[j]);if(v>best&&v<2000000)best=v;}
+        if(best>1000){window._pipeHigh=best;console.log('Rev High=',best);}
+      }
+      if(/^pipeline\s*-\s*medium$/i.test(a)){
+        let best=0;
+        for(let j=1;j<r.length;j++){const v=pv(r[j]);if(v>best&&v<2000000)best=v;}
+        if(best>1000){window._pipeMed=best;console.log('Rev Med=',best);}
+      }
     }
   } catch(e){ console.warn('Revenue pipeline parse failed', e); }
 }
@@ -1867,6 +1871,38 @@ function buildRefTable(){
       +'<td style="color:var(--text3);font-size:11px;text-align:left">'+notes+'</td>';
     tbody.appendChild(tr);
   });
+}
+
+function buildColChart(){
+  // colHighPM/colMedPM from outer buildDSO scope (recalculated each time buildDSO is called)
+  const colActual=window._colActual||[];
+  const colFcstNP=window._colFcstNP||[];
+  const colL26_c=window._colL26_c||["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  const _H=window._pipeHigh||158435;
+  const _M=window._pipeMed||173214;
+  const colHighPM=[0,0,0,0,0,_H/3,_H/3,_H/3,0,0,0,0];
+  const colMedPM=[0,0,0,0,0,0,_M/5,_M/5,_M/5,_M/5,_M/5,0];
+  const usePipe=(document.getElementById('colFcstTog')?.value||'nopipe')==='pipe';
+  destroyChart('col_fwd');
+  const el=document.getElementById('col_fwd');if(!el)return;
+  const datasets=[
+    {label:'Actual',data:colActual.map(v=>v||null),backgroundColor:tA,borderRadius:3,order:3,stack:'s'},
+    {label:'Forecast (base)',data:colFcstNP.map(v=>v||null),backgroundColor:'rgba(15,184,184,0.3)',borderRadius:3,order:3,stack:'s',borderColor:'rgba(15,184,184,0.6)',borderWidth:1}
+  ];
+  if(usePipe){
+    datasets.push({label:'Pipeline — High',data:colHighPM.map(v=>v||null),backgroundColor:'rgba(255,107,107,0.55)',borderRadius:3,order:3,stack:'s'});
+    datasets.push({label:'Pipeline — Medium',data:colMedPM.map(v=>v||null),backgroundColor:'rgba(245,166,35,0.55)',borderRadius:3,order:3,stack:'s'});
+  }
+  charts['col_fwd']=new Chart(el,{type:'bar',
+    data:{labels:colL26_c,datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+      scales:{
+        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
+      }
+    }});
 }
 
 function goTab(id,el){
