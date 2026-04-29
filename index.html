@@ -3,14 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="pragma" content="no-cache">
-<meta http-equiv="expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>B.O.T — Company Financial Health 2026</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+
 :root{
   --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#252d40;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
@@ -154,6 +153,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .out-table-wrap td:last-child{text-align:right;font-family:var(--mono);}
 .out-table-wrap tr:hover td{background:rgba(255,255,255,.02);}
 .out-table-wrap tfoot td{font-weight:700;color:var(--teal);background:var(--bg3);border-top:1px solid var(--border2);}
+
 </style>
 </head>
 <body>
@@ -184,13 +184,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="tab" onclick="goTab('cash',this)">💰 Cash Flow</div>
   <div class="tab" onclick="goTab('pipe',this)">🔮 Pipeline</div>
   <div class="tab" onclick="goTab('dso',this)">📬 Collections</div>
-  <div class="tab" onclick="goTab('ref',this)">📎 Data Reference</div>
 </div>
 
-<!-- ══════════════════════════ 2026 FINANCIALS ══════════════════════════ -->
+<!-- ══════════ FINANCIALS 2026 ══════════ -->
 <div class="page active" id="page-fin26">
   <div class="slabel"><span>2026 Financials</span> — Revenue & Profitability</div>
-  <div class="card accent mb">
+  <div class="card mb">
     <div class="yyy" style="margin-bottom:16px">2026 — <span>YTD Actuals vs Full Year Target</span></div>
     <div class="ycg" id="yc2026"></div>
   </div>
@@ -217,7 +216,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="ch">
       <div>
         <div class="ctitle">Sales — Actual vs Forecast · Full Year 2026</div>
-        <div class="csub">Variance on completed months only · Toggle forecast scenario</div>
+        <div class="csub">Variance on completed months only</div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
@@ -260,7 +259,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-<!-- ══════════════════════════ 2025 FINANCIALS ══════════════════════════ -->
+<!-- ══════════ FINANCIALS 2025 ══════════ -->
 <div class="page" id="page-fin25">
   <div class="slabel"><span>2025 Financials</span> — Full Year Actuals</div>
   <div class="card mb">
@@ -278,16 +277,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cw"><canvas id="c2025"></canvas></div>
   </div>
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Monthly Revenue vs Forecast — 2025</div><div class="csub">Full year actuals vs original forecast</div></div></div>
+    <div class="ch"><div><div class="ctitle">Monthly Revenue vs Forecast — 2025</div></div></div>
     <table class="vt" id="vt25"></table>
   </div>
 </div>
 
-<!-- ══════════════════════════ Q1 RESULTS ══════════════════════════ -->
+<!-- ══════════ Q1 RESULTS ══════════ -->
 <div class="page" id="page-q1">
   <div class="slabel"><span>Q1 Results</span> — January · February · March 2026</div>
-
-  <!-- Q1 Hero metrics -->
   <div class="q1-hero">
     <div class="hero-card hc-teal">
       <div class="hero-label">Q1 Revenue</div>
@@ -295,7 +292,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="hero-sub" id="q1_rev_sub">vs target</div>
       <div class="hero-badge" id="q1_rev_badge"></div>
     </div>
-    <div class="hero-card" id="q1_profit_card" style="border-top:3px solid var(--green)">
+    <div class="hero-card hc-green">
       <div class="hero-label">Q1 Operating Profit</div>
       <div class="hero-val green" id="q1_profit">—</div>
       <div class="hero-sub" id="q1_margin_sub">Operating margin</div>
@@ -313,60 +310,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="hero-badge" id="q1_var_badge"></div>
     </div>
   </div>
-
-  <!-- Monthly breakdown -->
   <div class="q1-month-grid" id="q1_months"></div>
-
-  <!-- Q1 chart -->
   <div class="card accent mb">
-    <div class="ch">
-      <div><div class="ctitle">Q1 Revenue vs Expenses vs Operating Profit</div><div class="csub">Month by month · Jan–Mar 2026</div></div>
-    </div>
+    <div class="ch"><div><div class="ctitle">Q1 Revenue vs Expenses vs Operating Profit</div><div class="csub">Month by month · Jan–Mar 2026</div></div></div>
     <div class="cw"><canvas id="q1chart"></canvas></div>
   </div>
-
-  <!-- Revenue by type -->
   <div class="two">
     <div class="card">
       <div class="ch"><div><div class="ctitle">Revenue by Type — Q1 2026</div></div></div>
       <div class="cw short"><canvas id="q1bytype"></canvas></div>
     </div>
     <div class="card">
-      <div class="ch"><div><div class="ctitle">Q1 vs Full Year Target Progress</div><div class="csub">Revenue pacing against annual target</div></div></div>
+      <div class="ch"><div><div class="ctitle">Q1 vs Full Year Target Progress</div></div></div>
       <div class="cw short"><canvas id="q1pace"></canvas></div>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════ CASH FLOW ══════════════════════════ -->
+<!-- ══════════ CASH FLOW ══════════ -->
 <div class="page" id="page-cash">
   <div class="slabel"><span>Cash Flow</span> — Position & Forecast · 2026</div>
   <div class="alert-bar critical" id="cashAlert" style="display:none">
     <span style="font-size:18px">🚨</span><span id="cashAlertText"></span>
   </div>
-
-  <!-- Row 1: key balance metrics -->
   <div class="cash-grid">
-    <div class="cm t">
-      <div class="cml">Cash — Banks</div>
-      <div class="cmv t" id="cm_banks">—</div>
-      <div class="cms" id="cm_banks_date">April 20, 2026</div>
-    </div>
-    <div class="cm t">
-      <div class="cml">Cash — Safe</div>
-      <div class="cmv t" id="cm_safe">—</div>
-      <div class="cms">April 20, 2026</div>
-    </div>
-    <div class="cm t">
-      <div class="cml">Cash in Projects</div>
-      <div class="cmv t" id="cm_projects">—</div>
-      <div class="cms">April 20, 2026</div>
-    </div>
-    <div class="cm a">
-      <div class="cml">Invoices Outstanding</div>
-      <div class="cmv a" id="cm_invoices">—</div>
-      <div class="cms">To be collected</div>
-    </div>
+    <div class="cm t"><div class="cml">Cash — Banks</div><div class="cmv t" id="cm_banks">—</div><div class="cms ref-date">April 20, 2026</div></div>
+    <div class="cm t"><div class="cml">Cash — Safe</div><div class="cmv t" id="cm_safe">—</div><div class="cms ref-date">April 20, 2026</div></div>
+    <div class="cm t"><div class="cml">Cash in Projects</div><div class="cmv t" id="cm_projects">—</div><div class="cms ref-date">April 20, 2026</div></div>
+    <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices">—</div><div class="cms">From Invoice Tracker · live</div></div>
     <div class="cm" id="cm_runway_wrap" style="border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)">
       <div class="cml" style="display:flex;align-items:center;justify-content:space-between;">
         <span>Runway</span>
@@ -379,42 +350,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="cms">months remaining</div>
     </div>
   </div>
-
-  <!-- Row 2: YTD + obligations -->
   <div class="cash-grid-2">
-    <div class="cm g">
-      <div class="cml">Cash In YTD</div>
-      <div class="cmv g" id="cm_ytd_in">—</div>
-      <div class="cms">Jan–today actual</div>
-    </div>
-    <div class="cm r">
-      <div class="cml">Cash Out YTD</div>
-      <div class="cmv r" id="cm_ytd_out">—</div>
-      <div class="cms">Jan–today actual</div>
-    </div>
-    <div class="cm r">
-      <div class="cml">Loans Due</div>
-      <div class="cmv r" id="cm_loans">—</div>
-      <div class="cms">Outstanding balance</div>
-    </div>
-    <div class="cm r">
-      <div class="cml">Taxes Due</div>
-      <div class="cmv r" id="cm_taxes">—</div>
-      <div class="cms">Outstanding balance</div>
-    </div>
+    <div class="cm g"><div class="cml">Cash In YTD</div><div class="cmv g" id="cm_ytd_in">—</div><div class="cms">Jan–today actual</div></div>
+    <div class="cm r"><div class="cml">Cash Out YTD</div><div class="cmv r" id="cm_ytd_out">—</div><div class="cms">Jan–today actual</div></div>
+    <div class="cm r"><div class="cml">Loans Due</div><div class="cmv r" id="cm_loans">—</div><div class="cms">Outstanding balance</div></div>
+    <div class="cm r"><div class="cml">Taxes Due</div><div class="cmv r" id="cm_taxes">—</div><div class="cms">Outstanding balance</div></div>
   </div>
-
-  <!-- Charts restructured: Actual first, Forecast second, Runway third -->
-
-
-
-  <!-- Chart 1: Actual performance — Cash In/Out bars + Balance line -->
   <div class="card accent mb">
     <div class="ch">
-      <div>
-        <div class="ctitle">Cash In vs Out — Actual Performance</div>
-        <div class="csub">Confirmed months · Balance as line on right axis</div>
-      </div>
+      <div><div class="ctitle">Cash In vs Out — Actual Performance</div><div class="csub">Confirmed months · Balance as line on right axis</div></div>
       <div class="scr">
         <div class="sc g"><div class="slb">YTD Cash In</div><div class="sv g" id="sc_ytd_in">—</div></div>
         <div class="sc r"><div class="slb">YTD Cash Out</div><div class="sv r" id="sc_ytd_out">—</div></div>
@@ -422,14 +366,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="cw tall"><canvas id="cInOut"></canvas></div>
   </div>
-
-  <!-- Chart 2: Forecast — Cash In/Out bars + Balance line -->
   <div class="card accent mb">
     <div class="ch">
-      <div>
-        <div class="ctitle">Cash Flow Forecast — Full Year 2026</div>
-        <div class="csub">Cash In & Out bars · Balance as line · Excludes pipeline</div>
-      </div>
+      <div><div class="ctitle">Cash Flow Forecast — Full Year 2026</div><div class="csub">Cash In & Out bars · Balance as line · Excludes pipeline</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="sc_neg">—</div></div>
@@ -446,14 +385,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="cw tall"><canvas id="cbal"></canvas></div>
   </div>
-
-  <!-- Chart 3: Runway — two scenarios -->
   <div class="card accent mb">
     <div class="ch">
-      <div>
-        <div class="ctitle">Cash Runway</div>
-        <div class="csub">Months of cash remaining based on current burn rate</div>
-      </div>
+      <div><div class="ctitle">Cash Runway</div><div class="csub">Months of cash remaining based on current burn rate</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc" id="sc_rwy_wrap"><div class="slb" id="sc_rwy_label">Runway</div><div class="sv" id="sc_rwy_val">—</div></div>
@@ -469,10 +403,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="cw"><canvas id="rwy"></canvas></div>
   </div>
-
-
-
-  <!-- Scenario builder -->
+  <!-- Scenario Builder -->
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
     <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:14px;">📐 Scenario Builder — Cash Balance Projection</div>
     <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
@@ -511,31 +442,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div style="margin-top:16px;height:320px;position:relative;"><canvas id="cbal_scen"></canvas></div>
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
-      High pipeline $158,735 × 70% probability = $111K expected · spread Jun–Aug.
-      Medium pipeline $184,214 × 35% probability = $64K expected · spread Jul–Nov.
-      2-month CCC applied — no pipeline cash before June regardless of close date.
-      Slider scales both proportionally. Loan/tax repayment adjusts col K vs L from Staging_cash. Payroll baseline 0,250/month — reduction applied as savings to cash outflows.
+      High pipeline × 70% probability · spread Jun–Aug.
+      Medium pipeline × 35% probability · spread Jul–Nov.
+      2-month CCC — no pipeline cash before June.
+      Payroll baseline $20,250/month.
     </div>
   </div>
-
-
-  <!-- Scenario forecast table -->
+  <!-- Scenario detail table -->
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
     <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">📋 Scenario Projection — Monthly Detail</div>
     <div style="overflow-x:auto;">
       <table class="vt" id="scen_table" style="min-width:900px;">
         <thead>
           <tr>
-            <th style="text-align:left">Month</th>
-            <th>Type</th>
-            <th>Revenue In</th>
-            <th>Pipeline High</th>
-            <th>Pipeline Med</th>
-            <th>Total In</th>
-            <th>Cash Out</th>
-            <th>Net Flow</th>
-            <th>Balance</th>
-            <th>Runway</th>
+            <th style="text-align:left">Month</th><th>Type</th>
+            <th>Revenue In</th><th style="color:var(--coral)">Pipeline High</th>
+            <th style="color:var(--amber)">Pipeline Med</th><th>Total In</th>
+            <th>Cash Out</th><th>Net Flow</th><th>Balance</th>
           </tr>
         </thead>
         <tbody id="scen_tbody"></tbody>
@@ -543,13 +466,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </table>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
-      * Payroll reduction and loan repayment rates applied as per scenario controls above · Pipeline: High×70% Jun–Aug · Medium×35% Jul–Nov · 2-month CCC applied
+      * Table reflects scenario controls above · Pipeline High (coral) · Pipeline Medium (amber) · 2-month CCC applied
     </div>
   </div>
-
 </div>
 
-<!-- ══════════════════════════ PIPELINE ══════════════════════════ -->
+<!-- ══════════ PIPELINE ══════════ -->
 <div class="page" id="page-pipe">
   <div class="slabel"><span>Pipeline</span> — Active Opportunities</div>
   <div class="ps-row">
@@ -560,7 +482,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="pl">
     <div class="ptc">
-      <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Active Opportunities</div>
+      <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Active Opportunities</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="tl">Sort by</span>
+          <select class="ts" id="pipeSortTog" onchange="sortPipeline()" style="font-size:11px;">
+            <option value="val">Value ↓</option>
+            <option value="high">High first</option>
+            <option value="med">Medium first</option>
+            <option value="low">Low first</option>
+          </select>
+        </div>
+      </div>
       <table class="pt"><thead><tr><th style="width:28px">#</th><th>Company</th><th>Probability</th><th>Est. Value</th></tr></thead><tbody id="pb"></tbody></table>
     </div>
     <div class="dc">
@@ -570,42 +503,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
-
-<!-- ══════════════════════════ COLLECTIONS & DSO ══════════════════════════ -->
+<!-- ══════════ COLLECTIONS ══════════ -->
 <div class="page" id="page-dso">
   <div class="slabel"><span>Collections & DSO</span> — Invoice to Cash Lag Analysis</div>
-
-  <!-- Hero metrics -->
   <div class="dso-grid">
-    <div class="cm t">
-      <div class="cml">Avg DSO (all time)</div>
-      <div class="cmv t" id="dso_avg">— days</div>
-      <div class="cms">Invoice to collection · live</div>
-    </div>
-    <div class="cm a">
-      <div class="cml">Median DSO</div>
-      <div class="cmv a" id="dso_med">— days</div>
-      <div class="cms">50th percentile · live</div>
-    </div>
-    <div class="cm r">
-      <div class="cml">Outstanding Invoices</div>
-      <div class="cmv r" id="col_outstanding">—</div>
-      <div class="cms" id="col_outstanding_sub">From DB1</div>
-    </div>
-    <div class="cm" style="border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.06);">
-      <div class="cml">Dominant Payment Term</div>
-      <div class="cmv a">1 month</div>
-      <div class="cms">28 of 68 invoices</div>
-    </div>
+    <div class="cm t"><div class="cml">Avg DSO</div><div class="cmv t" id="dso_avg">—</div><div class="cms">Days to collect</div></div>
+    <div class="cm a"><div class="cml">Median DSO</div><div class="cmv a" id="dso_med">—</div><div class="cms">50th percentile</div></div>
+    <div class="cm r"><div class="cml">Outstanding Invoices</div><div class="cmv r" id="col_outstanding">—</div><div class="cms" id="col_outstanding_sub">From Invoice Tracker</div></div>
+    <div class="cm a"><div class="cml">Dominant Payment Term</div><div class="cmv a">1 month</div><div class="cms">Most common</div></div>
   </div>
-
-  <!-- DSO trend chart + Invoiced vs Collected -->
+  <!-- Collections scorecards -->
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
+    <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
+    <div class="cm r"><div class="cml">Invoices Outstanding</div><div class="cmv r" id="col_inv_out">—</div><div class="cms">Status=Invoiced · col U</div></div>
+    <div class="cm a"><div class="cml">Not Yet Invoiced</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Not Invoiced · col K</div></div>
+    <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
+    <div class="cm t"><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base + High + Medium</div></div>
+  </div>
   <div class="two">
     <div class="card accent mb">
       <div class="ch">
-        <div><div class="ctitle">DSO Trend — Days to Collect by Month</div><div class="csub">Average days from invoice date to collection date</div></div>
+        <div><div class="ctitle">DSO Trend — Days to Collect by Month</div><div class="csub">Average days from invoice to payment · Live from Invoice Tracker</div></div>
         <div class="scr">
-          <div class="sc a"><div class="slb">2026 avg</div><div class="sv a">28d</div></div>
+          <div class="sc a"><div class="slb">Avg DSO</div><div class="sv a" id="dso_avg_sc">—</div></div>
           <div class="sc"><div class="slb">Target</div><div class="sv w">30d</div></div>
         </div>
       </div>
@@ -613,49 +533,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="card accent mb">
       <div class="ch">
-        <div><div class="ctitle">Invoiced vs Collected — Monthly</div><div class="csub">Revenue recognised vs cash actually received</div></div>
+        <div><div class="ctitle">Invoiced vs Collected — Monthly</div><div class="csub">Revenue recognised vs cash received</div></div>
       </div>
       <div class="cw"><canvas id="inv_vs_col"></canvas></div>
     </div>
   </div>
-
-  <!-- Upcoming collections -->
   <div class="two">
-    <!-- Collections scorecards -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
-      <div class="cm g">
-        <div class="cml">YTD Collected</div>
-        <div class="cmv g" id="col_ytd">—</div>
-        <div class="cms">Actual cash in Jan–today</div>
-      </div>
-      <div class="cm r">
-        <div class="cml">Invoices Outstanding</div>
-        <div class="cmv r" id="col_inv_out">—</div>
-        <div class="cms">Status=Invoiced · col U</div>
-      </div>
-      <div class="cm a">
-        <div class="cml">Not Yet Invoiced</div>
-        <div class="cmv a" id="col_not_inv">—</div>
-        <div class="cms">Status=Not Invoiced · col K</div>
-      </div>
-      <div class="cm t">
-        <div class="cml">Base Forecast</div>
-        <div class="cmv t" id="col_fcst_np">—</div>
-        <div class="cms">No pipeline · full year</div>
-      </div>
-      <div class="cm t">
-        <div class="cml">Total Forecast + Pipeline</div>
-        <div class="cmv t" id="col_fcst_p">—</div>
-        <div class="cms">Base + High + Medium</div>
-      </div>
-    </div>
-    
     <div class="card mb">
       <div class="ch">
         <div><div class="ctitle">Collections — Actual vs Forecast</div><div class="csub">Cash received vs expected · Full year 2026</div></div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="tl">Forecast</span>
-          <select class="ts" id="colFcstTog" onchange="buildDSO()" style="font-size:11px;">
+          <select class="ts" id="colFcstTog" style="font-size:11px;">
             <option value="nopipe">No Pipeline</option>
             <option value="pipe">Incl Pipeline</option>
           </select>
@@ -664,13 +553,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="cw short"><canvas id="col_fwd"></canvas></div>
     </div>
     <div class="card mb">
-      <div class="ch"><div><div class="ctitle">Invoice Gap — Revenue Invoiced vs Cash Received</div><div class="csub">The lag between recognising revenue and receiving cash</div></div></div>
+      <div class="ch"><div><div class="ctitle">Invoice Gap — Invoiced vs Cash Received</div><div class="csub">The lag between recognising revenue and receiving cash</div></div></div>
       <div class="cw short"><canvas id="inv_gap"></canvas></div>
     </div>
   </div>
-
   <!-- Outstanding by customer -->
-  <div class="out-table-wrap">
+  <div class="out-table-wrap mb">
     <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
     <table>
       <thead><tr><th>#</th><th>Customer</th><th>Amount Outstanding</th><th>% of Total</th></tr></thead>
@@ -678,47 +566,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <tfoot><tr><td></td><td><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
     </table>
   </div>
-
-  <!-- Context note -->
-  <div class="card" style="border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.04);">
-    <div style="font-size:12px;font-weight:600;color:var(--amber);margin-bottom:8px;">📌 Key insight</div>
-    <div style="font-size:12px;color:var(--text2);line-height:1.7;">
-      Average DSO of <strong style="color:var(--text)">49 days</strong> means cash arrives roughly 7 weeks after invoicing. 
-      Dec 2025 was the worst month at <strong style="color:var(--text)">130 days avg</strong>. 
-      The largest outstanding balance is <strong style="color:var(--text)">UNHCR at $200,000</strong> — collecting this single invoice would 
-      extend runway by approximately <strong style="color:var(--text)">4–5 months</strong>. 
-      2026 collections have improved significantly — Jan–Apr avg DSO is <strong style="color:var(--text)">28 days</strong>.
-    </div>
+  <!-- To be invoiced by customer -->
+  <div class="out-table-wrap">
+    <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
+    <table>
+      <thead><tr><th>#</th><th>Customer</th><th>Amount (col K)</th><th>% of Total</th></tr></thead>
+      <tbody id="not_inv_tbody"></tbody>
+      <tfoot><tr><td></td><td><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
+    </table>
   </div>
 </div>
 
-<!-- ══════════════════════════ DATA REFERENCE ══════════════════════════ -->
-<div class="page" id="page-ref">
-  <div class="slabel"><span>Data Reference</span> — Live Google Sheet Source Mapping</div>
-  <div class="card mb" style="border-color:rgba(15,184,184,.28);">
-    <div style="font-size:12px;color:var(--text2);line-height:1.8;margin-bottom:12px;">
-      Every value below is fetched live from your Google Sheet on every page load. Values update automatically when the sheet changes.
-      <br>Sheet ID: <span style="font-family:var(--mono);font-size:11px;color:var(--teal)">2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo</span>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="vt" id="ref_table" style="min-width:900px;">
-        <thead>
-          <tr>
-            <th style="text-align:left">Dashboard Tab</th>
-            <th style="text-align:left">Metric</th>
-            <th style="text-align:right">Live Value</th>
-            <th style="text-align:left">Sheet Tab</th>
-            <th style="text-align:left">Column(s)</th>
-            <th style="text-align:left">Filter / Notes</th>
-          </tr>
-        </thead>
-        <tbody id="ref_tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
 
 <script>
+
 const URLS={
   staging:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=914674636&single=true&output=csv',
   cash:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1763420424&single=true&output=csv',
@@ -1509,6 +1370,15 @@ function buildDSO(){
   if(dsoAvgEl) dsoAvgEl.textContent=dsoAvg+' days';
   if(dsoMedEl) dsoMedEl.textContent=dsoMed+' days';
 
+  // Update DSO hero cards
+  if(dsoVals.length){
+    const avg=Math.round(dsoVals.reduce((s,v)=>s+v,0)/dsoVals.length);
+    const sorted=[...dsoVals].sort((a,b)=>a-b);
+    const med=sorted[Math.floor(sorted.length/2)];
+    const el1=document.getElementById('dso_avg');if(el1)el1.textContent=avg+'d';
+    const el2=document.getElementById('dso_med');if(el2)el2.textContent=med+'d';
+    const el3=document.getElementById('dso_avg_sc');if(el3)el3.textContent=avg+'d';
+  }
   // DSO trend — live data
   destroyChart('dso_trend');
   charts['dso_trend']=new Chart(document.getElementById('dso_trend'),{type:'line',
@@ -1541,7 +1411,7 @@ function buildDSO(){
   // Pull live from Google Sheet (window._cash populated by processCash)
   const _cashData = window._cash || [];
   const colActual = _cashData.map(c => c.cIA || 0);          // col G - Cash In (A)
-  const colFcstNP = _cashData.map(c => c.cIA ? 0 : (c.cIF || 0)); // col F forecast, only future months
+  const colFcstNP = _cashData.map(c => c.cIF || 0); // col F = full year forecast
   const colL26_c   = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   // Pipeline by priority spread across months (High Jun-Aug, Medium Jul-Nov)
   const HIGH_TOTAL = window._pipeHigh || 158435;
@@ -1560,12 +1430,12 @@ function buildDSO(){
   const c_ni   = document.getElementById('col_not_inv');
   const c_fnp  = document.getElementById('col_fcst_np');
   const c_fp   = document.getElementById('col_fcst_p');
-  const baseFcst = ytdCollected + colFcstNP.reduce((s,v)=>s+v,0);
+  const fullYrFcst = _cashData.reduce((s,c)=>s+(c.cIF||0), 0);
   if(c_ytd)  c_ytd.textContent  = fC(ytdCollected);
   if(c_inv)  c_inv.textContent  = fC(invOutstanding);
-  if(c_ni)   c_ni.textContent   = fC(window._notInvoiced||290042);
-  if(c_fnp)  c_fnp.textContent  = fC(baseFcst);
-  if(c_fp)   c_fp.textContent   = fC(baseFcst + HIGH_TOTAL + MED_TOTAL);
+  if(c_ni)   c_ni.textContent   = fC(window._notInvoiced||0);
+  if(c_fnp)  c_fnp.textContent  = fC(fullYrFcst);
+  if(c_fp)   c_fp.textContent   = fC(fullYrFcst + HIGH_TOTAL + MED_TOTAL);
   // Also update cm_invoices in cash flow tab
   const cfInvEl = document.getElementById('cm_invoices');
   if(cfInvEl) cfInvEl.textContent = fC(invOutstanding);
@@ -1608,6 +1478,7 @@ function buildDSO(){
   // patch toggle to rebuild chart
   const colTogEl=document.getElementById('colFcstTog');
   if(colTogEl) colTogEl.onchange=buildColChart;
+  buildColChart();
 
   // Invoice gap — invoiced minus collected
   const gap2026=inv2026.map((v,i)=>v-(col2026[i]||0));
@@ -1628,12 +1499,36 @@ function buildDSO(){
   // Outstanding table now built by processInvoices() from live sheet
 }
 
+function sortPipeline(){
+  var sortBy=document.getElementById('pipeSortTog')?.value||'val';
+  var pipeline=window._pipelineData||[];
+  var sp;
+  var order={High:0,Medium:1,Low:2};
+  if(sortBy==='val') sp=[...pipeline].sort((a,b)=>b.a-a.a);
+  else if(sortBy==='high') sp=[...pipeline].sort((a,b)=>(order[a.s]||3)-(order[b.s]||3));
+  else if(sortBy==='med') sp=[...pipeline].sort((a,b)=>{var ia=a.s==='Medium'?0:a.s==='High'?1:2;var ib=b.s==='Medium'?0:b.s==='High'?1:2;return ia-ib;});
+  else sp=[...pipeline].sort((a,b)=>{var ia=a.s==='Low'?0:a.s==='Medium'?1:2;var ib=b.s==='Low'?0:b.s==='Medium'?1:2;return ia-ib;});
+  var pb=document.getElementById('pb');if(!pb)return;
+  pb.innerHTML='';var n=1;
+  sp.forEach(function(p){
+    var bc=p.s==='High'?'bh':p.s==='Medium'?'bm':'bl';
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td class="rn">'+n+'.</td><td>'+p.c+'</td><td><span class="badge '+bc+'">'+p.s+'</span></td><td>'+(p.a?fC(p.a):'—')+'</td>';
+    pb.appendChild(tr);n++;
+  });
+  var tf=document.createElement('tr');tf.className='tr';
+  var tot=(window._pipelineData||[]).reduce(function(s,p){return s+p.a;},0);
+  tf.innerHTML='<td></td><td colspan="2"><strong>Grand Total</strong></td><td>'+fC(tot)+'</td>';
+  pb.appendChild(tf);
+}
+
 function processPipeline(rows){
   const pipeline=[];
   for(let i=1;i<rows.length;i++){
     const r=rows[i];if(!r[0]||!r[0].trim())continue;
     pipeline.push({c:r[0].trim(),s:r[1]?r[1].trim():'',a:r[2]?pv(r[2]):0});
   }
+  window._pipelineData=pipeline;
   const sp=[...pipeline].sort((a,b)=>b.a-a.a);
   const high=pipeline.filter(p=>p.s==='High').reduce((s,p)=>s+p.a,0);
   const med =pipeline.filter(p=>p.s==='Medium').reduce((s,p)=>s+p.a,0);
@@ -1751,6 +1646,36 @@ function processInvoices(rows){
       grandTotal += outstanding;
     }
     window._notInvoiced = notInvoicedTotal;
+    const niEl2 = document.getElementById('col_not_inv');
+    if(niEl2) niEl2.textContent = fC(notInvoicedTotal);
+
+    // Build To Be Invoiced by customer table
+    const notInvByCust={};
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];if(!r[0]||!r[0].trim())continue;
+      const st=(r[3]||'').trim().toLowerCase();
+      if(st!=='not invoiced')continue;
+      const cust=(r[6]||'').trim();
+      const amt=pv(r[10]);
+      if(!cust||amt<=0)continue;
+      notInvByCust[cust]=(notInvByCust[cust]||0)+amt;
+    }
+    const niSorted=Object.entries(notInvByCust).sort((a,b)=>b[1]-a[1]).filter(([,v])=>v>0);
+    const niTbody=document.getElementById('not_inv_tbody');
+    const niTotEl=document.getElementById('not_inv_total');
+    if(niTbody){
+      niTbody.innerHTML='';
+      niSorted.forEach(([cust,amt],i)=>{
+        const pct=notInvoicedTotal>0?(amt/notInvoicedTotal*100).toFixed(1):0;
+        const tr=document.createElement('tr');
+        tr.innerHTML='<td class="rn">'+(i+1)+'.</td><td>'+cust+'</td><td>'+fC(amt)+'</td>'
+          +'<td><div style="display:flex;align-items:center;gap:8px;">'
+          +'<div style="height:6px;width:'+Math.max(2,pct*1.8)+'px;background:rgba(245,166,35,0.6);border-radius:3px"></div>'
+          +'<span style="font-family:var(--mono);font-size:11px">'+pct+'%</span></div></td>';
+        niTbody.appendChild(tr);
+      });
+    }
+    if(niTotEl) niTotEl.textContent=fC(notInvoicedTotal);
 
     // Sort by amount desc
     const sorted = Object.entries(byCustomer)
@@ -1947,5 +1872,7 @@ function goTab(id,el){
 }
 
 loadAllData();
-</script></body>
+
+</script>
+</body>
 </html>
