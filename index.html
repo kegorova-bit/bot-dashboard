@@ -153,6 +153,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .out-table-wrap td:last-child{text-align:right;font-family:var(--mono);}
 .out-table-wrap tr:hover td{background:rgba(255,255,255,.02);}
 .out-table-wrap tfoot td{font-weight:700;color:var(--teal);background:var(--bg3);border-top:1px solid var(--border2);}
+  .sub-tab{
+    background:var(--bg3);border:1px solid var(--border);color:var(--text2);
+    padding:7px 18px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;
+    font-family:var(--font);transition:all .2s;letter-spacing:.3px;
+  }
+  .sub-tab:hover{border-color:var(--teal);color:var(--teal);}
+  .sub-tab.active{background:var(--teal);border-color:var(--teal);color:#0a0f1a;font-weight:700;}
 
 </style>
 </head>
@@ -178,16 +185,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="error-bar" id="errorBar"></div>
 
 <div class="tabs">
-  <div class="tab active" onclick="goTab('fin26',this)">📊 2026 Financials</div>
-  <div class="tab" onclick="goTab('fin25',this)">📋 2025 Financials</div>
-  <div class="tab" onclick="goTab('q1',this)">🏁 Q1 Results</div>
-  <div class="tab" onclick="goTab('cash',this)">💰 Cash Flow</div>
-  <div class="tab" onclick="goTab('pipe',this)">🔮 Pipeline</div>
+  <div class="tab active" onclick="goTab('cash',this)">💰 Cash Flow</div>
   <div class="tab" onclick="goTab('dso',this)">📬 Collections</div>
+  <div class="tab" onclick="goTab('pipe',this)">🔮 Pipeline</div>
+  <div class="tab" onclick="goTab('revpnl',this)">📊 Revenue & Profitability</div>
 </div>
 
 <!-- ══════════ FINANCIALS 2026 ══════════ -->
-<div class="page active" id="page-fin26">
+<div class="page" id="page-revpnl">
+  <!-- Sub-tab switcher -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    <button class="sub-tab active" id="st_fin26" onclick="switchSubTab('fin26',this)">📊 2026 Financials</button>
+    <button class="sub-tab" id="st_q1"    onclick="switchSubTab('q1',this)">🏁 Q1 Results</button>
+    <button class="sub-tab" id="st_fin25" onclick="switchSubTab('fin25',this)">📋 2025 Financials</button>
+  </div>
+  <!-- 2026 Financials sub-view -->
+  <div id="sv-fin26" class="sub-view active">
+
   <div class="slabel"><span>2026 Financials</span> — Revenue & Profitability</div>
   <div class="card mb">
     <div class="yyy" style="margin-bottom:16px">2026 — <span>YTD Actuals vs Full Year Target</span></div>
@@ -221,7 +235,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc t"><div class="slb">Full Year Sales (F)</div><div class="sv t" id="sc_sales_fy">—</div></div>
-          <div class="sc g" id="sc_op_fy_wrap"><div class="slb">Full Year Op Profit (F)</div><div class="sv g" id="sc_op_fy">—</div></div>
+          <div class="sc" id="sc_op_fy_wrap"><div class="slb">Full Year Op Profit (F)</div><div class="sv" id="sc_op_fy">—</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="tl">Forecast</span>
@@ -260,30 +274,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <!-- ══════════ FINANCIALS 2025 ══════════ -->
-<div class="page" id="page-fin25">
-  <div class="slabel"><span>2025 Financials</span> — Full Year Actuals</div>
-  <div class="card mb">
-    <div class="yyy" style="margin-bottom:16px">2025 — <span>Full Year Summary</span></div>
-    <div class="ycg" id="yc2025"></div>
   </div>
-  <div class="card accent mb">
-    <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2025 Full Year</div></div>
-      <div class="scr">
-        <div class="sc g"><div class="slb">Op Profit (A)</div><div class="sv g" id="sc_p25">—</div></div>
-        <div class="sc"><div class="slb">Margin</div><div class="sv w" id="sc_m25">—</div></div>
-      </div>
-    </div>
-    <div class="cw"><canvas id="c2025"></canvas></div>
-  </div>
-  <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Monthly Revenue vs Forecast — 2025</div></div></div>
-    <table class="vt" id="vt25"></table>
-  </div>
-</div>
+  <!-- Q1 Results sub-view -->
+  <div id="sv-q1" class="sub-view" style="display:none;">
 
-<!-- ══════════ Q1 RESULTS ══════════ -->
-<div class="page" id="page-q1">
   <div class="slabel"><span>Q1 Results</span> — January · February · March 2026</div>
   <div class="q1-hero">
     <div class="hero-card hc-teal">
@@ -328,7 +322,36 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 <!-- ══════════ CASH FLOW ══════════ -->
-<div class="page" id="page-cash">
+  </div>
+  <!-- 2025 Financials sub-view -->
+  <div id="sv-fin25" class="sub-view" style="display:none;">
+
+  <div class="slabel"><span>2025 Financials</span> — Full Year Actuals</div>
+  <div class="card mb">
+    <div class="yyy" style="margin-bottom:16px">2025 — <span>Full Year Summary</span></div>
+    <div class="ycg" id="yc2025"></div>
+  </div>
+  <div class="card accent mb">
+    <div class="ch">
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2025 Full Year</div></div>
+      <div class="scr">
+        <div class="sc" id="sc_p25_wrap"><div class="slb">Op Profit (A)</div><div class="sv" id="sc_p25">—</div></div>
+        <div class="sc"><div class="slb">Margin</div><div class="sv w" id="sc_m25">—</div></div>
+      </div>
+    </div>
+    <div class="cw"><canvas id="c2025"></canvas></div>
+  </div>
+  <div class="card mb">
+    <div class="ch"><div><div class="ctitle">Monthly Revenue vs Forecast — 2025</div></div></div>
+    <table class="vt" id="vt25"></table>
+  </div>
+</div>
+
+<!-- ══════════ Q1 RESULTS ══════════ -->
+  </div>
+</div>
+
+<div class="page active" id="page-cash">
   <div class="slabel"><span>Cash Flow</span> — Position & Forecast · 2026</div>
   <div class="alert-bar critical" id="cashAlert" style="display:none">
     <span style="font-size:18px">🚨</span><span id="cashAlertText"></span>
@@ -714,7 +737,10 @@ function processStaging(rows){
     <div><div class="ycl">Grants (A)</div><div class="ycv" style="color:var(--green)">${fC(t25.gA)}</div><div class="ycs">${fPct(t25.gA,t25.rA)} of revenue</div></div>
     <div><div class="ycl">Operating Profit (A)</div><div class="ycv" style="color:${t25.pA>=0?'var(--green)':'var(--coral)'}">${fC(t25.pA)}</div><div class="ycs">Margin: ${fPct(t25.pA,t25.rA)}</div></div>
     <div></div>`;
-  document.getElementById('sc_p25').textContent=fmt(t25.pA);
+  const sc25=document.getElementById('sc_p25');
+  if(sc25){sc25.textContent=fmt(t25.pA);sc25.className='sv '+(t25.pA>=0?'g':'r');}
+  const sc25w=document.getElementById('sc_p25')?.closest('.sc');
+  if(sc25w)sc25w.className='sc '+(t25.pA>=0?'g':'r');
   document.getElementById('sc_m25').textContent=fPct(t25.pA,t25.rA);
 
   // 2026 YTD
@@ -742,7 +768,7 @@ function processStaging(rows){
       {label:'Sales',data:s25.map(r=>r.sA||null),backgroundColor:tA,stack:'s',order:2,borderRadius:2},
       {label:'Grants',data:s25.map(r=>r.gA||null),backgroundColor:cyan,stack:'s',order:2,borderRadius:2},
       {label:'Expenses',data:s25.map(r=>r.eA||null),backgroundColor:cA,stack:'s',order:2,borderRadius:2},
-      {label:'Op Profit',data:s25.map(r=>r.pA),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:green,fill:false,tension:0.3,order:1}
+      {label:'Op Profit',data:s25.map(r=>r.pA),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:s25.map(r=>r.pA<0?coral:green),fill:false,tension:0.3,order:1,segment:{borderColor:ctx=>s25[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},options:bO(true)});
 
   // 2026 actual chart
@@ -752,7 +778,7 @@ function processStaging(rows){
       {label:'Sales',data:s26.map(r=>r.done?r.sA:null),backgroundColor:tA,stack:'s',order:2,borderRadius:2},
       {label:'Grants',data:s26.map(r=>r.done&&r.gA?r.gA:null),backgroundColor:cyan,stack:'s',order:2,borderRadius:2},
       {label:'Expenses',data:s26.map(r=>r.done&&r.eA?r.eA:null),backgroundColor:cA,stack:'s',order:2,borderRadius:2},
-      {label:'Op Profit',data:s26.map(r=>r.done?r.pA:null),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:green,fill:false,tension:0.3,order:1}
+      {label:'Op Profit',data:s26.map(r=>r.done?r.pA:null),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:s26.map(r=>r.pA<0?coral:green),fill:false,tension:0.3,order:1,segment:{borderColor:ctx=>s26[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},options:bO(true)});
 
   // Sales vs Forecast — 12 months with pipeline toggle
@@ -873,7 +899,7 @@ function updateF(){
   const p=document.getElementById('ftog').value==='pipe';
   const d=buildFD(p,s26);
   const tP=d.reduce((s,r)=>s+r.pr,0),tR=d.reduce((s,r)=>s+r.s+r.g+r.pl,0);
-  document.getElementById('pF').textContent=fmt(tP);
+  const pFel=document.getElementById('pF');if(pFel){pFel.textContent=fmt(tP);pFel.className='sv '+(tP>=0?'g':'r');} const pFwrap=document.getElementById('pF_wrap');if(pFwrap)pFwrap.className='sc '+(tP>=0?'g':'r');
   document.getElementById('mF').textContent=tR>0?(tP/tR*100).toFixed(0)+'%':'—';
   if(charts['c2026f']){
     const c=charts['c2026f'];
@@ -1989,11 +2015,33 @@ function buildColChart(){
     }});
 }
 
+function switchSubTab(view, btn){
+  // Hide all sub-views
+  document.querySelectorAll('.sub-view').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.sub-tab').forEach(el=>el.classList.remove('active'));
+  // Show selected
+  const sv = document.getElementById('sv-'+view);
+  if(sv) sv.style.display='block';
+  if(btn) btn.classList.add('active');
+  // Rebuild charts for the newly shown view
+  setTimeout(()=>{
+    if(view==='fin26'){ buildSalesChart(); updateF(); }
+    if(view==='fin25'){ /* charts already built */ }
+    if(view==='q1')   { buildQ1(); }
+    Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}});
+  },50);
+}
+
 function goTab(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('page-'+id).classList.add('active');
+  // If switching to revpnl, activate default sub-tab (fin26)
+  if(id==='revpnl'){
+    const defaultBtn=document.getElementById('st_fin26');
+    switchSubTab('fin26', defaultBtn);
+  }
   setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}}),50);
 }
 
