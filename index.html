@@ -1297,7 +1297,18 @@ function buildScenChart(){
       const taxThisMonth   = isJunePlus ? (taxLiability * taxRate / taxMonths) : 0;
       const cashOut        = baseOut + loanExtra + payrollSave - taxThisMonth + workforceExtra;
       runBal = runBal + baseIn + pipelineIn + cashOut;
-      if(i===actualCount) console.log('First fcst month:',{i,baseIn,pipelineIn,cashOut,runBal,startBal:startBal,balA:c.balA,cIF:c.cIF,cOutF2:c.cOutF2});
+            if(i===5){
+        const lbl=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i];
+        console.group('Scenario Builder — June debug (oblRate='+oblRate_sel+', taxRate='+taxRate+')');
+        console.log('Base cash out (F2):', c.cOutF2);
+        console.log('F3 (incl loans):', c.cOutF3);
+        console.log('Loan component F3-F2:', loanComp, '× rate', oblRate_sel, '= loanExtra:', loanExtra);
+        console.log('Tax this month:', taxThisMonth, '(liability:', taxLiability, '÷ months:', taxMonths, '× rate:', taxRate, ')');
+        console.log('Payroll save:', payrollSave);
+        console.log('Cash Out total:', Math.round(cashOut));
+        console.log('Running balance:', Math.round(runBal));
+        console.groupEnd();
+      }
       scenBal.push(runBal);
       scenRevIn.push(baseIn||null);
       scenPipeIn.push(pipelineIn||null);
