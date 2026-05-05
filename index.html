@@ -399,10 +399,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div class="sc r"><div class="slb">Dec balance</div><div class="sv r" id="sc_dec">—</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-          <span class="tl">Forecast</span>
+          <span class="tl">Loans</span>
           <select class="ts" id="cashTog" onchange="updateCashChart()">
             <option value="noloan">No Loan Repayment</option>
             <option value="loans">Full Loan Repayment</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="tl">Tax ($31,735)</span>
+          <select class="ts" id="taxTog" onchange="updateCashChart()">
+            <option value="0">No Tax Repayment</option>
+            <option value="0.5">50% Tax Repayment</option>
+            <option value="1" selected>100% Tax Repayment</option>
           </select>
         </div>
       </div>
@@ -442,9 +450,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </select>
       </div>
       <div>
-        <div class="tl" style="margin-bottom:6px;">Loan & tax repayment</div>
+        <div class="tl" style="margin-bottom:6px;">Loan repayment</div>
         <select class="ts" id="scen_obligations" onchange="buildScenChart()">
-          <option value="0">0% — no repayment</option>
+          <option value="0">No repayment</option>
+          <option value="0.5">50% repayment</option>
+          <option value="1" selected>100% repayment</option>
+        </select>
+      </div>
+      <div>
+        <div class="tl" style="margin-bottom:6px;">Tax ($31,735)</div>
+        <select class="ts" id="scen_tax" onchange="buildScenChart()">
+          <option value="0">No repayment</option>
           <option value="0.5">50% repayment</option>
           <option value="1" selected>100% repayment</option>
         </select>
@@ -1196,16 +1212,30 @@ function buildCashChart(){
   const cash=window._cash||[];if(!cash.length)return;
   const actualCount=window._actualCount||0;
   const noLoan=tog();
-  const balF=cash.map(c=>noLoan?c.balF2:c.balF3);
-  // Actual months: col I (cOA_op), Forecast months: col K (cOutF2) or col L (cOutF3)
-  const cOutF=cash.map((c,i)=>i<actualCount ? c.cOA_op : (noLoan?c.cOutF2:c.cOutF3));
+  const taxRate=parseFloat(document.getElementById('taxTog')?.value??1);
+  // Tax: $31,735 spread equally over forecast months
+  // F2 has NO tax repayment built in; F3 has loans but NOT separate tax liability
+  // We add tax on top as a separate outflow
+  const fcstCount=cash.slice(actualCount).length;
+  const taxPerMo=fcstCount>0?(31735/fcstCount)*taxRate:0;
+  // Actual months: col I (cOA_op), Forecast months: col K/L + tax overlay
+  const cOutF=cash.map((c,i)=>i<actualCount ? c.cOA_op : (noLoan?c.cOutF2:c.cOutF3) - taxPerMo);
+  // Recompute balances with tax included
+  let runBal=cash[actualCount-1]?.balA||0;
+  const balF=cash.map((c,i)=>{
+    if(i<actualCount) return c.balA;
+    const cashIn=c.cIF||0;
+    const cashOut=(noLoan?c.cOutF2:c.cOutF3)-taxPerMo;
+    runBal=runBal+cashIn+cashOut;
+    return runBal;
+  });
 
   // Negative month detection
-  const negMonth=cash.find((c,i)=>i>=actualCount&&(noLoan?c.balF2:c.balF3)<0);
+  const negMonth=balF.findIndex((v,i)=>i>=actualCount&&v<0);
   const negEl=document.getElementById('sc_neg');
   const decEl=document.getElementById('sc_dec');
-  const decVal=noLoan?cash[cash.length-1].balF2:cash[cash.length-1].balF3;
-  if(negEl){negEl.textContent=negMonth?negMonth.date:'None ✓';negEl.className='sv '+(negMonth?'r':'g');}
+  const decVal=balF[balF.length-1];
+  if(negEl){negEl.textContent=negMonth>=0?(cash[negMonth]?.date||'Month '+(negMonth+1)):'None ✓';negEl.className='sv '+(negMonth>=0?'r':'g');}
   if(decEl){decEl.textContent=fC(decVal);decEl.className='sv '+(decVal<0?'r':'g');}
   // Update scorecard border too
   const negWrap=negEl?.closest('.sc');const decWrap=decEl?.closest('.sc');
@@ -1261,7 +1291,10 @@ function updateCashChart(){buildCashChart();}
 function buildScenChart(){
   const cash=window._cash||[];if(!cash.length)return;
   const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
-  const oblRate     = parseFloat(document.getElementById('scen_obligations')?.value||1);
+  const oblRate  = parseFloat(document.getElementById('scen_obligations')?.value??1);
+  const taxRate  = parseFloat(document.getElementById('scen_tax')?.value??1);
+  const fcstLeft = cash.slice(actualCount).length||8;
+  const taxPerMo = (31735/fcstLeft)*taxRate; // additional tax outflow per forecast month
   const payrollCut  = parseFloat(document.getElementById('scen_payroll')?.value||0);
   const actualCount = window._actualCount||0;
 
@@ -1312,7 +1345,7 @@ function buildScenChart(){
       const loanExtra    = (c.cOutF3||0) - (c.cOutF2||0);
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = monthPayroll * payrollCut;
-      const cashOut      = baseOut + loanExtra * oblRate + payrollSave; // payrollSave is positive = reduces cost
+      const cashOut      = baseOut + loanExtra * oblRate + payrollSave - taxPerMo; // taxPerMo = extra tax outflow
       runBal = runBal + baseIn + pipelineIn + cashOut;
       scenBal.push(runBal);
       scenRevIn.push(baseIn||null);
