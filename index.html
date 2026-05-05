@@ -320,37 +320,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 </div>
-
-<!-- ══════════ CASH FLOW ══════════ -->
-  </div>
   <!-- 2025 Financials sub-view -->
   <div id="sv-fin25" class="sub-view" style="display:none;">
-
-  <div class="slabel"><span>2025 Financials</span> — Full Year Actuals</div>
-  <div class="card mb">
-    <div class="yyy" style="margin-bottom:16px">2025 — <span>Full Year Summary</span></div>
-    <div class="ycg" id="yc2025"></div>
-  </div>
-  <div class="card accent mb">
-    <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2025 Full Year</div></div>
-      <div class="scr">
-        <div class="sc" id="sc_p25_wrap"><div class="slb">Op Profit (A)</div><div class="sv" id="sc_p25">—</div></div>
-        <div class="sc"><div class="slb">Margin</div><div class="sv w" id="sc_m25">—</div></div>
-      </div>
+    <div class="slabel"><span>2025 Financials</span> — Full Year Actuals</div>
+    <div class="card mb">
+      <div class="yyy" style="margin-bottom:16px">2025 — <span>Full Year Summary</span></div>
+      <div class="ycg" id="yc2025"></div>
     </div>
-    <div class="cw"><canvas id="c2025"></canvas></div>
-  </div>
-  <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Monthly Revenue vs Forecast — 2025</div></div></div>
-    <table class="vt" id="vt25"></table>
-  </div>
+    <div class="card accent mb">
+      <div class="ch">
+        <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2025 Full Year</div></div>
+        <div class="scr">
+          <div class="sc" id="sc_p25_wrap"><div class="slb">Op Profit (A)</div><div class="sv" id="sc_p25">—</div></div>
+          <div class="sc"><div class="slb">Margin</div><div class="sv w" id="sc_m25">—</div></div>
+        </div>
+      </div>
+      <div class="cw"><canvas id="c2025"></canvas></div>
+    </div>
+    <div class="card mb">
+      <div class="ch"><div><div class="ctitle">Monthly Revenue vs Forecast — 2025</div></div></div>
+      <table class="vt" id="vt25"></table>
+    </div>
 </div>
 
-<!-- ══════════ Q1 RESULTS ══════════ -->
-  </div>
-</div>
-
+<!-- ══════════ CASH FLOW ══════════ -->
 <div class="page active" id="page-cash">
   <div class="slabel"><span>Cash Flow</span> — Position & Forecast · 2026</div>
   <div class="alert-bar critical" id="cashAlert" style="display:none">
@@ -390,8 +383,91 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="cw tall"><canvas id="cInOut"></canvas></div>
   </div>
-</div>
+  <div class="card mb" style="border-color:rgba(15,184,184,.28);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);">📐 Cash Flow Forecast — Scenario Builder</div>
+      <div class="scr">
+        <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="sc_neg">—</div></div>
+        <div class="sc r"><div class="slb">Dec balance</div><div class="sv r" id="sc_dec">—</div></div>
+      </div>
+    </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
+
+      <!-- Pipeline -->
+      <div>
+        <div class="tl" style="margin-bottom:4px;">Pipeline</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_pipe_amt">—</div>
+        <select class="ts" id="scen_pipe" onchange="buildScenChart()">
+          <option value="0">0% — None</option>
+          <option value="0.25">25% — Conservative</option>
+          <option value="0.5">50% — Base case</option>
+          <option value="0.75">75% — Optimistic</option>
+          <option value="1" selected>100% — Full potential</option>
+        </select>
+      </div>
+
+      <!-- Loans -->
+      <div>
+        <div class="tl" style="margin-bottom:4px;">Loan repayment</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_loan_amt">—</div>
+        <select class="ts" id="scen_obligations" onchange="buildScenChart()">
+          <option value="0">0% — No repayment</option>
+          <option value="0.25">25%</option>
+          <option value="0.5">50%</option>
+          <option value="0.75">75%</option>
+          <option value="1" selected>100% — Full repayment</option>
+        </select>
+      </div>
+
+      <!-- Taxes -->
+      <div>
+        <div class="tl" style="margin-bottom:4px;" id="taxTogLabel">Tax repayment</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_tax_amt">—</div>
+        <select class="ts" id="scen_tax" onchange="buildScenChart()">
+          <option value="0">0% — No repayment</option>
+          <option value="0.25">25%</option>
+          <option value="0.5">50%</option>
+          <option value="0.75">75%</option>
+          <option value="1" selected>100% — Full repayment</option>
+        </select>
+      </div>
+
+      <!-- Payroll reduction -->
+      <div>
+        <div class="tl" style="margin-bottom:4px;">Payroll reduction</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_payroll_amt">—</div>
+        <select class="ts" id="scen_payroll" onchange="buildScenChart()">
+          <option value="0" selected>0% — No reduction</option>
+          <option value="0.25">25% reduction</option>
+          <option value="0.5">50% reduction</option>
+          <option value="0.75">75% reduction</option>
+          <option value="1">100% reduction</option>
+        </select>
+      </div>
+
+      <!-- Scorecards + Set Default -->
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="scr">
+          <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="scen_neg">—</div></div>
+          <div class="sc"><div class="slb">Dec balance</div><div class="sv w" id="scen_dec">—</div></div>
+        </div>
+        <button onclick="saveScenDefault()" style="font-size:10px;padding:5px 10px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:6px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save current settings as default">
+          📌 Set as default
+        </button>
+        <div style="font-size:9px;color:var(--text3);text-align:center;" id="scen_default_note"></div>
+      </div>
+
+    </div>
+    <div style="margin-top:16px;height:320px;position:relative;"><canvas id="cbal_scen"></canvas></div>
+    <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
+      <strong style="color:var(--text2)">Methodology:</strong>
+      High pipeline × 70% probability · spread Jun–Aug.
+      Medium pipeline × 35% probability · spread Jul–Nov.
+      2-month CCC — no pipeline cash before June.
+      Payroll baseline $20,250/month.
+    </div>
   </div>
+  <!-- Scenario detail table -->
   <div class="card accent mb">
     <div class="ch">
       <div><div class="ctitle">Cash Runway</div><div class="csub">Months of cash remaining based on current burn rate</div></div>
@@ -412,72 +488,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <!-- Scenario Builder -->
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text);">📐 Cash Flow Forecast — Scenario Builder</div>
-      <div class="scr">
-        <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="sc_neg">—</div></div>
-        <div class="sc r"><div class="slb">Dec balance</div><div class="sv r" id="sc_dec">—</div></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
-      <div>
-        <div class="tl" style="margin-bottom:6px;">Pipeline</div>
-        <select class="ts" id="scen_pipe" onchange="buildScenChart()">
-          <option value="0">None — no pipeline</option>
-          <option value="0.25">Conservative (25%)</option>
-          <option value="0.5">Base case (50%)</option>
-          <option value="0.75">Optimistic (75%)</option>
-          <option value="1" selected>Full potential (100%)</option>
-        </select>
-      </div>
-      <div>
-        <div class="tl" style="margin-bottom:6px;">Loans</div>
-        <select class="ts" id="cashTog" onchange="buildScenChart()">
-          <option value="noloan">No Loans</option>
-          <option value="loans">Incl Loans</option>
-        </select>
-      </div>
-      <div>
-        <div class="tl" style="margin-bottom:6px;">Loan %</div>
-        <select class="ts" id="scen_obligations" onchange="buildScenChart()">
-          <option value="0">No repayment</option>
-          <option value="0.5">50%</option>
-          <option value="1" selected>100%</option>
-        </select>
-      </div>
-      <div>
-        <div class="tl" style="margin-bottom:6px;" id="scenTaxLabel">Tax (live DB1)</div>
-        <select class="ts" id="scen_tax" onchange="buildScenChart()">
-          <option value="0">No repayment</option>
-          <option value="0.5">50%</option>
-          <option value="1" selected>100%</option>
-        </select>
-      </div>
-      <div>
-        <div class="tl" style="margin-bottom:6px;">Payroll reduction</div>
-        <select class="ts" id="scen_payroll" onchange="buildScenChart()">
-          <option value="0" selected>No reduction</option>
-          <option value="0.1">−10% payroll</option>
-          <option value="0.25">−25% payroll</option>
-          <option value="0.5">−50% payroll</option>
-        </select>
-      </div>
-      <div class="scr">
-        <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="scen_neg">—</div></div>
-        <div class="sc"><div class="slb">Dec balance</div><div class="sv w" id="scen_dec">—</div></div>
-      </div>
-    </div>
-    <div style="margin-top:16px;height:320px;position:relative;"><canvas id="cbal_scen"></canvas></div>
-    <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
-      <strong style="color:var(--text2)">Methodology:</strong>
-      High pipeline × 70% probability · spread Jun–Aug.
-      Medium pipeline × 35% probability · spread Jul–Nov.
-      2-month CCC — no pipeline cash before June.
-      Payroll baseline $20,250/month.
-    </div>
-  </div>
-  <!-- Scenario detail table -->
-  <div class="card mb" style="border-color:rgba(15,184,184,.28);">
     <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">📋 Scenario Projection — Monthly Detail</div>
     <div style="overflow-x:auto;">
       <table class="vt" id="scen_table" style="min-width:900px;">
@@ -496,7 +506,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
       * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
     </div>
-  </div>
+</div>
 </div>
 
 <!-- ══════════ PIPELINE ══════════ -->
@@ -674,6 +684,7 @@ async function loadAllData(){
     processDB1(db1Rows);
     processInvoices(invRows);
     processCFF(cffRows);
+    loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     document.getElementById('hDate').textContent='v29Apr-colI · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
@@ -1207,6 +1218,19 @@ function buildScenChart(){
   const cash=window._cash||[];if(!cash.length)return;
   const actualCount = window._actualCount||0;
   const noLoan      = (document.getElementById('cashTog')?.value||'noloan')==='noloan';
+  // Update amount labels from live data
+  const pH=window._pipeHigh||158435, pM=window._pipeMed||173214;
+  const loanAmt=Math.abs(window._db1Loans||65117);
+  const taxAmtLbl=Math.abs(window._db1Taxes||31735);
+  const payBase=(window._payrollMonthly||[]).reduce((s,v)=>s+v,0)||243000;
+  const el_p=document.getElementById('scen_pipe_amt');
+  const el_l=document.getElementById('scen_loan_amt');
+  const el_t=document.getElementById('scen_tax_amt');
+  const el_py=document.getElementById('scen_payroll_amt');
+  if(el_p) el_p.textContent='H: '+fC(pH)+' · M: '+fC(pM);
+  if(el_l) el_l.textContent='Outstanding: '+fC(loanAmt);
+  if(el_t) el_t.textContent='Outstanding: '+fC(taxAmtLbl);
+  if(el_py) el_py.textContent='Monthly avg: '+fC(Math.round(payBase/12));
   const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
   const oblRate     = parseFloat(document.getElementById('scen_obligations')?.value??1);
   const taxRate     = parseFloat(document.getElementById('scen_tax')?.value??1);
@@ -1265,6 +1289,7 @@ function buildScenChart(){
       const payrollSave  = monthPayroll * payrollCut;
       const cashOut      = baseOut + loanExtra * oblRate + payrollSave - taxPerMo; // taxPerMo = extra tax outflow
       runBal = runBal + baseIn + pipelineIn + cashOut;
+      if(i===actualCount) console.log('First fcst month:',{i,baseIn,pipelineIn,cashOut,runBal,startBal:startBal,balA:c.balA,cIF:c.cIF,cOutF2:c.cOutF2});
       scenBal.push(runBal);
       scenRevIn.push(baseIn||null);
       scenPipeIn.push(pipelineIn||null);
@@ -1828,6 +1853,11 @@ function processDB1(rows){
       s('cm_loans',loans,true);s('cm_taxes',taxes,true);
       // Update tax toggle labels with live value
       const taxAmt=Math.abs(taxes||31735);
+      // Update scenario amount labels
+      const scTax=document.getElementById('scen_tax_amt');
+      const scLoan=document.getElementById('scen_loan_amt');
+      if(scTax) scTax.textContent='Total: '+fC(taxAmt)+' (from DB1)';
+      if(scLoan) scLoan.textContent='Total: '+fC(Math.abs(loans||65117))+' (from DB1)';
       const tl1=document.getElementById('taxTogLabel');
       const tl2=document.getElementById('scenTaxLabel');
       if(tl1) tl1.textContent='Tax ('+fC(taxAmt)+')';
@@ -1992,6 +2022,34 @@ function switchSubTab(view, btn){
     if(view==='q1')   { buildQ1(); }
     Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}});
   },50);
+}
+
+function saveScenDefault(){
+  const vals={
+    pipe:     document.getElementById('scen_pipe')?.value||'1',
+    oblig:    document.getElementById('scen_obligations')?.value||'1',
+    tax:      document.getElementById('scen_tax')?.value||'1',
+    payroll:  document.getElementById('scen_payroll')?.value||'0'
+  };
+  localStorage.setItem('scen_defaults', JSON.stringify(vals));
+  const note=document.getElementById('scen_default_note');
+  if(note){note.textContent='Saved ✓';setTimeout(()=>note.textContent='',2000);}
+}
+
+function loadScenDefaults(){
+  try{
+    const saved=localStorage.getItem('scen_defaults');
+    if(!saved) return;
+    const vals=JSON.parse(saved);
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    set('scen_pipe',    vals.pipe);
+    set('scen_obligations', vals.oblig);
+    set('scen_tax',     vals.tax);
+    set('scen_payroll', vals.payroll);
+    const note=document.getElementById('scen_default_note');
+    if(note) note.textContent='Default loaded';
+    setTimeout(()=>{const n=document.getElementById('scen_default_note');if(n)n.textContent='';},2000);
+  } catch(e){}
 }
 
 function goTab(id,el){
