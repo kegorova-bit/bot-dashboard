@@ -390,32 +390,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="cw tall"><canvas id="cInOut"></canvas></div>
   </div>
-  <div class="card accent mb">
-    <div class="ch">
-      <div><div class="ctitle">Cash Flow Forecast — Full Year 2026</div><div class="csub">Cash In & Out bars · Balance as line · Excludes pipeline</div></div>
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div class="scr">
-          <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="sc_neg">—</div></div>
-          <div class="sc r"><div class="slb">Dec balance</div><div class="sv r" id="sc_dec">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="tl">Loans</span>
-          <select class="ts" id="cashTog" onchange="updateCashChart()">
-            <option value="noloan">No Loan Repayment</option>
-            <option value="loans">Full Loan Repayment</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="tl">Tax ($31,735)</span>
-          <select class="ts" id="taxTog" onchange="updateCashChart()">
-            <option value="0">No Tax Repayment</option>
-            <option value="0.5">50% Tax Repayment</option>
-            <option value="1" selected>100% Tax Repayment</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="cw tall"><canvas id="cbal"></canvas></div>
+</div>
   </div>
   <div class="card accent mb">
     <div class="ch">
@@ -437,10 +412,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <!-- Scenario Builder -->
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
-    <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:14px;">📐 Scenario Builder — Cash Balance Projection</div>
-    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-end;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);">📐 Cash Flow Forecast — Scenario Builder</div>
+      <div class="scr">
+        <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="sc_neg">—</div></div>
+        <div class="sc r"><div class="slb">Dec balance</div><div class="sv r" id="sc_dec">—</div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;">
       <div>
-        <div class="tl" style="margin-bottom:6px;">Pipeline conversion</div>
+        <div class="tl" style="margin-bottom:6px;">Pipeline</div>
         <select class="ts" id="scen_pipe" onchange="buildScenChart()">
           <option value="0">None — no pipeline</option>
           <option value="0.25">Conservative (25%)</option>
@@ -450,19 +431,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </select>
       </div>
       <div>
-        <div class="tl" style="margin-bottom:6px;">Loan repayment</div>
-        <select class="ts" id="scen_obligations" onchange="buildScenChart()">
-          <option value="0">No repayment</option>
-          <option value="0.5">50% repayment</option>
-          <option value="1" selected>100% repayment</option>
+        <div class="tl" style="margin-bottom:6px;">Loans</div>
+        <select class="ts" id="cashTog" onchange="buildScenChart()">
+          <option value="noloan">No Loans</option>
+          <option value="loans">Incl Loans</option>
         </select>
       </div>
       <div>
-        <div class="tl" style="margin-bottom:6px;">Tax ($31,735)</div>
+        <div class="tl" style="margin-bottom:6px;">Loan %</div>
+        <select class="ts" id="scen_obligations" onchange="buildScenChart()">
+          <option value="0">No repayment</option>
+          <option value="0.5">50%</option>
+          <option value="1" selected>100%</option>
+        </select>
+      </div>
+      <div>
+        <div class="tl" style="margin-bottom:6px;" id="scenTaxLabel">Tax (live DB1)</div>
         <select class="ts" id="scen_tax" onchange="buildScenChart()">
           <option value="0">No repayment</option>
-          <option value="0.5">50% repayment</option>
-          <option value="1" selected>100% repayment</option>
+          <option value="0.5">50%</option>
+          <option value="1" selected>100%</option>
         </select>
       </div>
       <div>
@@ -1209,94 +1197,23 @@ function processCash(rows){
 
 function tog(){return(document.getElementById('cashTog')?.value||'noloan')==='noloan';}
 function buildCashChart(){
-  const cash=window._cash||[];if(!cash.length)return;
-  const actualCount=window._actualCount||0;
-  const noLoan=tog();
-  const taxRate=parseFloat(document.getElementById('taxTog')?.value??1);
-  // Tax: $31,735 spread equally over forecast months
-  // F2 has NO tax repayment built in; F3 has loans but NOT separate tax liability
-  // We add tax on top as a separate outflow
-  const fcstCount=cash.slice(actualCount).length;
-  const taxPerMo=fcstCount>0?(31735/fcstCount)*taxRate:0;
-  // Actual months: col I (cOA_op), Forecast months: col K/L + tax overlay
-  const cOutF=cash.map((c,i)=>i<actualCount ? c.cOA_op : (noLoan?c.cOutF2:c.cOutF3) - taxPerMo);
-  // Recompute balances with tax included
-  let runBal=cash[actualCount-1]?.balA||0;
-  const balF=cash.map((c,i)=>{
-    if(i<actualCount) return c.balA;
-    const cashIn=c.cIF||0;
-    const cashOut=(noLoan?c.cOutF2:c.cOutF3)-taxPerMo;
-    runBal=runBal+cashIn+cashOut;
-    return runBal;
-  });
-
-  // Negative month detection
-  const negMonth=balF.findIndex((v,i)=>i>=actualCount&&v<0);
-  const negEl=document.getElementById('sc_neg');
-  const decEl=document.getElementById('sc_dec');
-  const decVal=balF[balF.length-1];
-  if(negEl){negEl.textContent=negMonth>=0?(cash[negMonth]?.date||'Month '+(negMonth+1)):'None ✓';negEl.className='sv '+(negMonth>=0?'r':'g');}
-  if(decEl){decEl.textContent=fC(decVal);decEl.className='sv '+(decVal<0?'r':'g');}
-  // Update scorecard border too
-  const negWrap=negEl?.closest('.sc');const decWrap=decEl?.closest('.sc');
-  if(negWrap)negWrap.className='sc '+(negMonth?'r':'g');
-  if(decWrap)decWrap.className='sc '+(decVal<0?'r':'g');
-  if(negMonth){
-    document.getElementById('cashAlert').style.display='flex';
-    document.getElementById('cashAlertText').innerHTML='Cash balance forecast <strong>negative in '+negMonth.date+'</strong> ('+(noLoan?'no loans':'incl loans')+' scenario). Immediate pipeline conversion required.';
-  } else {
-    document.getElementById('cashAlert').style.display='none';
-  }
-
-  // Forecast chart — Cash In/Out bars + Balance line on right axis
-  const cInFData   = cash.map(c=>c.cIF||null);
-  const cOutFData  = cOutF.map(v=>v||null);
-  const balFLine   = balF.map(v=>v);
-
-  // Grey out actual months slightly, bright for forecast
-  const inColors  = cash.map((_,i)=>i<actualCount?tA:'rgba(15,184,184,0.35)');
-  const outColors = cash.map((_,i)=>i<actualCount?cA:'rgba(255,107,107,0.3)');
-
-  destroyChart('cbal');
-  charts['cbal']=new Chart(document.getElementById('cbal'),{type:'bar',
-    data:{labels:L26.slice(0,cash.length),datasets:[
-      {label:'Cash In (F)', data:cInFData,  backgroundColor:inColors,  borderRadius:3, order:2, yAxisID:'y', stack:'s'},
-      {label:'Cash Out ('+(noLoan?'No Loans':'Incl Loans')+')',data:cOutFData,backgroundColor:outColors,borderRadius:3,order:2,yAxisID:'y', stack:'s'},
-      {label:'Cash Balance',data:balFLine,type:'line',
-       borderColor:teal,borderWidth:2.5,
-       pointRadius:4,
-       pointBackgroundColor:balFLine.map(v=>v<0?coral:teal),
-       pointBorderColor:balFLine.map(v=>v<0?coral:teal),
-       fill:false,tension:0.3,order:1,yAxisID:'y2',
-       segment:{borderColor:ctx=>balFLine[ctx.p1DataIndex]<0?coral:teal,
-                borderDash:ctx=>ctx.p1DataIndex>=actualCount?[]:[]}}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{display:true,position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)+(c.parsed.y<0?' ⚠':'')}}
-      },
-      scales:{
-        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'},
-           title:{display:true,text:'Cash Flow ($)',color:'#64748b',font:{size:10}}},
-        y2:{position:'right',grid:{drawOnChartArea:false,color:ctx=>ctx.tick.value===0?'rgba(255,107,107,0.4)':'transparent',lineWidth:ctx=>ctx.tick.value===0?1.5:0},
-            ticks:{callback:v=>fN(v),color:teal},
-            title:{display:true,text:'Balance ($)',color:teal,font:{size:10}}}
-      }
-    }});
+  // cbal chart removed — replaced by scenario builder
+  buildScenChart();
 }
-function updateCashChart(){buildCashChart();}
+
+function updateCashChart(){buildCashChart();buildScenChart();}
 
 function buildScenChart(){
   const cash=window._cash||[];if(!cash.length)return;
-  const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
-  const oblRate  = parseFloat(document.getElementById('scen_obligations')?.value??1);
-  const taxRate  = parseFloat(document.getElementById('scen_tax')?.value??1);
-  const fcstLeft = cash.slice(actualCount).length||8;
-  const taxPerMo = (31735/fcstLeft)*taxRate; // additional tax outflow per forecast month
-  const payrollCut  = parseFloat(document.getElementById('scen_payroll')?.value||0);
   const actualCount = window._actualCount||0;
+  const noLoan      = (document.getElementById('cashTog')?.value||'noloan')==='noloan';
+  const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
+  const oblRate     = parseFloat(document.getElementById('scen_obligations')?.value??1);
+  const taxRate     = parseFloat(document.getElementById('scen_tax')?.value??1);
+  const taxLiability= Math.abs(window._db1Taxes||31735);
+  const fcstLeft    = Math.max(1, cash.slice(actualCount).length);
+  const taxPerMo    = (taxLiability/fcstLeft)*taxRate;
+  const payrollCut  = parseFloat(document.getElementById('scen_payroll')?.value||0);
 
   // Pipeline: probability-weighted, CCC-adjusted (no cash before Jun)
   // Pipeline: 100% face value (no probability weighting) — slider = % of full amount
@@ -1317,7 +1234,8 @@ function buildScenChart(){
   const PAYROLL_MONTHLY = window._payrollMonthly || [18870,30376,17147,20700,20700,20700,20700,20700,20700,20700,20700,20700];
 
   // Build scenario month by month
-  const startBal    = cash[actualCount-1]?.balA || cash[actualCount-1]?.balF2 || 0;
+  const lastActual  = actualCount>0 ? cash[actualCount-1] : cash[0];
+  const startBal    = lastActual?.balA || lastActual?.balF2 || 0;
   const scenBal     = [];
   const scenCashIn  = [];  // for stacked bars
   const scenRevIn   = [];  // base revenue in (F)
@@ -1341,8 +1259,8 @@ function buildScenChart(){
       const pipelineIn   = (pipePM_base[i]||0) * pipeRate;
       const pipeHighIn   = (highPM_base[i]||0) * pipeRate;
       const pipeMedIn    = (medPM_base[i]||0)  * pipeRate;
-      const baseOut      = c.cOutF2 || 0;
-      const loanExtra    = (c.cOutF3||0) - (c.cOutF2||0);
+      const baseOut      = noLoan ? (c.cOutF2||0) : (c.cOutF3||0);
+      const loanExtra    = noLoan ? 0 : 0; // loan already in baseOut via noLoan toggle
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = monthPayroll * payrollCut;
       const cashOut      = baseOut + loanExtra * oblRate + payrollSave - taxPerMo; // taxPerMo = extra tax outflow
@@ -1363,6 +1281,11 @@ function buildScenChart(){
   const decVal = scenBal[scenBal.length-1];
   if(scNeg){scNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';scNeg.className='sv '+(negIdx>=0?'r':'g');}
   if(scDec){scDec.textContent=fC(decVal);scDec.className='sv '+(decVal<0?'r':'g');}
+  // Also update main forecast scorecards (sc_neg / sc_dec)
+  const mainNeg=document.getElementById('sc_neg');
+  const mainDec=document.getElementById('sc_dec');
+  if(mainNeg){mainNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';mainNeg.className='sv '+(negIdx>=0?'r':'g');}
+  if(mainDec){mainDec.textContent=fC(decVal);mainDec.className='sv '+(decVal<0?'r':'g');}
 
   const L26_sc=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"].slice(0,cash.length);
   const actualScen  = scenBal.map((v,i)=>i<=actualCount?v:null);
@@ -1903,6 +1826,12 @@ function processDB1(rows){
       const s=(id,v,neg=false)=>{const el=document.getElementById(id);if(el)el.textContent=neg?(v?'-'+fC(Math.abs(v)):'—'):fC(v);};
       s('cm_banks',banks);s('cm_safe',safe);s('cm_projects',projects);
       s('cm_loans',loans,true);s('cm_taxes',taxes,true);
+      // Update tax toggle labels with live value
+      const taxAmt=Math.abs(taxes||31735);
+      const tl1=document.getElementById('taxTogLabel');
+      const tl2=document.getElementById('scenTaxLabel');
+      if(tl1) tl1.textContent='Tax ('+fC(taxAmt)+')';
+      if(tl2) tl2.textContent='Tax ('+fC(taxAmt)+')';
       // Reference date from row 12 col 1 (B13)
       const dateRow=rows[12]||rows[11];
       const refDate=(dateRow&&dateRow[1])?dateRow[1].toString().trim():'';
