@@ -1061,23 +1061,31 @@ function buildQ1(s26,s25){
 
 // ─── CASH ─────────────────────────────────────────────────────────
 function processCash(rows){
-  // Resolve column indices from header row using EXACT header names from the sheet
+  // Resolve column indices — case-insensitive + trimmed to handle live CSV variations
   const hdr = rows[0] || [];
-  const _ci = (name) => hdr.findIndex(h=>h&&h.toString().trim()===name);
-  const COL = {
-    cIF  : _ci('Cash in (F)'),                                        // [5]  col F  dynamic forecast
-    cIA  : _ci('Cash In (A) (op)'),                                   // [6]  col G  actual in
-    cOA  : _ci('Cash Out (A) (Op+fin)'),                              // [8]  col I  actual out Op+fin ← KEY
-    cOF2 : _ci('Cash out (F2) (incl tax no loans)'),                  // [10] col K  forecast no loans
-    cOF3 : _ci('Cash out (F3) (incl tax and loans)'),                 // [11] col L  forecast incl loans
-    balA : _ci('Cash Balance (end of period) (A) op+fin'),            // [14] col O  actual balance
-    balF2: _ci('Cash Balance (end of period) (F2) (incl tax no loans)'), // [15] col P
-    balF3: _ci('Cash Balance (end of period) (F3) (incl tax and loans)'),// [16] col Q
-    burn : _ci('Burn 3M Trailing Avg'),                               // [17] col R
-    rwyT : _ci('Cash Runway (no loan repmt)') >-1 ? _ci('Cash Runway (no loan repmt)') : _ci('Cash Runway'),   // col U no loans
-    rwyU : _ci('Cash Runway (incl loan repaymt)') >-1 ? _ci('Cash Runway (incl loan repaymt)') : _ci('Cash Runway.1'), // col V incl loans
+  const _ci = (name) => {
+    const n = name.toLowerCase().trim();
+    return hdr.findIndex(h => h && h.toString().toLowerCase().trim() === n);
   };
-  const c = (key,fb) => COL[key]>-1 ? COL[key] : fb;
+
+  const COL = {
+    cIF  : _ci('Cash in (F)'),
+    cIA  : _ci('Cash In (A) (op)'),
+    cOA  : _ci('Cash Out (A) (Op+fin)'),
+    cOF2 : _ci('Cash out - (F) base - no tax no loans'), // col K — new header
+    balA : _ci('Cash Balance (end of period) (A) op+fin'),
+    balF2: _ci('Cash Balance (end of period) (F2) (incl tax no loans)'),
+    balF3: _ci('Cash Balance (end of period) (F3) (incl tax and loans)'),
+    burn : _ci('Burn 3M Trailing Avg'),
+    rwyT : _ci('Cash Runway (no loan repmt)') > -1 ? _ci('Cash Runway (no loan repmt)') : _ci('Cash Runway'),
+    rwyU : _ci('Cash Runway (incl loan repaymt)') > -1 ? _ci('Cash Runway (incl loan repaymt)') : _ci('Cash Runway.1'),
+  };
+
+  // cOF2 fallback to hardcoded index 10 (col K) if name not found
+
+  // Use found indices; fallbacks based on live COL map observed: balA=15, balF2=16, balF3=17, rwyT=20, rwyU=21
+  const LIVE_FB = {cIF:5,cIA:6,cOA:8,cOF2:10,balA:15,balF2:16,balF3:17,burn:17,rwyT:20,rwyU:21};
+  const col = (key) => COL[key] > -1 ? COL[key] : LIVE_FB[key];
   console.log('Staging_cash COL map:', JSON.stringify(COL));
 
   const cash=[];
@@ -1086,15 +1094,14 @@ function processCash(rows){
     const yr2=parseInt(r[2]);if(yr2!==2026)continue;
     cash.push({
       date:r[0].trim(),
-      cIF:    pv(r[c('cIF',5)]),
-      cIA:    pv(r[c('cIA',6)]),
-      cOA_op: pv(r[c('cOA',8)]),   // Cash Out (A) Op+fin — col I
-      cOutF2: pv(r[c('cOF2',10)]),
-      cOutF3: pv(r[c('cOF3',11)]),
-      balA:   pv(r[c('balA',14)]),
-      balF2:  pv(r[c('balF2',15)]),
-      balF3:  pv(r[c('balF3',16)]),
-      burn3m: pv(r[c('burn',17)]),
+      cIF:    pv(r[col('cIF')]),
+      cIA:    pv(r[col('cIA')]),
+      cOA_op: pv(r[col('cOA')]),
+      cOutF2: pv(r[col('cOF2')]),  // col K — base cash out, no tax no loans
+      balA:   pv(r[col('balA')]),
+      balF2:  pv(r[col('balF2')]),
+      balF3:  pv(r[col('balF3')]),
+      burn3m: pv(r[col('burn')]),
       runwayT:pv(r[c('rwyT',20)]),  // col U no loans
       runwayU:pv(r[c('rwyU',21)])   // col V incl loans
     });
@@ -1233,6 +1240,7 @@ function buildScenChart(){
   // Tax repayment starts June (index 5), spreads over Jun-Dec = 7 months
   const TAX_START   = 5; // June = index 5
   const taxMonths   = Math.max(1, 12 - TAX_START); // 7 months Jun-Dec
+  const fcstLeft    = Math.max(1, cash.slice(actualCount).length); // remaining forecast months
   const payrollCut  = parseFloat(document.getElementById('scen_payroll')?.value||0);
 
   // Pipeline: probability-weighted, CCC-adjusted (no cash before Jun)
@@ -1283,8 +1291,10 @@ function buildScenChart(){
       const baseOut      = c.cOutF2||0;  // F2 = pure ops, no tax, no loans
       // All scenario adjustments apply from June (index 5) onwards only
       // May (index 4) uses base forecast only
-      const loanComp     = (c.cOutF3||0) - (c.cOutF2||0);
-      const loanExtra    = isJunePlus ? loanComp * oblRate_sel : 0;
+      // Loan repayment: spread DB1 outstanding loans over forecast months × rate
+      // col L (F3) not used — loan amount sourced from DB1 directly
+      const loanMonthly  = fcstLeft > 0 ? (Math.abs(window._db1Loans||65117) / fcstLeft) : 0;
+      const loanExtra    = isJunePlus ? -(loanMonthly * oblRate_sel) : 0; // negative = outflow
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = isJunePlus ? monthPayroll * payrollCut : 0;
       // Workforce cost:
@@ -1301,8 +1311,7 @@ function buildScenChart(){
         const lbl=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i];
         console.group('Scenario Builder — June debug (oblRate='+oblRate_sel+', taxRate='+taxRate+')');
         console.log('Base cash out (F2):', c.cOutF2);
-        console.log('F3 (incl loans):', c.cOutF3);
-        console.log('Loan component F3-F2:', loanComp, '× rate', oblRate_sel, '= loanExtra:', loanExtra);
+        console.log('Loan monthly (DB1 spread):', Math.round(loanMonthly), '× rate', oblRate_sel, '= loanExtra:', Math.round(loanExtra));
         console.log('Tax this month:', taxThisMonth, '(liability:', taxLiability, '÷ months:', taxMonths, '× rate:', taxRate, ')');
         console.log('Payroll save:', payrollSave);
         console.log('Cash Out total:', Math.round(cashOut));
@@ -1934,7 +1943,7 @@ function buildRefTable(){
     ['Cash Flow','Cash Out YTD',fC(ytdOut),'Staging_cash','Col I [8] · 2026 rows','Cash Out (A) Op+fin · sum actual months'],
     ['Cash Flow','Cash Balance (A)',fC(latA.balA||0),'Staging_cash','Col O [14]','Latest actual month'],
     ['Cash Flow','Balance F2 (no loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast · no loans'],
-    ['Cash Flow','Balance F3 (incl loans)',fC(cash.length?cash[cash.length-1].balF3||0:0),'Staging_cash','Col Q [16]','Dec forecast · incl loans'],
+    ['Cash Flow','Balance F3 (incl loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast base (no tax no loans)'],
     ['Cash Flow','Runway (no loans)',(latA.runwayT?latA.runwayT.toFixed(2)+' mo':'—'),'Staging_cash','Col T [19]','Latest actual month'],
     ['Cash Flow','Runway (incl loans)',(latA.runwayU?latA.runwayU.toFixed(2)+' mo':'—'),'Staging_cash','Col U [20]','Latest actual month'],
     ['Cash Flow','Pipeline High (scenario)',fC(window._pipeHigh||0),'Revenues','Row 58 · Col M [12]','Used in scenario · weighted 70%'],
