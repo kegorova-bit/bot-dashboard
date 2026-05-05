@@ -461,10 +461,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div style="margin-top:16px;height:320px;position:relative;"><canvas id="cbal_scen"></canvas></div>
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
-      High pipeline × 70% probability · spread Jun–Aug.
-      Medium pipeline × 35% probability · spread Jul–Nov.
-      2-month CCC — no pipeline cash before June.
-      Payroll baseline $20,250/month.
+      Pipeline: 100% face value split equally Aug–Dec · 2-month CCC (no cash before Aug).
+      Workforce cost: base from CF_f row 23 + 20% of pipeline realized that month.
+      Payroll from CF_f row 35 · live per month.
     </div>
   </div>
   <!-- Scenario detail table -->
@@ -1217,7 +1216,8 @@ function updateCashChart(){buildCashChart();buildScenChart();}
 function buildScenChart(){
   const cash=window._cash||[];if(!cash.length)return;
   const actualCount = window._actualCount||0;
-  const noLoan      = (document.getElementById('cashTog')?.value||'noloan')==='noloan';
+  const oblRate_sel = parseFloat(document.getElementById('scen_obligations')?.value??1);
+  const noLoan      = oblRate_sel === 0; // 0% repayment = no loans = use F2; any >0 = use F3 base
   // Update amount labels from live data
   const pH=window._pipeHigh||158435, pM=window._pipeMed||173214;
   const loanAmt=Math.abs(window._db1Loans||65117);
@@ -1232,7 +1232,7 @@ function buildScenChart(){
   if(el_t) el_t.textContent='Outstanding: '+fC(taxAmtLbl);
   if(el_py) el_py.textContent='Monthly avg: '+fC(Math.round(payBase/12));
   const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
-  const oblRate     = parseFloat(document.getElementById('scen_obligations')?.value??1);
+  const oblRate     = oblRate_sel; // same as oblRate_sel above
   const taxRate     = parseFloat(document.getElementById('scen_tax')?.value??1);
   const taxLiability= Math.abs(window._db1Taxes||31735);
   const fcstLeft    = Math.max(1, cash.slice(actualCount).length);
@@ -1283,11 +1283,18 @@ function buildScenChart(){
       const pipelineIn   = (pipePM_base[i]||0) * pipeRate;
       const pipeHighIn   = (highPM_base[i]||0) * pipeRate;
       const pipeMedIn    = (medPM_base[i]||0)  * pipeRate;
-      const baseOut      = noLoan ? (c.cOutF2||0) : (c.cOutF3||0);
-      const loanExtra    = noLoan ? 0 : 0; // loan already in baseOut via noLoan toggle
+      const baseOut      = c.cOutF2||0;  // always start from F2 (no loans base)
+      const loanComp     = (c.cOutF3||0) - (c.cOutF2||0); // loan component = F3 - F2 (negative)
+      const loanExtra    = loanComp * oblRate_sel; // scale by repayment rate
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = monthPayroll * payrollCut;
-      const cashOut      = baseOut + loanExtra * oblRate + payrollSave - taxPerMo; // taxPerMo = extra tax outflow
+      // Workforce cost:
+      // Base = CF_f row 23 monthly value (without pipeline)
+      // Variable = 20% of pipeline realized this month
+      // Both are outflows (negative)
+      const wfBase         = (window._workforceMonthly||[])[i] || 0;
+      const workforceExtra = -(wfBase + pipelineIn * 0.20); // negative = outflow
+      const cashOut        = baseOut + loanExtra + payrollSave - taxPerMo + workforceExtra;
       runBal = runBal + baseIn + pipelineIn + cashOut;
       if(i===actualCount) console.log('First fcst month:',{i,baseIn,pipelineIn,cashOut,runBal,startBal:startBal,balA:c.balA,cIF:c.cIF,cOutF2:c.cOutF2});
       scenBal.push(runBal);
@@ -1817,17 +1824,24 @@ function processInvoices(rows){
 }
 
 function processCFF(rows){
-  // CF_f sheet — Row 35 = Payroll (col B='Payroll', C='Salaries', D='Payroll'), 2026 months at cols 17-28 (Jan-Dec)
+  // CF_f sheet — 2026 months at cols 17-28 (Jan-Dec)
   try {
     for(let i=0;i<rows.length;i++){
       const r=rows[i];
-      if((r[1]||'').toString().trim()==='Payroll' && (r[2]||'').toString().trim()==='Salaries' && (r[3]||'').toString().trim()==='Payroll'){
-        // Found payroll row — extract 12 monthly values at cols 17-28
+      const d=(r[3]||'').toString().trim();
+      // Row 35: Payroll
+      if((r[1]||'').toString().trim()==='Payroll' && (r[2]||'').toString().trim()==='Salaries' && d==='Payroll'){
         const payroll=[];
         for(let m=0;m<12;m++) payroll.push(Math.abs(pv(r[17+m]))||0);
         window._payrollMonthly=payroll;
         console.log('Payroll loaded:',payroll);
-        break;
+      }
+      // Row 23: Workforce (Direct Cost base — without pipeline)
+      if((r[1]||'').toString().trim()==='Direct Cost' && (r[2]||'').toString().trim()==='DC' && d==='Workforce'){
+        const workforce=[];
+        for(let m=0;m<12;m++) workforce.push(Math.abs(pv(r[17+m]))||0);
+        window._workforceMonthly=workforce;
+        console.log('Workforce loaded:',workforce);
       }
     }
   } catch(e){ console.warn('CF_f parse failed',e); }
