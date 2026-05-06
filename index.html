@@ -276,9 +276,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <!-- ══════════ FINANCIALS 2025 ══════════ -->
   </div>
   <!-- Q1 Results sub-view -->
-  <div id="sv-q1" class="sub-view" style="display:none;">
+  <div id="sv-q1" class="sub-view" style="display:none;font-size:inherit;">
 
   <div class="slabel"><span>Q1 Results</span> — January · February · March 2026</div>
+  <style>.q1-hero{font-size:100% !important;} .hero-card{min-height:auto;}</style>
   <div class="q1-hero">
     <div class="hero-card hc-teal">
       <div class="hero-label">Q1 Revenue</div>
@@ -349,10 +350,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="alert-bar critical" id="cashAlert" style="display:none">
     <span style="font-size:18px">🚨</span><span id="cashAlertText"></span>
   </div>
+  <!-- ── Total Cash Position — hero card ── -->
+  <div class="cm-hero" style="background:rgba(15,184,184,.08);border:1px solid rgba(15,184,184,.35);border-radius:12px;padding:18px 22px 14px;margin-bottom:16px;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">Total Cash Position</div>
+        <div id="cm_total_cash" style="font-size:36px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Banks + Safe + Projects</div>
+      </div>
+      <!-- Sub-breakdown: Banks / Safe / Projects in smaller font -->
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;">
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;">BANKS</div>
+          <div id="cm_banks" style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--teal);">—</div>
+          <div class="cms ref-date" style="font-size:10px;color:var(--text3);">—</div>
+        </div>
+        <div style="color:var(--border);font-size:20px;">+</div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;">SAFE</div>
+          <div id="cm_safe" style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--teal);">—</div>
+          <div class="cms ref-date" style="font-size:10px;color:var(--text3);">—</div>
+        </div>
+        <div style="color:var(--border);font-size:20px;">+</div>
+        <div style="text-align:right;">
+          <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;">PROJECTS</div>
+          <div id="cm_projects" style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--teal);">—</div>
+          <div class="cms ref-date" style="font-size:10px;color:var(--text3);">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ── Secondary metrics row ── -->
   <div class="cash-grid">
-    <div class="cm t"><div class="cml">Cash — Banks</div><div class="cmv t" id="cm_banks">—</div><div class="cms ref-date">April 20, 2026</div></div>
-    <div class="cm t"><div class="cml">Cash — Safe</div><div class="cmv t" id="cm_safe">—</div><div class="cms ref-date">April 20, 2026</div></div>
-    <div class="cm t"><div class="cml">Cash in Projects</div><div class="cmv t" id="cm_projects">—</div><div class="cms ref-date">April 20, 2026</div></div>
     <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices">—</div><div class="cms">From Invoice Tracker · live</div></div>
     <div class="cm" id="cm_runway_wrap" style="border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)">
       <div class="cml" style="display:flex;align-items:center;justify-content:space-between;">
@@ -371,7 +400,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cm r"><div class="cml">Cash Out YTD</div><div class="cmv r" id="cm_ytd_out">—</div><div class="cms">Jan–today actual</div></div>
     <div class="cm r"><div class="cml">Loans Due</div><div class="cmv r" id="cm_loans">—</div><div class="cms">Outstanding balance</div></div>
     <div class="cm r"><div class="cml">Taxes Due</div><div class="cmv r" id="cm_taxes">—</div><div class="cms">Outstanding balance</div></div>
-    <div class="cm a" style="border-color:rgba(15,184,184,.5);background:rgba(15,184,184,.06)"><div class="cml" style="font-weight:700">Total Cash Position</div><div class="cmv t" id="cm_total_cash" style="font-size:20px">—</div><div class="cms">Banks + Safe + Projects</div></div>
   </div>
   <div class="card accent mb">
     <div class="ch">
@@ -835,7 +863,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-c · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-d · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1603,7 +1631,7 @@ function buildScenChart(){
   const t_L26=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   if(t_body){
     t_body.innerHTML='';
-    var tRI=0,tH=0,tM=0,tO=0;
+    var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0;
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
       var ia=i<actualCount;
@@ -1616,7 +1644,7 @@ function buildScenChart(){
       var loanV    = ia ? 0 : -(isJune ? loanMonthly * oblRate_sel : 0);
       var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
       var payV     = ia ? 0 :  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
-      tRI+=ri;tH+=hi;tM+=mi;tO+=co;
+      tRI+=ri;tH+=hi;tM+=mi;tO+=co;tTax+=taxV||0;tLoan+=loanV||0;tPayroll+=payV||0;
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
@@ -1636,12 +1664,15 @@ function buildScenChart(){
     });
     if(t_foot){
       var fb=scenBal[scenBal.length-1];
+      // Accumulate tax/loan/payroll totals
       t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total / Dec</strong></td><td></td>'
         +'<td>'+fC(tRI)+'</td><td style="color:var(--coral)">'+fC(tH)+'</td>'
         +'<td style="color:var(--amber)">'+fC(tM)+'</td>'
         +'<td><strong>'+fC(tRI+tH+tM)+'</strong></td>'
         +'<td class="neg">'+fC(tO)+'</td>'
-        +'<td>—</td><td>—</td><td>—</td>'
+        +'<td style="color:var(--coral)">'+fC(tTax)+'</td>'
+        +'<td style="color:var(--coral)">'+fC(tLoan)+'</td>'
+        +'<td class="pos">'+fC(tPayroll)+'</td>'
         +'<td class="neg">'+fC(tO)+'</td>'
         +'<td class="'+(tRI+tH+tM+tO>=0?'pos':'neg')+'"><strong>'+fC(tRI+tH+tM+tO)+'</strong></td>'
         +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
