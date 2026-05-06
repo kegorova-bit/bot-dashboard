@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+const URLS={
+  staging:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=914674636&single=true&output=csv',
+  cash:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1763420424&single=true&output=csv',
+  pipeline: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=376865117&single=true&output=csv',
+  revenues: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1731705433&single=true&output=csv',
+  invoices: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1097401785&single=true&output=csv',
+  cff:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1467204008&single=true&output=csv',
+  db1:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1289407979&single=true&output=csv'
+}<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -371,6 +379,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cm r"><div class="cml">Cash Out YTD</div><div class="cmv r" id="cm_ytd_out">—</div><div class="cms">Jan–today actual</div></div>
     <div class="cm r"><div class="cml">Loans Due</div><div class="cmv r" id="cm_loans">—</div><div class="cms">Outstanding balance</div></div>
     <div class="cm r"><div class="cml">Taxes Due</div><div class="cmv r" id="cm_taxes">—</div><div class="cms">Outstanding balance</div></div>
+    <div class="cm a" style="border-color:rgba(15,184,184,.5);background:rgba(15,184,184,.06)"><div class="cml" style="font-weight:700">Total Cash Position</div><div class="cmv t" id="cm_total_cash" style="font-size:20px">—</div><div class="cms">Banks + Safe + Projects</div></div>
   </div>
   <div class="card accent mb">
     <div class="ch">
@@ -488,7 +497,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <thead>
           <tr>
             <th style="text-align:left">Month</th><th>Type</th>
-            <th>Revenue In</th><th style="color:var(--coral)">Pipeline High</th>
+            <th>Cash In</th><th style="color:var(--coral)">Pipeline High</th>
             <th style="color:var(--amber)">Pipeline Med</th><th>Total In</th>
             <th>Cash Out</th><th>Net Flow</th><th>Balance</th>
           </tr>
@@ -619,14 +628,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 
-const URLS={
-  staging:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=914674636&single=true&output=csv',
-  cash:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1763420424&single=true&output=csv',
-  pipeline:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=376865117&single=true&output=csv',
-  revenues:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1731705433&single=true&output=csv',
-  invoices:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1097401785&single=true&output=csv',
-  cff:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1467204008&single=true&output=csv',
-  db1:'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1289407979&single=true&output=csv',
+const URLS = {
+  staging:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=914674636&single=true&output=csv',
+  cash:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1763420424&single=true&output=csv',
+  pipeline: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=376865117&single=true&output=csv',
+  revenues: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1731705433&single=true&output=csv',
+  db1:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1289407979&single=true&output=csv',
+  invoices: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1097401785&single=true&output=csv',
+  cff:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1467204008&single=true&output=csv',
 };
 
 const pv=v=>{if(!v)return 0;const s=v.trim().replace(/[\$,\s%]/g,'').replace(/\(/g,'-').replace(/\)/g,'');if(s===''||s==='-'||s.includes('#'))return 0;return parseFloat(s)||0;};
@@ -1262,8 +1271,15 @@ function buildScenChart(){
   const PAYROLL_MONTHLY = window._payrollMonthly || [18870,30376,17147,20700,20700,20700,20700,20700,20700,20700,20700,20700];
 
   // Build scenario month by month
-  const lastActual  = actualCount>0 ? cash[actualCount-1] : cash[0];
-  const startBal    = lastActual?.balA || lastActual?.balF2 || 0;
+  // Starting balance: use last FULLY CONFIRMED month's closing balance
+  // If current month has partial actuals (cIA > 0 but < forecast), still use previous month
+  // actualCount = 4 (Jan-Apr confirmed) → startBal = April closing balance
+  // Starting balance = last FULLY CLOSED month's actual balance
+  // current month (actualCount-1) is partial — use the month before it
+  const lastClosedIdx = Math.max(0, actualCount - 2);
+  const lastClosed    = cash[lastClosedIdx] || cash[0];
+  const startBal      = lastClosed?.balA || lastClosed?.balF2 || 0;
+  console.log('Scenario startBal: month idx', lastClosedIdx, '=', startBal);
   const scenBal     = [];
   const scenCashIn  = [];  // for stacked bars
   const scenRevIn   = [];  // base revenue in (F)
@@ -1273,15 +1289,17 @@ function buildScenChart(){
   const scenCashOut = [];  // total outflows
   let runBal = startBal;
 
+  const currentMonthIdx = actualCount - 1; // last month with actual data (may be partial)
   cash.forEach((c,i)=>{
     if(i < actualCount){
-      scenBal.push(c.balA);
+      scenBal.push(c.balA||c.balF2);
+      // Current month: show actual values (solid bars handled by chart opacity)
       scenRevIn.push(c.cIA||null);
       scenPipeIn.push(null);
       scenHighIn.push(null);
       scenMedIn.push(null);
       scenCashOut.push(c.cOA_op||null);
-      runBal = c.balA;
+      runBal = c.balA || c.balF2 || runBal;
     } else {
       const isJunePlus   = i >= 5; // June (index 5) onwards = scenarios active
       const baseIn       = c.cIF || 0;
@@ -1343,15 +1361,33 @@ function buildScenChart(){
   const L26_sc=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"].slice(0,cash.length);
   const actualScen  = scenBal.map((v,i)=>i<=actualCount?v:null);
   const forecastScen= scenBal.map((v,i)=>i>=actualCount-1?v:null);
+  // Faded forecast for current month (index actualCount-1)
+  const curIdx = actualCount - 1;
+  const fcstOverlayIn  = cash.map((c,i)=>i===curIdx?(c.cIF||null):null);
+  const fcstOverlayOut = cash.map((c,i)=>i===curIdx?(c.cOutF2||null):null);
+  const fcstOverlayBal = cash.map((c,i)=>i===curIdx?(c.balF2||null):null);
+  // Current month: faded forecast overlays (shown alongside actual)
+  const currFcstIn  = cash.map((c,i)=>i===currentMonthIdx?(c.cIF||null):null);
+  const currFcstOut = cash.map((c,i)=>i===currentMonthIdx?((c.cOutF2||null)):null);
+  const currFcstBal = cash.map((c,i)=>i===currentMonthIdx?(c.balF2||null):null);
 
   destroyChart('cbal_scen');
   const el=document.getElementById('cbal_scen');if(!el)return;
   charts['cbal_scen']=new Chart(el,{type:'bar',
     data:{labels:L26_sc,datasets:[
       // Stacked bars — cash in (revenue)
-      {label:'Revenue In (F)',data:scenRevIn,
-       backgroundColor:cash.map((_,i)=>i<actualCount?tA:'rgba(15,184,184,0.35)'),
+      {label:'Cash In (A)',data:scenRevIn.map((v,i)=>i<actualCount?v:null),
+       backgroundColor:teal,borderColor:teal,borderWidth:0,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
+    {label:'Cash In (F)',data:scenRevIn.map((v,i)=>i>=actualCount?v:null),
+       backgroundColor:'rgba(15,184,184,0.3)',borderColor:'rgba(15,184,184,0.5)',borderWidth:1,
+       borderRadius:2,order:2,yAxisID:'y',stack:'s'},
+    {label:'Cash In (F) — cur mo',data:currFcstIn,
+       backgroundColor:'rgba(15,184,184,0.15)',borderColor:'rgba(15,184,184,0.3)',borderWidth:1,
+       borderRadius:2,order:3,yAxisID:'y',stack:'sf'},
+    {label:'Cash Out (F) — cur mo',data:currFcstOut,
+       backgroundColor:'rgba(255,107,107,0.15)',borderColor:'rgba(255,107,107,0.3)',borderWidth:1,
+       borderRadius:2,order:3,yAxisID:'y',stack:'sf'},
       // Stacked bars — High pipeline (blue) and Medium pipeline (amber)
       {label:'Pipeline — High',data:scenHighIn,
        backgroundColor:'rgba(99,179,237,0.6)',
@@ -1362,7 +1398,7 @@ function buildScenChart(){
        borderColor:'rgba(63,131,248,0.75)',borderWidth:1,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
       // Stacked bars — cash out (negative, stacked below zero)
-      {label:'Cash Out',data:scenCashOut,
+      {label:'Cash Out (A)',data:scenCashOut,
        backgroundColor:cash.map((_,i)=>i<actualCount?cA:'rgba(255,107,107,0.28)'),
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
       // Balance line — actual segment
@@ -1373,7 +1409,15 @@ function buildScenChart(){
        fill:false,tension:0.3,order:1,yAxisID:'y2',
        segment:{borderColor:ctx=>actualScen[ctx.p1DataIndex]<0?coral:green}},
       // Balance line — forecast segment
-      {label:'Balance (Scenario)',data:forecastScen,type:'line',
+      {label:'Balance (Forecast — current mo)',data:currFcstBal,
+       type:'scatter',pointRadius:6,pointBackgroundColor:'rgba(15,184,184,0.3)',
+       pointBorderColor:'rgba(15,184,184,0.5)',pointBorderWidth:1,
+       showLine:false,order:0,yAxisID:'y2'},
+    {label:'Balance — Forecast (current mo)',data:fcstOverlayBal,type:'line',
+     borderColor:'rgba(15,184,184,0.35)',borderWidth:1,borderDash:[4,4],
+     pointRadius:4,pointBackgroundColor:'rgba(15,184,184,0.35)',
+     fill:false,tension:0.3,order:0,yAxisID:'y2'},
+    {label:'Balance (Scenario)',data:forecastScen,type:'line',
        borderColor:'rgba(46,204,143,0.7)',borderWidth:2,borderDash:[6,4],
        pointRadius:ctx=>ctx.dataIndex>=actualCount?3:0,
        pointBackgroundColor:forecastScen.map(v=>v!=null?(v<0?coral:'rgba(46,204,143,0.7)'):'transparent'),
@@ -1869,23 +1913,54 @@ function processCFF(rows){
 }
 
 function processDB1(rows){
-  // DB1 Cash Today row: [1]=Banks [2]=Safe [3]=Projects [13]=Loans [14]=Taxes
+  // DB1: find header row then Cash Today row by name — header-based for resilience
   try {
+    // Find header row (contains 'Cash banks' or 'Loans')
+    let hdrRow = null, hdrIdx = -1;
+    for(let i=0;i<rows.length;i++){
+      const r=rows[i];
+      if(r.some(v=>v&&v.toString().toLowerCase().includes('cash banks'))){
+        hdrRow=r; hdrIdx=i; break;
+      }
+    }
+
+    // Resolve column indices from header row
+    const _h = (name) => hdrRow ? hdrRow.findIndex(v=>v&&v.toString().toLowerCase().trim().includes(name.toLowerCase())) : -1;
+    const iB = _h('cash banks');   // Banks
+    const iS = _h('cash safe');    // Safe
+    const iP = _h('cash projects');// Projects
+    const iL = _h('loans');        // Loans
+    const iT = _h('taxes');        // Taxes
+    const iN = _h('net of dues') > -1 ? _h('net of dues') : _h('balance net'); // Net balance
+
+    // Fallback to known indices if header not found
+    const ci = (found, fb) => found > -1 ? found : fb;
+
+    // Find Cash Today data row
     let dataRow = null;
     for(let i=0;i<rows.length;i++){
       if((rows[i][0]||'').toString().trim()==='Cash Today'){
         dataRow=rows[i]; break;
       }
     }
-    if(!dataRow) dataRow=rows[10];
+    if(!dataRow) dataRow=rows[10]; // fallback row 11
+
     if(dataRow){
-      const banks=pv(dataRow[1]),safe=pv(dataRow[2]),projects=pv(dataRow[3]);
-      const loans=pv(dataRow[13]),taxes=pv(dataRow[14]);
+      const banks    = pv(dataRow[ci(iB,1)]);
+      const safe     = pv(dataRow[ci(iS,2)]);
+      const projects = pv(dataRow[ci(iP,3)]);
+      const loans    = pv(dataRow[ci(iL,13)]);
+      const taxes    = pv(dataRow[ci(iT,14)]);
+      console.log('DB1 col map: Banks='+ci(iB,1)+' Safe='+ci(iS,2)+' Projects='+ci(iP,3)+' Loans='+ci(iL,13)+' Taxes='+ci(iT,14));
+      console.log('DB1 values: Banks='+banks+' Safe='+safe+' Projects='+projects+' Loans='+loans+' Taxes='+taxes);
       window._db1Banks=banks;window._db1Safe=safe;window._db1Projects=projects;
       window._db1Loans=loans;window._db1Taxes=taxes;
       const s=(id,v,neg=false)=>{const el=document.getElementById(id);if(el)el.textContent=neg?(v?'-'+fC(Math.abs(v)):'—'):fC(v);};
       s('cm_banks',banks);s('cm_safe',safe);s('cm_projects',projects);
       s('cm_loans',loans,true);s('cm_taxes',taxes,true);
+      const totalCash=banks+safe+projects;
+      const elTotal=document.getElementById('cm_total_cash');
+      if(elTotal) elTotal.textContent=fC(totalCash);
       // Update tax toggle labels with live value
       const taxAmt=Math.abs(taxes||31735);
       // Update scenario amount labels
@@ -1931,17 +2006,17 @@ function buildRefTable(){
   var refDate=window._refDate||'—';
 
   var rows=[
-    ['Cash Flow','Cash Banks',fC(window._db1Banks||0),'DB 1','Row 11 · Col B [1]','Updates on each load'],
-    ['Cash Flow','Cash Safe',fC(window._db1Safe||0),'DB 1','Row 11 · Col C [2]',''],
-    ['Cash Flow','Cash in Projects',fC(window._db1Projects||0),'DB 1','Row 11 · Col D [3]',''],
-    ['Cash Flow','Loans Due','-'+fC(Math.abs(window._db1Loans||0)),'DB 1','Row 11 · Col N [13]',''],
-    ['Cash Flow','Taxes Due','-'+fC(Math.abs(window._db1Taxes||0)),'DB 1','Row 11 · Col O [14]',''],
+    ['Cash Flow','Cash Banks',fC(window._db1Banks||0),'DB 1','Cash Today row · header: Cash banks','Name-resolved on load'],
+    ['Cash Flow','Cash Safe',fC(window._db1Safe||0),'DB 1','Cash Today row · header: Cash Safe','Name-resolved on load'],
+    ['Cash Flow','Cash in Projects',fC(window._db1Projects||0),'DB 1','Cash Today row · header: Cash Projects','Name-resolved on load'],
+    ['Cash Flow','Loans Due','-'+fC(Math.abs(window._db1Loans||0)),'DB 1','Cash Today row · header: Loans','Name-resolved on load'],
+    ['Cash Flow','Taxes Due','-'+fC(Math.abs(window._db1Taxes||0)),'DB 1','Cash Today row · header: Taxes','Name-resolved on load'],
     ['Cash Flow','Reference Date',refDate,'DB 1','Row 13 · Col B [1]','Format DD.MM'],
     ['Cash Flow','Invoices Outstanding',fC(window._invoicesOutstanding||0),'Invoice Tracker','Col U [20]','Filter: Col D = Invoiced'],
     ['Cash Flow','Not Yet Invoiced',fC(window._notInvoiced||0),'Invoice Tracker','Col K [10]','Filter: Col D = Not Invoiced'],
     ['Cash Flow','Cash In YTD',fC(ytdIn),'Staging_cash','Col G [6] · 2026 rows','Sum of actual months'],
     ['Cash Flow','Cash Out YTD',fC(ytdOut),'Staging_cash','Col I [8] · 2026 rows','Cash Out (A) Op+fin · sum actual months'],
-    ['Cash Flow','Cash Balance (A)',fC(latA.balA||0),'Staging_cash','Col O [14]','Latest actual month'],
+    ['Cash Flow','Cash Balance (A)',fC(latA.balA||0),'Staging_cash','Col P [15] in live sheet','Latest actual month — name-resolved'],
     ['Cash Flow','Balance F2 (no loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast · no loans'],
     ['Cash Flow','Balance F3 (incl loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast base (no tax no loans)'],
     ['Cash Flow','Runway (no loans)',(latA.runwayT?latA.runwayT.toFixed(2)+' mo':'—'),'Staging_cash','Col T [19]','Latest actual month'],
