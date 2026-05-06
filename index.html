@@ -1611,10 +1611,11 @@ function buildScenChart(){
       var ti=ri+hi+mi,co=scenCashOut[i]||0,nt=ti+co;
       // Break out cash out components for table display
       var c_cash=cash[i]||{};
+      var isJune   = i >= 5; // June+ for scenario adjustments
       var baseOutV = ia ? (c_cash.cOA_op||0) : -(c_cash.cOutF2||0);
-      var loanV    = ia ? 0 : -(isJunePlus ? loanMonthly * oblRate_sel : 0);
-      var taxV     = ia ? 0 : -(isJunePlus ? (taxLiability * taxRate / taxMonths) : 0);
-      var payV     = ia ? 0 :  (isJunePlus ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
+      var loanV    = ia ? 0 : -(isJune ? loanMonthly * oblRate_sel : 0);
+      var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
+      var payV     = ia ? 0 :  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
       tRI+=ri;tH+=hi;tM+=mi;tO+=co;
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
