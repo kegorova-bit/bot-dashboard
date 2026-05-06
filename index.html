@@ -463,6 +463,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
   <!-- Scenario detail table -->
+  <!-- Scenario Builder -->
+  <div class="card mb" style="border-color:rgba(15,184,184,.28);">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">📋 Scenario Projection — Monthly Detail</div>
+    <div style="overflow-x:auto;">
+      <table class="vt" id="scen_table" style="min-width:900px;">
+        <thead>
+          <tr>
+            <th style="text-align:left">Month</th><th>Type</th>
+            <th>Cash In</th><th style="color:var(--coral)">Pipeline High</th>
+            <th style="color:var(--amber)">Pipeline Med</th><th>Total In</th>
+            <th>Base Out</th><th style="color:var(--coral)">Loans</th>
+            <th style="color:var(--coral)">Tax</th><th style="color:var(--amber)">Payroll Save</th>
+            <th>Total Out</th><th>Net Flow</th><th>Balance</th>
+          </tr>
+        </thead>
+        <tbody id="scen_tbody"></tbody>
+        <tfoot id="scen_tfoot"></tfoot>
+      </table>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
+      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
+    </div>
+</div>
+</div>
   <div class="card accent mb">
     <div class="ch">
       <div><div class="ctitle">Cash Runway</div><div class="csub">Months of cash remaining based on current burn rate</div></div>
@@ -481,28 +505,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="cw"><canvas id="rwy"></canvas></div>
   </div>
-  <!-- Scenario Builder -->
-  <div class="card mb" style="border-color:rgba(15,184,184,.28);">
-    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">📋 Scenario Projection — Monthly Detail</div>
-    <div style="overflow-x:auto;">
-      <table class="vt" id="scen_table" style="min-width:900px;">
-        <thead>
-          <tr>
-            <th style="text-align:left">Month</th><th>Type</th>
-            <th>Cash In</th><th style="color:var(--coral)">Pipeline High</th>
-            <th style="color:var(--amber)">Pipeline Med</th><th>Total In</th>
-            <th>Cash Out</th><th>Net Flow</th><th>Balance</th>
-          </tr>
-        </thead>
-        <tbody id="scen_tbody"></tbody>
-        <tfoot id="scen_tfoot"></tfoot>
-      </table>
-    </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
-      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
-    </div>
-</div>
-</div>
+
 
 <!-- ══════════ PIPELINE ══════════ -->
 <div class="page" id="page-pipe">
@@ -620,6 +623,157 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 
+
+// ═══════════════════════════════════════════════════════════════
+// DATA PARSING UTILITIES — header-based, label-based access
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Build a column-index map from a CSV header row.
+ * Supports multiple alias names per field for resilience.
+ * @param {string[]} headerRow  - rows[0] from parsed CSV
+ * @param {Object}   schema     - { fieldName: ['Alias1','Alias 2', ...] }
+ * @param {Object}   fallbacks  - { fieldName: hardcodedIndex }  (used if header not found)
+ * @returns {Object} { fieldName: resolvedIndex }
+ */
+function mapHeaders(headerRow, schema, fallbacks) {
+  const hdr = headerRow || [];
+  const result = {};
+  Object.keys(schema).forEach(function(field) {
+    const aliases = schema[field];
+    let found = -1;
+    for (let a = 0; a < aliases.length && found < 0; a++) {
+      const alias = aliases[a].toLowerCase().trim();
+      found = hdr.findIndex(function(h) {
+        return h && h.toString().toLowerCase().trim() === alias;
+      });
+    }
+    result[field] = found >= 0 ? found : (fallbacks && fallbacks[field] !== undefined ? fallbacks[field] : -1);
+  });
+  return result;
+}
+
+/**
+ * Create a named-property object from a raw CSV row using a column map.
+ * @param {string[]} rawRow   - single CSV row array
+ * @param {Object}   colMap   - { fieldName: columnIndex } from mapHeaders()
+ * @returns {Object} { fieldName: rawValue }
+ */
+function createRowObject(rawRow, colMap) {
+  const obj = {};
+  Object.keys(colMap).forEach(function(field) {
+    const idx = colMap[field];
+    obj[field] = idx >= 0 ? (rawRow[idx] || '') : '';
+  });
+  return obj;
+}
+
+/**
+ * Find a row where a specific column contains an expected label.
+ * @param {string[][]} rows       - all CSV rows
+ * @param {string}     label      - text to match (case-insensitive, trimmed)
+ * @param {number}     colIndex   - which column to check (default 0)
+ * @returns {string[]|null}
+ */
+function findRowByLabel(rows, label, colIndex) {
+  const col = colIndex || 0;
+  const target = label.toLowerCase().trim();
+  for (let i = 0; i < rows.length; i++) {
+    if ((rows[i][col] || '').toString().toLowerCase().trim() === target) return rows[i];
+  }
+  return null;
+}
+
+/**
+ * Find a row where MULTIPLE columns match expected labels simultaneously.
+ * Used for CF_f where rows are identified by col B + col C + col D.
+ * @param {string[][]} rows    - all CSV rows
+ * @param {Object}     match   - { colIndex: 'expectedLabel', ... }
+ * @returns {string[]|null}
+ */
+function findRowByMultiLabel(rows, match) {
+  const keys = Object.keys(match).map(Number);
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (keys.every(function(k) {
+      return (r[k] || '').toString().toLowerCase().trim() === match[k].toLowerCase().trim();
+    })) return r;
+  }
+  return null;
+}
+
+// ── SCHEMAS ────────────────────────────────────────────────────────
+// Each schema maps a semantic field name to an array of possible header strings.
+// First match wins. Fallback indices (3rd arg to mapHeaders) are used if nothing matches.
+
+const stagingSchema = {
+  date:       ['Date', 'Month', 'Period'],
+  year:       ['Year'],
+  rA:         ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'],
+  rF:         ['Total Revenue (F)', 'Revenue (F)', 'Revenue Forecast'],
+  eF:         ['Total Expenses (F)', 'Expenses (F)', 'Total Expenses Forecast'],
+  eAcol:      ['Total Expenses (A)', 'Expenses (A)', 'Total Expenses Actual'],   // col N
+  eFonly:     ['Expenses (F) only', 'Expenses only (F)', 'Operating Expenses (F)'], // col O fallback
+  pFn:        ['Op Profit (F) no pipeline', 'Operating Profit (F) no pipe', 'Op Profit (F)'],
+  pFp:        ['Op Profit (F) incl pipeline', 'Operating Profit (F) pipeline', 'Op Profit (F) pipeline'],
+  pA:         ['Op Profit (A)', 'Operating Profit (A)', 'Operating Profit Actual'],
+  pl:         ['Pipeline', 'Pipeline (F)', 'Pipeline revenue'],
+  sA:         ['Sales (A)', 'Sales Actual', 'Total Sales (A)'],
+  sF:         ['Sales (F)', 'Sales Forecast'],
+  sF_pipe:    ['Sales (F) incl pipeline', 'Sales (F) pipeline', 'Sales Forecast pipeline'],
+  sF_nopipe:  ['Sales (F) no pipeline', 'Sales Forecast no pipeline'],
+  gA:         ['Grants (A)', 'Grants Actual', 'Total Grants (A)'],
+  gF:         ['Grants (F)', 'Grants Forecast'],
+  done:       ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'], // same as rA — row is 'done' when rA != 0
+};
+
+const stagingFallbacks = {
+  date:0, year:2, rA:3, rF:7, eF:12, eAcol:13, eFonly:14,
+  pFn:16, pFp:17, pA:18, pl:5, sA:19, sF:20, sF_pipe:21, sF_nopipe:22, gA:25, gF:29, done:3
+};
+
+const invoiceSchema = {
+  invoiceDate:  ['Invoice Date', 'Date', 'Invoice Dt'],
+  year:         ['Year'],
+  month:        ['Month'],
+  status:       ['Status', 'Invoice Status'],
+  invoiceNo:    ['Invoice No', 'Invoice #', 'Invoice Number'],
+  project:      ['Project', 'Project Name'],
+  customer:     ['Customer', 'Client', 'Customer Name'],
+  description:  ['Description', 'Invoice Description'],
+  amountNoVat:  ['Amount (no VAT)', 'Amount no VAT', 'Net Amount', 'Amount'],
+  vat:          ['VAT', 'Tax', 'VAT Amount'],
+  amountGross:  ['Amount (gross)', 'Gross Amount', 'Total Amount'],
+  dueDate:      ['Due Date', 'Payment Due'],
+  daysOverdue:  ['Days Overdue', 'Overdue Days'],
+  collectionDate:['Collection Date', 'Collected Date', 'Payment Date'],
+  monthLabel:   ['Month Label', 'Collection Month', 'Month Collected'],
+  amountDso:    ['Amount (DSO)', 'DSO Amount', 'Amount for DSO'],
+  outstanding:  ['Amount Outstanding', 'Outstanding', 'Balance Due'],
+  notInvoicedAmt:['Amount (no VAT)', 'Amount no VAT', 'Net Amount', 'Amount'], // same col K used for not-invoiced
+};
+
+const invoiceFallbacks = {
+  invoiceDate:0, status:3, customer:6, amountNoVat:10,
+  collectionDate:15, monthLabel:16, amountDso:17, outstanding:20,
+  notInvoicedAmt:10
+};
+
+const cffSchema = {
+  category:   ['Category', 'Type', 'Cash Flow Category'],
+  subCategory:['Sub-Category', 'Sub Category', 'SubCategory'],
+  label:      ['Label', 'Description', 'Item'],
+  // Monthly values resolved by offset from Jan column — see processCFF
+};
+
+const cffFallbacks = { category:1, subCategory:2, label:3 };
+
+// Shared: resolved column maps (populated on first fetch, reused)
+window._stagingColMap  = null;
+window._invoiceColMap  = null;
+window._cffColMap      = null;
+// ═══════════════════════════════════════════════════════════════════
+
 const URLS = {
   staging:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=914674636&single=true&output=csv',
   cash:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1763420424&single=true&output=csv',
@@ -708,32 +862,45 @@ async function loadAllData(){
 
 // ─── STAGING ──────────────────────────────────────────────────────
 function processStaging(rows){
+  // Resolve columns from header row using stagingSchema — resilient to column shifts
+  if(!window._stagingColMap) {
+    window._stagingColMap = mapHeaders(rows[0], stagingSchema, stagingFallbacks);
+  }
+  const C = window._stagingColMap; // short alias
+
   const s25=[],s26=[];
   for(let i=1;i<rows.length;i++){
-    const r=rows[i];if(!r[0]||!r[0].trim())continue;
-    const yr=parseInt(r[2]);if(!yr)continue;
-    const d={date:r[0].trim(),yr,
-      rA:pv(r[3]),  // Total Revenue Invoiced (A) no inc — col D
-      rF:pv(r[7]),  // Total Revenue (F) incl pipeline, static
-      eA:(pv(r[13])!==0?pv(r[13]):pv(r[14])), // Expenses: col N if filled else col O
-      eF:pv(r[12]),  // Total Expenses (F) col M — used for variance
-      eFonly:pv(r[14]),// Expenses (F) only col O
-      eA_raw:pv(r[13]),// Expenses (A) col N
-      pFn:pv(r[16]),// Op Profit (F) no pipeline
-      pFp:pv(r[17]),// Op Profit (F) incl pipeline
-      pA:pv(r[18]), // Op Profit (A)
-      pl:pv(r[5]),  // Pipeline
-      sA:pv(r[19]), // Sales (A) col T
-      sF:pv(r[20]), // Sales (F) static col U
-      sF_pipe:pv(r[21]), // Sales (F) incl pipeline col V
-      sF_nopipe:pv(r[22]), // Sales (F) dynamic/no pipeline col W
-      sFpipe:pv(r[21]), // Sales (F) incl pipeline — col V
-      sFnopipe:pv(r[22]), // Sales (F) no pipeline — col W
-      gA:pv(r[25]), // Grants (A)
-      gF:r.length>30?pv(r[29]):0, // Grants (F)
-      pFn:pv(r[16]), // Op Profit (F) no pipeline col Q
-      pFp:pv(r[17]), // Op Profit (F) incl pipeline col R
-      done:pv(r[3])!==0};
+    const r=rows[i];
+    if(!r[C.date]||!r[C.date].trim())continue;
+    const yr=parseInt(r[C.year]);if(!yr)continue;
+
+    const rAval   = pv(r[C.rA]);
+    const eAraw   = pv(r[C.eAcol]);
+    const eFonly  = pv(r[C.eFonly]);
+
+    const d={
+      date:     r[C.date].trim(),
+      yr,
+      rA:       rAval,                              // Revenue Actual
+      rF:       pv(r[C.rF]),                        // Revenue Forecast incl pipeline
+      eA:       eAraw!==0 ? eAraw : eFonly,         // Expenses Actual (col N if filled, else col O)
+      eF:       pv(r[C.eF]),                        // Expenses Forecast
+      eFonly:   eFonly,                              // Expenses Forecast only
+      eA_raw:   eAraw,                              // Expenses Actual raw (col N)
+      pFn:      pv(r[C.pFn]),                       // Op Profit Forecast no pipeline
+      pFp:      pv(r[C.pFp]),                       // Op Profit Forecast incl pipeline
+      pA:       pv(r[C.pA]),                        // Op Profit Actual
+      pl:       pv(r[C.pl]),                        // Pipeline flag
+      sA:       pv(r[C.sA]),                        // Sales Actual
+      sF:       pv(r[C.sF]),                        // Sales Forecast static
+      sF_pipe:  pv(r[C.sF_pipe]),                   // Sales Forecast incl pipeline
+      sF_nopipe:pv(r[C.sF_nopipe]),                 // Sales Forecast no pipeline
+      sFpipe:   pv(r[C.sF_pipe]),                   // alias
+      sFnopipe: pv(r[C.sF_nopipe]),                 // alias
+      gA:       pv(r[C.gA]),                        // Grants Actual
+      gF:       r.length>30 ? pv(r[C.gF]) : 0,     // Grants Forecast
+      done:     rAval !== 0
+    };
     if(yr===2026)s26.push(d);else if(yr===2025)s25.push(d);
   }
 
@@ -1442,6 +1609,12 @@ function buildScenChart(){
       var ia=i<actualCount;
       var ri=scenRevIn[i]||0,hi=scenHighIn[i]||0,mi=scenMedIn[i]||0;
       var ti=ri+hi+mi,co=scenCashOut[i]||0,nt=ti+co;
+      // Break out cash out components for table display
+      var c_cash=cash[i]||{};
+      var baseOutV = ia ? (c_cash.cOA_op||0) : -(c_cash.cOutF2||0);
+      var loanV    = ia ? 0 : -(isJunePlus ? loanMonthly * oblRate_sel : 0);
+      var taxV     = ia ? 0 : -(isJunePlus ? (taxLiability * taxRate / taxMonths) : 0);
+      var payV     = ia ? 0 :  (isJunePlus ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
       tRI+=ri;tH+=hi;tM+=mi;tO+=co;
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
@@ -1451,6 +1624,10 @@ function buildScenChart(){
         +td(hi?fC(hi):'—','','color:var(--coral)')
         +td(mi?fC(mi):'—','','color:var(--amber)')
         +td(fC(ti),'','font-weight:600')
+        +td(ia?fC(c_cash.cOA_op||0):fC(-baseOutV),'neg')
+        +td(loanV?'-'+fC(Math.abs(loanV)):'—','','color:var(--coral)')
+        +td(taxV?'-'+fC(Math.abs(taxV)):'—','','color:var(--coral)')
+        +td(payV?fC(payV):'—','pos')
         +td(fC(co),'neg')
         +td(fC(nt),nt>=0?'pos':'neg')
         +td(fC(bv),bv<0?'neg':'pos','font-weight:700');
@@ -1458,10 +1635,12 @@ function buildScenChart(){
     });
     if(t_foot){
       var fb=scenBal[scenBal.length-1];
-      t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total</strong></td><td></td>'
+      t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total / Dec</strong></td><td></td>'
         +'<td>'+fC(tRI)+'</td><td style="color:var(--coral)">'+fC(tH)+'</td>'
         +'<td style="color:var(--amber)">'+fC(tM)+'</td>'
         +'<td><strong>'+fC(tRI+tH+tM)+'</strong></td>'
+        +'<td class="neg">'+fC(tO)+'</td>'
+        +'<td>—</td><td>—</td><td>—</td>'
         +'<td class="neg">'+fC(tO)+'</td>'
         +'<td class="'+(tRI+tH+tM+tO>=0?'pos':'neg')+'"><strong>'+fC(tRI+tH+tM+tO)+'</strong></td>'
         +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
@@ -1740,8 +1919,12 @@ function processRevenues(rows){
 }
 
 function processInvoices(rows){
-  // Invoice Tracker columns:
-  // [3]=Status (must be 'Invoiced'), [6]=Customer, [20]=Amount Outstanding (col U)
+  // Resolve columns from header row using invoiceSchema — resilient to column shifts
+  if(!window._invoiceColMap) {
+    window._invoiceColMap = mapHeaders(rows[0], invoiceSchema, invoiceFallbacks);
+  }
+  const C = window._invoiceColMap;
+
   try {
     const byCustomer = {};
     let grandTotal = 0;
@@ -1750,14 +1933,14 @@ function processInvoices(rows){
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
-      const status=(r[3]||'').trim().toLowerCase();
+      const status=(r[C.status]||'').trim().toLowerCase();
       if(status==='not invoiced'){
-        notInvoicedTotal+=pv(r[10]); // col K
+        notInvoicedTotal+=pv(r[C.notInvoicedAmt]);
         continue;
       }
       if(status !== 'invoiced') continue;
-      const customer = (r[6]||'').trim();
-      const outstanding = pv(r[20]);  // col U = Amount Outstanding
+      const customer = (r[C.customer]||'').trim();
+      const outstanding = pv(r[C.outstanding]);
       if(!customer || outstanding <= 0) continue;
 
       if(!byCustomer[customer]) byCustomer[customer]=0;
@@ -1772,10 +1955,10 @@ function processInvoices(rows){
     const notInvByCust={};
     for(let i=1;i<rows.length;i++){
       const r=rows[i];if(!r[0]||!r[0].trim())continue;
-      const st=(r[3]||'').trim().toLowerCase();
+      const st=(r[C.status]||'').trim().toLowerCase();
       if(st!=='not invoiced')continue;
-      const cust=(r[6]||'').trim();
-      const amt=pv(r[10]);
+      const cust=(r[C.customer]||'').trim();
+      const amt=pv(r[C.notInvoicedAmt]);
       if(!cust||amt<=0)continue;
       notInvByCust[cust]=(notInvByCust[cust]||0)+amt;
     }
@@ -1805,9 +1988,9 @@ function processInvoices(rows){
     const dsoByMonth={};
     for(let i=1;i<rows.length;i++){
       const r=rows[i];if(!r[0]||!r[0].trim())continue;
-      if((r[3]||'').trim().toLowerCase()!=='invoiced')continue;
-      if(!r[15]||!r[16]||!pv(r[17]))continue;
-      const invD=new Date(r[0]),colD=new Date(r[15]),colMo=(r[16]||'').trim();
+      if((r[C.status]||'').trim().toLowerCase()!=='invoiced')continue;
+      if(!r[C.collectionDate]||!r[C.monthLabel]||!pv(r[C.amountDso]))continue;
+      const invD=new Date(r[C.invoiceDate]),colD=new Date(r[C.collectionDate]),colMo=(r[C.monthLabel]||'').trim();
       if(isNaN(invD)||isNaN(colD)||!colMo)continue;
       const dso=Math.round((colD-invD)/(86400000));
       if(dso<0||dso>500)continue;
@@ -1879,25 +2062,33 @@ function processInvoices(rows){
 }
 
 function processCFF(rows){
-  // CF_f sheet — 2026 months at cols 17-28 (Jan-Dec)
-  try {
-    for(let i=0;i<rows.length;i++){
-      const r=rows[i];
-      const d=(r[3]||'').toString().trim();
-      // Row 35: Payroll
-      if((r[1]||'').toString().trim()==='Payroll' && (r[2]||'').toString().trim()==='Salaries' && d==='Payroll'){
-        const payroll=[];
-        for(let m=0;m<12;m++) payroll.push(Math.abs(pv(r[17+m]))||0);
-        window._payrollMonthly=payroll;
-        }
-      // Row 23: Workforce (Direct Cost base — without pipeline)
-      if((r[1]||'').toString().trim()==='Direct Cost' && (r[2]||'').toString().trim()==='DC' && d==='Workforce'){
-        const workforce=[];
-        for(let m=0;m<12;m++) workforce.push(Math.abs(pv(r[17+m]))||0);
-        window._workforceMonthly=workforce;
-        }
+  // CF_f sheet — rows identified by multi-column label match (resilient to row number changes)
+  // Monthly values at cols 17-28 (Jan-Dec 2026) — structural offset, stable
+  const CFF_MONTH_OFFSET = 17; // Jan 2026 starts at column index 17
+  const CFF_MONTH_COUNT  = 12;
+
+  // Helper to extract 12 monthly values from a matched row
+  function extractMonthly(row) {
+    const vals = [];
+    for(let m = 0; m < CFF_MONTH_COUNT; m++) {
+      vals.push(Math.abs(pv(row[CFF_MONTH_OFFSET + m])) || 0);
     }
-  } catch(e){ console.warn('CF_f parse failed',e); }
+    return vals;
+  }
+
+  try {
+    // Find Payroll row: col B='Payroll', col C='Salaries', col D='Payroll'
+    const payrollRow = findRowByMultiLabel(rows, {1:'Payroll', 2:'Salaries', 3:'Payroll'});
+    if(payrollRow) {
+      window._payrollMonthly = extractMonthly(payrollRow);
+    }
+
+    // Find Workforce row: col B='Direct Cost', col C='DC', col D='Workforce'
+    const workforceRow = findRowByMultiLabel(rows, {1:'Direct Cost', 2:'DC', 3:'Workforce'});
+    if(workforceRow) {
+      window._workforceMonthly = extractMonthly(workforceRow);
+    }
+  } catch(e){ console.warn('CF_f parse failed', e); }
 }
 
 function processDB1(rows){
