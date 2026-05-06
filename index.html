@@ -835,7 +835,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-b · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
