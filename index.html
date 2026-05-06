@@ -689,7 +689,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v29Apr-colI · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1077,16 +1077,20 @@ function processCash(rows){
     return hdr.findIndex(h => h && h.toString().toLowerCase().trim() === n);
   };
 
+  // Find cOF2 column with multiple fallback strategies
+  const _cOF2 = (function(){
+    var idx = -1;
+    idx = hdr.findIndex(function(h){return h&&h.toString().toLowerCase().trim()==='cash out - (f) base - no tax no loans';});
+    if(idx<0) idx = hdr.findIndex(function(h){return h&&h.toString().toLowerCase().indexOf('(f) base')>-1;});
+    if(idx<0) idx = hdr.findIndex(function(h){return h&&h.toString().toLowerCase().indexOf('no tax no loans')>-1;});
+    return idx;
+  }());
+
   const COL = {
     cIF  : _ci('Cash in (F)'),
     cIA  : _ci('Cash In (A) (op)'),
     cOA  : _ci('Cash Out (A) (Op+fin)'),
-    cOF2 : (()=>{
-      let idx = hdr.findIndex(h=>h&&h.toString().toLowerCase().trim()==='cash out - (f) base - no tax no loans');
-      if(idx<0) idx = hdr.findIndex(h=>h&&h.toString().toLowerCase().includes('(f) base'));
-      if(idx<0) idx = hdr.findIndex(h=>h&&h.toString().toLowerCase().includes('no tax no loans'));
-      return idx;
-    })(),
+    cOF2 : _cOF2,
     balA : _ci('Cash Balance (end of period) (A) op+fin'),
     balF2: _ci('Cash Balance (end of period) (F2) (incl tax no loans)'),
     balF3: _ci('Cash Balance (end of period) (F3) (incl tax and loans)'),
@@ -1116,8 +1120,8 @@ function processCash(rows){
       balF2:  pv(r[col('balF2')]),
       balF3:  pv(r[col('balF3')]),
       burn3m: pv(r[col('burn')]),
-      runwayT:pv(r[c('rwyT',20)]),  // col U no loans
-      runwayU:pv(r[c('rwyU',21)])   // col V incl loans
+      runwayT:pv(r[col('rwyT')]),  // col U no loans
+      runwayU:pv(r[col('rwyU')])   // col V incl loans
     });
   }
   if(!cash.length)return;
