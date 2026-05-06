@@ -1,12 +1,4 @@
-const URLS={
-  staging:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=914674636&single=true&output=csv',
-  cash:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1763420424&single=true&output=csv',
-  pipeline: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=376865117&single=true&output=csv',
-  revenues: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1731705433&single=true&output=csv',
-  invoices: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1097401785&single=true&output=csv',
-  cff:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1467204008&single=true&output=csv',
-  db1:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1289407979&single=true&output=csv'
-}<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -1104,7 +1096,6 @@ function processCash(rows){
   // Use found indices; fallbacks based on live COL map observed: balA=15, balF2=16, balF3=17, rwyT=20, rwyU=21
   const LIVE_FB = {cIF:5,cIA:6,cOA:8,cOF2:10,balA:15,balF2:16,balF3:17,burn:17,rwyT:20,rwyU:21};
   const col = (key) => COL[key] > -1 ? COL[key] : LIVE_FB[key];
-  console.log('Staging_cash COL map:', JSON.stringify(COL));
 
   const cash=[];
   for(let i=1;i<rows.length;i++){
@@ -1288,7 +1279,6 @@ function buildScenChart(){
   const lastClosedIdx = Math.max(0, actualCount - 2);
   const lastClosed    = cash[lastClosedIdx] || cash[0];
   const startBal      = lastClosed?.balA || lastClosed?.balF2 || 0;
-  console.log('Scenario startBal: month idx', lastClosedIdx, '=', startBal);
   const scenBal     = [];
   const scenCashIn  = [];  // for stacked bars
   const scenRevIn   = [];  // base revenue in (F)
@@ -1334,17 +1324,7 @@ function buildScenChart(){
       const taxThisMonth   = isJunePlus ? (taxLiability * taxRate / taxMonths) : 0;
       const cashOut        = baseOut + loanExtra + payrollSave - taxThisMonth + workforceExtra;
       runBal = runBal + baseIn + pipelineIn + cashOut;
-            if(i===5){
-        const lbl=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][i];
-        console.group('Scenario Builder — June debug (oblRate='+oblRate_sel+', taxRate='+taxRate+')');
-        console.log('Base cash out (F2):', c.cOutF2);
-        console.log('Loan monthly (DB1 spread):', Math.round(loanMonthly), '× rate', oblRate_sel, '= loanExtra:', Math.round(loanExtra));
-        console.log('Tax this month:', taxThisMonth, '(liability:', taxLiability, '÷ months:', taxMonths, '× rate:', taxRate, ')');
-        console.log('Payroll save:', payrollSave);
-        console.log('Cash Out total:', Math.round(cashOut));
-        console.log('Running balance:', Math.round(runBal));
-        console.groupEnd();
-      }
+      
       scenBal.push(runBal);
       scenRevIn.push(baseIn||null);
       scenPipeIn.push(pipelineIn||null);
@@ -1606,7 +1586,7 @@ function buildDSO(){
 }
 
 function sortPipeline(){
-  var sortBy=document.getElementById('pipeSortTog')?.value||'val';
+  var sortBy=document.getElementById('pipeSortTog')?.value||'prob';
   var pipeline=window._pipelineData||[];
   var sp;
   var order={High:0,Medium:1,Low:2};
@@ -1658,7 +1638,8 @@ function processPipeline(rows){
   const _pM=pipeline.filter(function(p){return p.s==='Medium';}).reduce(function(s,p){return s+p.a;},0);
   window._pipeHigh=_pH;
   window._pipeMed=_pM;
-  console.log('processPipeline: High='+_pH+' Med='+_pM);
+  // Render using sortPipeline() so dropdown default (H→M→L) is applied
+  setTimeout(function(){ sortPipeline('prob'); }, 0);
   const sp=[...pipeline].sort((a,b)=>b.a-a.a);
   const high=pipeline.filter(p=>p.s==='High').reduce((s,p)=>s+p.a,0);
   const med =pipeline.filter(p=>p.s==='Medium').reduce((s,p)=>s+p.a,0);
@@ -1747,12 +1728,12 @@ function processRevenues(rows){
         // Find biggest value in this row (that's the total)
         let best=0;
         for(let j=1;j<r.length;j++){const v=pv(r[j]);if(v>best&&v<2000000)best=v;}
-        if(best>1000){window._pipeHigh=best;console.log('Rev High=',best);}
+        if(best>1000){window._pipeHigh=best;}
       }
       if(/^pipeline\s*-\s*medium$/i.test(a)){
         let best=0;
         for(let j=1;j<r.length;j++){const v=pv(r[j]);if(v>best&&v<2000000)best=v;}
-        if(best>1000){window._pipeMed=best;console.log('Rev Med=',best);}
+        if(best>1000){window._pipeMed=best;}
       }
     }
   } catch(e){ console.warn('Revenue pipeline parse failed', e); }
@@ -1908,15 +1889,13 @@ function processCFF(rows){
         const payroll=[];
         for(let m=0;m<12;m++) payroll.push(Math.abs(pv(r[17+m]))||0);
         window._payrollMonthly=payroll;
-        console.log('Payroll loaded:',payroll);
-      }
+        }
       // Row 23: Workforce (Direct Cost base — without pipeline)
       if((r[1]||'').toString().trim()==='Direct Cost' && (r[2]||'').toString().trim()==='DC' && d==='Workforce'){
         const workforce=[];
         for(let m=0;m<12;m++) workforce.push(Math.abs(pv(r[17+m]))||0);
         window._workforceMonthly=workforce;
-        console.log('Workforce loaded:',workforce);
-      }
+        }
     }
   } catch(e){ console.warn('CF_f parse failed',e); }
 }
@@ -1960,8 +1939,6 @@ function processDB1(rows){
       const projects = pv(dataRow[ci(iP,3)]);
       const loans    = pv(dataRow[ci(iL,13)]);
       const taxes    = pv(dataRow[ci(iT,14)]);
-      console.log('DB1 col map: Banks='+ci(iB,1)+' Safe='+ci(iS,2)+' Projects='+ci(iP,3)+' Loans='+ci(iL,13)+' Taxes='+ci(iT,14));
-      console.log('DB1 values: Banks='+banks+' Safe='+safe+' Projects='+projects+' Loans='+loans+' Taxes='+taxes);
       window._db1Banks=banks;window._db1Safe=safe;window._db1Projects=projects;
       window._db1Loans=loans;window._db1Taxes=taxes;
       const s=(id,v,neg=false)=>{const el=document.getElementById(id);if(el)el.textContent=neg?(v?'-'+fC(Math.abs(v)):'—'):fC(v);};
