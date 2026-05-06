@@ -835,7 +835,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-b · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-c · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1456,6 +1456,9 @@ function buildScenChart(){
   let runBal = startBal;
 
   const currentMonthIdx = actualCount - 1; // last month with actual data (may be partial)
+  // Hoist loanMonthly to function scope (used by both forEach loops)
+  const loanMonthly = fcstLeft > 0 ? (Math.abs(window._db1Loans||65117) / fcstLeft) : 0;
+
   cash.forEach((c,i)=>{
     if(i < actualCount){
       scenBal.push(c.balA||c.balF2);
@@ -1475,9 +1478,6 @@ function buildScenChart(){
       const baseOut      = c.cOutF2||0;  // F2 = pure ops, no tax, no loans
       // All scenario adjustments apply from June (index 5) onwards only
       // May (index 4) uses base forecast only
-      // Loan repayment: spread DB1 outstanding loans over forecast months × rate
-      // col L (F3) not used — loan amount sourced from DB1 directly
-      const loanMonthly  = fcstLeft > 0 ? (Math.abs(window._db1Loans||65117) / fcstLeft) : 0;
       const loanExtra    = isJunePlus ? -(loanMonthly * oblRate_sel) : 0; // negative = outflow
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = isJunePlus ? monthPayroll * payrollCut : 0;
