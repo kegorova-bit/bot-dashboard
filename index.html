@@ -1081,7 +1081,12 @@ function processCash(rows){
     cIF  : _ci('Cash in (F)'),
     cIA  : _ci('Cash In (A) (op)'),
     cOA  : _ci('Cash Out (A) (Op+fin)'),
-    cOF2 : _ci('Cash out - (F) base - no tax no loans'), // col K — new header
+    cOF2 : (()=>{
+      let idx = hdr.findIndex(h=>h&&h.toString().toLowerCase().trim()==='cash out - (f) base - no tax no loans');
+      if(idx<0) idx = hdr.findIndex(h=>h&&h.toString().toLowerCase().includes('(f) base'));
+      if(idx<0) idx = hdr.findIndex(h=>h&&h.toString().toLowerCase().includes('no tax no loans'));
+      return idx;
+    })(),
     balA : _ci('Cash Balance (end of period) (A) op+fin'),
     balF2: _ci('Cash Balance (end of period) (F2) (incl tax no loans)'),
     balF3: _ci('Cash Balance (end of period) (F3) (incl tax and loans)'),
