@@ -510,26 +510,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
       * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
     </div>
-</div>
-</div>
-  <div class="card accent mb">
-    <div class="ch">
-      <div><div class="ctitle">Cash Runway</div><div class="csub">Months of cash remaining based on current burn rate</div></div>
-      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div class="scr">
-          <div class="sc" id="sc_rwy_wrap"><div class="slb" id="sc_rwy_label">Runway</div><div class="sv" id="sc_rwy_val">—</div></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <span class="tl">Scenario</span>
-          <select class="ts" id="rwyChartTog" onchange="buildRunwayChart()">
-            <option value="noloan">No Loan Repayment</option>
-            <option value="loans">Incl Loan Repayment</option>
-          </select>
+    <div class="card accent mb">
+      <div class="ch">
+        <div><div class="ctitle">Cash Runway</div><div class="csub">Months of cash remaining based on current burn rate</div></div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div class="scr">
+            <div class="sc" id="sc_rwy_wrap"><div class="slb" id="sc_rwy_label">Runway</div><div class="sv" id="sc_rwy_val">—</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="tl">Scenario</span>
+            <select class="ts" id="rwyChartTog" onchange="buildRunwayChart()">
+              <option value="noloan">No Loan Repayment</option>
+              <option value="loans">Incl Loan Repayment</option>
+            </select>
+          </div>
         </div>
       </div>
+      <div class="cw"><canvas id="rwy"></canvas></div>
     </div>
-    <div class="cw"><canvas id="rwy"></canvas></div>
-  </div>
+</div>
+</div>
 
 
 <!-- ══════════ PIPELINE ══════════ -->
@@ -860,7 +860,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-e · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-f · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
