@@ -35,7 +35,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .tabs{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 36px;display:flex;gap:4px;position:sticky;top:62px;z-index:100;}
 .tab{padding:14px 20px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;user-select:none;}
 .tab:hover{color:var(--teal);}.tab.active{color:var(--teal);border-bottom-color:var(--teal);}
-.page{display:none;padding:28px 36px 48px;max-width:1440px;margin:0 auto;}
+.page{display:none;padding:28px 36px 48px;max-width:1440px;margin:0 auto;overflow:hidden;}
 .page.active{display:block;animation:fi .25s ease;}
 @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .loading-overlay{position:fixed;inset:0;background:rgba(15,17,23,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:20px;}
@@ -351,32 +351,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <span style="font-size:18px">🚨</span><span id="cashAlertText"></span>
   </div>
   <!-- ── Total Cash Position — hero card ── -->
-  <div class="cm-hero" style="background:rgba(15,184,184,.08);border:1px solid rgba(15,184,184,.35);border-radius:12px;padding:18px 22px 14px;margin-bottom:16px;">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-      <div>
-        <div style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;margin-bottom:4px;">Total Cash Position</div>
-        <div id="cm_total_cash" style="font-size:36px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px;">Banks + Safe + Projects</div>
+  <div class="cm-hero" style="background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.25);border-radius:10px;padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:0;">
+    <!-- Total -->
+    <div style="flex:0 0 auto;padding-right:24px;border-right:1px solid rgba(255,255,255,.07);">
+      <div style="font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:2px;">Total Cash</div>
+      <div id="cm_total_cash" style="font-size:28px;font-weight:700;font-family:var(--mono);color:var(--teal);line-height:1.1;">—</div>
+      <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:2px;">—</div>
+    </div>
+    <!-- Breakdown -->
+    <div style="display:flex;flex:1;padding-left:20px;gap:0;">
+      <div style="flex:1;padding:0 16px;border-right:1px solid rgba(255,255,255,.07);">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-bottom:2px;">Banks</div>
+        <div id="cm_banks" style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text);">—</div>
+        <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:1px;">—</div>
       </div>
-      <!-- Sub-breakdown: Banks / Safe / Projects in smaller font -->
-      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;">
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;">BANKS</div>
-          <div id="cm_banks" style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--teal);">—</div>
-          <div class="cms ref-date" style="font-size:10px;color:var(--text3);">—</div>
-        </div>
-        <div style="color:var(--border);font-size:20px;">+</div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;">SAFE</div>
-          <div id="cm_safe" style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--teal);">—</div>
-          <div class="cms ref-date" style="font-size:10px;color:var(--text3);">—</div>
-        </div>
-        <div style="color:var(--border);font-size:20px;">+</div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;">PROJECTS</div>
-          <div id="cm_projects" style="font-size:18px;font-weight:600;font-family:var(--mono);color:var(--teal);">—</div>
-          <div class="cms ref-date" style="font-size:10px;color:var(--text3);">—</div>
-        </div>
+      <div style="flex:1;padding:0 16px;border-right:1px solid rgba(255,255,255,.07);">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-bottom:2px;">Safe</div>
+        <div id="cm_safe" style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text);">—</div>
+        <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:1px;">—</div>
+      </div>
+      <div style="flex:1;padding:0 16px;">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-bottom:2px;">Projects</div>
+        <div id="cm_projects" style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text);">—</div>
+        <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:1px;">—</div>
       </div>
     </div>
   </div>
@@ -863,7 +860,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-d · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-e · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2381,7 +2378,7 @@ function goTab(id,el){
     const defaultBtn=document.getElementById('st_fin26');
     switchSubTab('fin26', defaultBtn);
   }
-  setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}}),50);
+  setTimeout(()=>{const activePage=document.querySelector('.page.active');Object.entries(charts).forEach(([k,c])=>{try{const canvas=c.canvas;if(canvas&&activePage&&activePage.contains(canvas))c.resize();}catch(e){}});},50);
 }
 
 loadAllData();
