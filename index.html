@@ -384,8 +384,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="cml" style="display:flex;align-items:center;justify-content:space-between;">
         <span>Runway</span>
         <select class="ts" id="rwyTog" onchange="updateRunwayCard()" style="font-size:9px;padding:2px 18px 2px 6px;height:auto;">
-          <option value="noloan">No Repayment</option>
-          <option value="loans">Incl Loans</option>
+          <option value="0">0% — No Repayment</option>
+          <option value="0.25">25% Loan Repayment</option>
+          <option value="0.5">50% Loan Repayment</option>
+          <option value="0.75">75% Loan Repayment</option>
+          <option value="1" selected>100% Full Repayment</option>
         </select>
       </div>
       <div class="cmv" id="cm_runway" style="font-size:22px;font-weight:700;font-family:var(--mono);">—</div>
@@ -510,24 +513,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
       * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
     </div>
-    <div class="card accent mb">
-      <div class="ch">
-        <div><div class="ctitle">Cash Runway</div><div class="csub">Months of cash remaining based on current burn rate</div></div>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <div class="scr">
-            <div class="sc" id="sc_rwy_wrap"><div class="slb" id="sc_rwy_label">Runway</div><div class="sv" id="sc_rwy_val">—</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="tl">Scenario</span>
-            <select class="ts" id="rwyChartTog" onchange="buildRunwayChart()">
-              <option value="noloan">No Loan Repayment</option>
-              <option value="loans">Incl Loan Repayment</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="cw"><canvas id="rwy"></canvas></div>
-    </div>
+
 </div>
 </div>
 
@@ -860,7 +846,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-f · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-g · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1909,14 +1895,21 @@ function updateProfitScorecard(){
 }
 
 function updateRunwayCard(){
-  const mode = document.getElementById('rwyTog')?.value || 'noloan';
-  const val  = mode==='noloan' ? (window._runwayT||0) : (window._runwayU||0);
+  // rwyTog now has values 0 / 0.25 / 0.5 / 0.75 / 1 (loan repayment rate)
+  const rate    = parseFloat(document.getElementById('rwyTog')?.value ?? 1);
+  const rwyBase = window._runwayT || 0;   // base runway = no loan repayment
+  const rwyFull = window._runwayU || 0;   // full loan repayment runway
+
+  // Interpolate: 0% = rwyBase, 100% = rwyFull, 50% = midpoint etc.
+  // rwyFull already accounts for full loan drain; partial = blend by rate
+  const val = rate === 0 ? rwyBase
+            : rate === 1 ? rwyFull
+            : rwyBase + (rwyFull - rwyBase) * rate;
+
   const el   = document.getElementById('cm_runway');
   const wrap = document.getElementById('cm_runway_wrap');
   if(el){
-    el.textContent = val ? val.toFixed(2)+' mo' : '—';
-    const isGood = val > 2;
-    const isWarn = val > 0 && val <= 2;
+    el.textContent = val ? val.toFixed(1)+' mo' : '—';
     el.style.color = val < 0 ? 'var(--coral)' : val < 2 ? 'var(--amber)' : 'var(--teal)';
     if(wrap){
       wrap.style.borderColor = val < 0 ? 'rgba(255,107,107,.4)' : val < 2 ? 'rgba(245,166,35,.4)' : 'rgba(15,184,184,.4)';
