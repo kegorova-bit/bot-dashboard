@@ -760,7 +760,7 @@ const invoiceSchema = {
   collectionDate:['Collection Date', 'Collected Date', 'Payment Date'],
   monthLabel:   ['Month Label', 'Collection Month', 'Month Collected'],
   amountDso:    ['Amount (DSO)', 'DSO Amount', 'Amount for DSO'],
-  outstanding:  ['Amount Outstanding', 'Outstanding', 'Balance Due'],
+  outstanding:  ['Amount Outstanding', 'Outstanding Amount', 'Amt Outstanding', 'Outstanding', 'Balance Due', 'Amount Oustanding', 'Amt. Outstanding'],
   notInvoicedAmt:['Amount (no VAT)', 'Amount no VAT', 'Net Amount', 'Amount'], // same col K used for not-invoiced
 };
 
@@ -822,7 +822,7 @@ const bO=(st=false)=>({
     y:{stacked:st,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}
 });
 
-async function fetchCSV(url){const r=await fetch(url);if(!r.ok)throw new Error('fetch failed');return parseCSV(await r.text());}
+async function fetchCSV(url){const r=await fetch(url);if(!r.ok)throw new Error('fetch failed: '+url+' status '+r.status);return parseCSV(await r.text());}
 
 async function loadAllData(){
   document.getElementById('loadingOverlay').classList.remove('hidden');
@@ -846,7 +846,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-g · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-j · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -874,10 +874,8 @@ async function loadAllData(){
 // ─── STAGING ──────────────────────────────────────────────────────
 function processStaging(rows){
   // Resolve columns from header row using stagingSchema — resilient to column shifts
-  if(!window._stagingColMap) {
-    window._stagingColMap = mapHeaders(rows[0], stagingSchema, stagingFallbacks);
-  }
-  const C = window._stagingColMap; // short alias
+  window._stagingColMap = mapHeaders(rows[0], stagingSchema, stagingFallbacks);
+  const C = window._stagingColMap;
 
   const s25=[],s26=[];
   for(let i=1;i<rows.length;i++){
@@ -1408,9 +1406,9 @@ function buildScenChart(){
   const oblRate_sel = parseFloat(document.getElementById('scen_obligations')?.value??1);
   const noLoan      = oblRate_sel === 0; // 0% repayment = no loans = use F2; any >0 = use F3 base
   // Update amount labels from live data
-  const pH=window._pipeHigh||158435, pM=window._pipeMed||173214;
-  const loanAmt=Math.abs(window._db1Loans||65117);
-  const taxAmtLbl=Math.abs(window._db1Taxes||31735);
+  const pH=window._pipeHigh||0, pM=window._pipeMed||0;
+  const loanAmt=Math.abs(window._db1Loans||0);
+  const taxAmtLbl=Math.abs(window._db1Taxes||0);
   const payBase=(window._payrollMonthly||[]).reduce((s,v)=>s+v,0)||243000;
   const el_p=document.getElementById('scen_pipe_amt');
   const el_l=document.getElementById('scen_loan_amt');
@@ -1423,7 +1421,7 @@ function buildScenChart(){
   const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
   const oblRate     = oblRate_sel; // same as oblRate_sel above
   const taxRate     = parseFloat(document.getElementById('scen_tax')?.value??1);
-  const taxLiability= Math.abs(window._db1Taxes||31735); // DB1 O12
+  const taxLiability= Math.abs(window._db1Taxes||0); // DB1 O12
   // Tax repayment starts June (index 5), spreads over Jun-Dec = 7 months
   const TAX_START   = 5; // June = index 5
   const taxMonths   = Math.max(1, 12 - TAX_START); // 7 months Jun-Dec
@@ -1434,8 +1432,8 @@ function buildScenChart(){
   // Pipeline: 100% face value (no probability weighting) — slider = % of full amount
   // CCC: current month + 4 → cash starts arriving in August (month index 7)
   // Remaining months after August split equally for both High and Medium
-  const pipeHigh = window._pipeHigh || 158435;
-  const pipeMed  = window._pipeMed  || 173214;
+  const pipeHigh = window._pipeHigh || 0;
+  const pipeMed  = window._pipeMed  || 0;
   const cccStart = 7; // August = index 7 (0=Jan)
   const highMonths = 12 - cccStart;          // Aug through Dec = 5 months
   const medMonths  = 12 - cccStart;          // same spread
@@ -1446,7 +1444,7 @@ function buildScenChart(){
   const pipePM_base = highPM_base.map((v,i)=>v+medPM_base[i]);
 
   // Monthly payroll from CF_f sheet (live per month)
-  const PAYROLL_MONTHLY = window._payrollMonthly || [18870,30376,17147,20700,20700,20700,20700,20700,20700,20700,20700,20700];
+  const PAYROLL_MONTHLY = window._payrollMonthly || [];
 
   // Build scenario month by month
   // Starting balance: use last FULLY CONFIRMED month's closing balance
@@ -1468,7 +1466,7 @@ function buildScenChart(){
 
   const currentMonthIdx = actualCount - 1; // last month with actual data (may be partial)
   // Hoist loanMonthly to function scope (used by both forEach loops)
-  const loanMonthly = fcstLeft > 0 ? (Math.abs(window._db1Loans||65117) / fcstLeft) : 0;
+  const loanMonthly = fcstLeft > 0 ? (Math.abs(window._db1Loans||0) / fcstLeft) : 0;
 
   cash.forEach((c,i)=>{
     if(i < actualCount){
@@ -1728,15 +1726,15 @@ function buildDSO(){
   const colFcstNP = window._colFcstNP;
   const colL26_c  = window._colL26_c;
   // Pipeline by priority spread across months (High Jun-Aug, Medium Jul-Nov)
-  const HIGH_TOTAL = window._pipeHigh || 158435;
-  const MED_TOTAL  = window._pipeMed  || 173214;
+  const HIGH_TOTAL = window._pipeHigh || 0;
+  const MED_TOTAL  = window._pipeMed  || 0;
   const colHighPM  = [0,0,0,0,0,HIGH_TOTAL/3,HIGH_TOTAL/3,HIGH_TOTAL/3,0,0,0,0];
   const colMedPM   = [0,0,0,0,0,0,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,MED_TOTAL/5,0];
 
   // Update scorecards
   const ytdCollected  = colActual.reduce((s,v)=>s+v,0);
-  const invOutstanding= window._invoicesOutstanding || 104779; // from processInvoices (Status=Invoiced, col U)
-  const notInvoiced   = window._notInvoiced || 284852; // live from processInvoices
+  const invOutstanding= window._invoicesOutstanding || 0; // from processInvoices (Status=Invoiced, col U)
+  const notInvoiced   = window._notInvoiced || 0; // live from processInvoices
   const pipelineHM    = HIGH_TOTAL + MED_TOTAL;
   const totalFcst     = invOutstanding + notInvoiced + pipelineHM;
   const c_ytd  = document.getElementById('col_ytd');
@@ -1942,10 +1940,12 @@ function processRevenues(rows){
 
 function processInvoices(rows){
   // Resolve columns from header row using invoiceSchema — resilient to column shifts
-  if(!window._invoiceColMap) {
-    window._invoiceColMap = mapHeaders(rows[0], invoiceSchema, invoiceFallbacks);
-  }
+  window._invoiceColMap = mapHeaders(rows[0], invoiceSchema, invoiceFallbacks);
   const C = window._invoiceColMap;
+  // Log live headers and col map for debugging
+  console.log('Invoice tracker live headers:', rows[0] ? rows[0].slice(0,25).join(' | ') : 'NO HEADER ROW');
+  console.log('Invoice COL map:', JSON.stringify(C));
+  console.log('Total rows in invoice CSV:', rows.length);
 
   try {
     const byCustomer = {};
@@ -2000,6 +2000,24 @@ function processInvoices(rows){
       });
     }
     if(niTotEl) niTotEl.textContent=fC(notInvoicedTotal);
+
+    // If grandTotal is 0 but header resolved — log warning to help debug
+    if(grandTotal === 0) {
+      console.warn('Outstanding total is 0. C.outstanding='+C.outstanding+'. Checking all cols...');
+      // Try scanning each column to find the outstanding amounts
+      for(let col=15; col<=25; col++) {
+        let testTotal = 0;
+        for(let i=1;i<rows.length;i++){
+          const r=rows[i];
+          if(!r[0]||!r[0].trim())continue;
+          if((r[C.status]||'').trim().toLowerCase()!=='invoiced')continue;
+          testTotal += pv(r[col]);
+        }
+        if(testTotal > 50000 && testTotal < 200000) {
+          console.warn('Possible outstanding at col '+col+': $'+Math.round(testTotal));
+        }
+      }
+    }
 
     // Sort by amount desc
     const sorted = Object.entries(byCustomer)
@@ -2261,8 +2279,8 @@ function buildColChart(){
   const colActual=window._colActual||[];
   const colFcstNP=window._colFcstNP||[];
   const colL26_c=window._colL26_c||["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
-  const _H=window._pipeHigh||158435;
-  const _M=window._pipeMed||173214;
+  const _H=window._pipeHigh||0;
+  const _M=window._pipeMed||0;
   const _ccc=7; // CCC: cash starts Aug (month index 7)
   const _hpm=_H/(12-_ccc), _mpm=_M/(12-_ccc);
   const colHighPM=Array.from({length:12},(_,i)=>i>=_ccc?_hpm:0);
