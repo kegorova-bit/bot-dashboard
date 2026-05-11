@@ -379,7 +379,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <!-- ── Secondary metrics row ── -->
   <div class="cash-grid">
-    <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices">—</div><div class="cms">From Invoice Tracker · live</div></div>
+    <div class="cm a" id="cm_inv_wrap"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices" style="color:var(--amber)">—</div><div class="cms">From Invoice Tracker · live</div></div>
     <div class="cm" id="cm_runway_wrap" style="border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)">
       <div class="cml" style="display:flex;align-items:center;justify-content:space-between;">
         <span>Runway</span>
@@ -563,7 +563,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Collections scorecards -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
     <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
-    <div class="cm r"><div class="cml">Invoices Outstanding</div><div class="cmv r" id="col_inv_out">—</div><div class="cms">Status=Invoiced · col U</div></div>
+
     <div class="cm a"><div class="cml">Not Yet Invoiced</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Not Invoiced · col K</div></div>
     <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
     <div class="cm t"><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base + High + Medium</div></div>
@@ -846,7 +846,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-j · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-k · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2001,21 +2001,36 @@ function processInvoices(rows){
     }
     if(niTotEl) niTotEl.textContent=fC(notInvoicedTotal);
 
-    // If grandTotal is 0 but header resolved — log warning to help debug
-    if(grandTotal === 0) {
-      console.warn('Outstanding total is 0. C.outstanding='+C.outstanding+'. Checking all cols...');
-      // Try scanning each column to find the outstanding amounts
-      for(let col=15; col<=25; col++) {
-        let testTotal = 0;
+    // If grandTotal = 0 — auto-scan cols 15-30 to find the right outstanding column
+    if(grandTotal === 0 && rows.length > 5) {
+      let bestCol = -1, bestTotal = 0;
+      for(let col=15; col<=30; col++) {
+        let testTotal = 0, testCount = 0;
         for(let i=1;i<rows.length;i++){
           const r=rows[i];
           if(!r[0]||!r[0].trim())continue;
           if((r[C.status]||'').trim().toLowerCase()!=='invoiced')continue;
-          testTotal += pv(r[col]);
+          const v = pv(r[col]);
+          if(v>0){testTotal+=v;testCount++;}
         }
-        if(testTotal > 50000 && testTotal < 200000) {
-          console.warn('Possible outstanding at col '+col+': $'+Math.round(testTotal));
+        if(testCount>0 && testTotal>bestTotal && testTotal<5000000){
+          bestTotal=testTotal; bestCol=col;
         }
+      }
+      if(bestCol>-1 && bestTotal>0){
+        // Re-run with discovered column
+        for(let i=1;i<rows.length;i++){
+          const r=rows[i];
+          if(!r[0]||!r[0].trim())continue;
+          if((r[C.status]||'').trim().toLowerCase()!=='invoiced')continue;
+          const customer=(r[C.customer]||'').trim();
+          const outstanding=pv(r[bestCol]);
+          if(!customer||outstanding<=0)continue;
+          if(!byCustomer[customer])byCustomer[customer]=0;
+          byCustomer[customer]+=outstanding;
+          grandTotal+=outstanding;
+        }
+        C.outstanding = bestCol; // update for future use
       }
     }
 
