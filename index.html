@@ -563,6 +563,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Collections scorecards -->
   <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
     <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
+    <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="col_inv_out" style="color:var(--amber)">—</div><div class="cms">Status=Invoiced · live</div></div>
 
     <div class="cm a"><div class="cml">Not Yet Invoiced</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Not Invoiced · col K</div></div>
     <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
@@ -653,11 +654,21 @@ function mapHeaders(headerRow, schema, fallbacks) {
   Object.keys(schema).forEach(function(field) {
     const aliases = schema[field];
     let found = -1;
+    // Pass 1: exact match
     for (let a = 0; a < aliases.length && found < 0; a++) {
       const alias = aliases[a].toLowerCase().trim();
       found = hdr.findIndex(function(h) {
         return h && h.toString().toLowerCase().trim() === alias;
       });
+    }
+    // Pass 2: includes match (partial)
+    if (found < 0) {
+      for (let a = 0; a < aliases.length && found < 0; a++) {
+        const alias = aliases[a].toLowerCase().trim();
+        found = hdr.findIndex(function(h) {
+          return h && h.toString().toLowerCase().indexOf(alias) > -1;
+        });
+      }
     }
     result[field] = found >= 0 ? found : (fallbacks && fallbacks[field] !== undefined ? fallbacks[field] : -1);
   });
@@ -760,7 +771,7 @@ const invoiceSchema = {
   collectionDate:['Collection Date', 'Collected Date', 'Payment Date'],
   monthLabel:   ['Month Label', 'Collection Month', 'Month Collected'],
   amountDso:    ['Amount (DSO)', 'DSO Amount', 'Amount for DSO'],
-  outstanding:  ['Amount Outstanding', 'Outstanding Amount', 'Amt Outstanding', 'Outstanding', 'Balance Due', 'Amount Oustanding', 'Amt. Outstanding'],
+  outstanding:  ['Amount Outstanding', 'Outstanding Amount', 'Amt Outstanding', 'Outstanding Balance', 'Balance Outstanding', 'Outstanding', 'Balance Due'],
   notInvoicedAmt:['Amount (no VAT)', 'Amount no VAT', 'Net Amount', 'Amount'], // same col K used for not-invoiced
 };
 
@@ -846,7 +857,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-k · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-m · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1951,7 +1962,7 @@ function processInvoices(rows){
     const byCustomer = {};
     let grandTotal = 0;
 
-    let notInvoicedTotal = 0;
+let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
@@ -1962,8 +1973,9 @@ function processInvoices(rows){
       }
       if(status !== 'invoiced') continue;
       const customer = (r[C.customer]||'').trim();
-      const outstanding = pv(r[C.outstanding]);
-      if(!customer || outstanding <= 0) continue;
+      if(!customer) continue;
+      const outstanding = Math.abs(pv(r[C.outstanding]));  // accounting format: $(24,161) = owed
+      if(outstanding <= 0) continue;
 
       if(!byCustomer[customer]) byCustomer[customer]=0;
       byCustomer[customer] += outstanding;
@@ -2001,38 +2013,7 @@ function processInvoices(rows){
     }
     if(niTotEl) niTotEl.textContent=fC(notInvoicedTotal);
 
-    // If grandTotal = 0 — auto-scan cols 15-30 to find the right outstanding column
-    if(grandTotal === 0 && rows.length > 5) {
-      let bestCol = -1, bestTotal = 0;
-      for(let col=15; col<=30; col++) {
-        let testTotal = 0, testCount = 0;
-        for(let i=1;i<rows.length;i++){
-          const r=rows[i];
-          if(!r[0]||!r[0].trim())continue;
-          if((r[C.status]||'').trim().toLowerCase()!=='invoiced')continue;
-          const v = pv(r[col]);
-          if(v>0){testTotal+=v;testCount++;}
-        }
-        if(testCount>0 && testTotal>bestTotal && testTotal<5000000){
-          bestTotal=testTotal; bestCol=col;
-        }
-      }
-      if(bestCol>-1 && bestTotal>0){
-        // Re-run with discovered column
-        for(let i=1;i<rows.length;i++){
-          const r=rows[i];
-          if(!r[0]||!r[0].trim())continue;
-          if((r[C.status]||'').trim().toLowerCase()!=='invoiced')continue;
-          const customer=(r[C.customer]||'').trim();
-          const outstanding=pv(r[bestCol]);
-          if(!customer||outstanding<=0)continue;
-          if(!byCustomer[customer])byCustomer[customer]=0;
-          byCustomer[customer]+=outstanding;
-          grandTotal+=outstanding;
-        }
-        C.outstanding = bestCol; // update for future use
-      }
-    }
+    // outstanding resolved by name — no auto-scan needed
 
     // Sort by amount desc
     const sorted = Object.entries(byCustomer)
@@ -2111,6 +2092,9 @@ function processInvoices(rows){
 
     // Update DSO context note with live total
     window._invOutstanding = grandTotal;
+    window._invoicesOutstanding = grandTotal;
+    const cinvEl2 = document.getElementById('col_inv_out');
+    if(cinvEl2) { cinvEl2.textContent = grandTotal > 0 ? fC(grandTotal) : '—'; }
     window._invCount = sorted.length;
 
   } catch(e){ console.warn('Invoice parse failed', e); }
