@@ -557,7 +557,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="dso-grid">
     <div class="cm t"><div class="cml">Avg DSO</div><div class="cmv t" id="dso_avg">—</div><div class="cms">Days to collect</div></div>
     <div class="cm a"><div class="cml">Median DSO</div><div class="cmv a" id="dso_med">—</div><div class="cms">50th percentile</div></div>
-    <div class="cm r"><div class="cml">Outstanding Invoices</div><div class="cmv r" id="col_outstanding">—</div><div class="cms" id="col_outstanding_sub">From Invoice Tracker</div></div>
+
     <div class="cm a"><div class="cml">Dominant Payment Term</div><div class="cmv a">1 month</div><div class="cms">Most common</div></div>
   </div>
   <!-- Collections scorecards -->
@@ -565,7 +565,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
     <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="col_inv_out" style="color:var(--amber)">—</div><div class="cms">Status=Invoiced · live</div></div>
 
-    <div class="cm a"><div class="cml">Not Yet Invoiced</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Not Invoiced · col K</div></div>
+    <div class="cm a"><div class="cml">Draft (To Invoice)</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Draft · col L</div></div>
     <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
     <div class="cm t"><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base + High + Medium</div></div>
   </div>
@@ -755,30 +755,25 @@ const stagingFallbacks = {
 };
 
 const invoiceSchema = {
-  invoiceDate:  ['Invoice Date', 'Date', 'Invoice Dt'],
-  year:         ['Year'],
-  month:        ['Month'],
-  status:       ['Status', 'Invoice Status'],
-  invoiceNo:    ['Invoice No', 'Invoice #', 'Invoice Number'],
-  project:      ['Project', 'Project Name'],
-  customer:     ['Customer', 'Client', 'Customer Name'],
-  description:  ['Description', 'Invoice Description'],
-  amountNoVat:  ['Amount (no VAT)', 'Amount no VAT', 'Net Amount', 'Amount'],
-  vat:          ['VAT', 'Tax', 'VAT Amount'],
-  amountGross:  ['Amount (gross)', 'Gross Amount', 'Total Amount'],
-  dueDate:      ['Due Date', 'Payment Due'],
-  daysOverdue:  ['Days Overdue', 'Overdue Days'],
-  collectionDate:['Collection Date', 'Collected Date', 'Payment Date'],
-  monthLabel:   ['Month Label', 'Collection Month', 'Month Collected'],
-  amountDso:    ['Amount (DSO)', 'DSO Amount', 'Amount for DSO'],
-  outstanding:  ['Amount Outstanding', 'Outstanding Amount', 'Amt Outstanding', 'Outstanding Balance', 'Balance Outstanding', 'Outstanding', 'Balance Due'],
-  notInvoicedAmt:['Amount (no VAT)', 'Amount no VAT', 'Net Amount', 'Amount'], // same col K used for not-invoiced
+  invoiceDate:   ['Invoice_Date', 'Invoice Date', 'Date'],
+  status:        ['Payment_status', 'Payment Status', 'Status', 'Invoice Status'],
+  customer:      ['Customer', 'Client', 'Customer Name'],
+  project:       ['Project_name', 'Project Name', 'Project'],
+  invoiceNo:     ['Invoice_number', 'Invoice No', 'Invoice #'],
+  company:       ['Company'],
+  amountNoVat:   ['Amount_noVAT', 'Amount (no VAT)', 'Amount no VAT', 'Net Amount'],
+  amountGross:   ['Amount_wVAT', 'Amount (gross)', 'Amount with VAT'],
+  collectionDate:['Actual_collection_Date', 'Actual collection Date', 'Collection Date', 'Payment Date'],
+  monthLabel:    ['Actual_Collection_month', 'Actual Collection month', 'Collection Month'],
+  amountDso:     ['Actual_Payment', 'Actual Payment', 'Amount (DSO)'],
+  outstanding:   ['Amount_Outstanding', 'Amount Outstanding', 'Outstanding', 'Balance Due'],
+  notInvoicedAmt:['Amount_noVAT', 'Amount (no VAT)', 'Amount no VAT', 'Net Amount'],
 };
 
 const invoiceFallbacks = {
-  invoiceDate:0, status:3, customer:6, amountNoVat:10,
-  collectionDate:15, monthLabel:16, amountDso:17, outstanding:20,
-  notInvoicedAmt:10
+  invoiceDate:1, status:3, customer:7, amountNoVat:11,
+  collectionDate:16, monthLabel:17, amountDso:18, outstanding:20,
+  notInvoicedAmt:11, project:8, company:10, amountGross:12
 };
 
 const cffSchema = {
@@ -857,7 +852,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-m · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-o · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1967,11 +1962,11 @@ let notInvoicedTotal = 0;
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
       const status=(r[C.status]||'').trim().toLowerCase();
-      if(status==='not invoiced'){
+      if(status==='draft'||status==='draft'){
         notInvoicedTotal+=pv(r[C.notInvoicedAmt]);
         continue;
       }
-      if(status !== 'invoiced') continue;
+      if(status !== 'outstanding' && status !== 'outstanding') continue;
       const customer = (r[C.customer]||'').trim();
       if(!customer) continue;
       const outstanding = Math.abs(pv(r[C.outstanding]));  // accounting format: $(24,161) = owed
@@ -2024,7 +2019,7 @@ let notInvoicedTotal = 0;
     const dsoByMonth={};
     for(let i=1;i<rows.length;i++){
       const r=rows[i];if(!r[0]||!r[0].trim())continue;
-      if((r[C.status]||'').trim().toLowerCase()!=='invoiced')continue;
+      const _ds=(r[C.status]||'').trim().toLowerCase();if(_ds!=='outstanding'&&_ds!=='outstanding')continue;
       if(!r[C.collectionDate]||!r[C.monthLabel]||!pv(r[C.amountDso]))continue;
       const invD=new Date(r[C.invoiceDate]),colD=new Date(r[C.collectionDate]),colMo=(r[C.monthLabel]||'').trim();
       if(isNaN(invD)||isNaN(colD)||!colMo)continue;
