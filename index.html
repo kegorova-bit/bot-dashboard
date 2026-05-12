@@ -756,7 +756,8 @@ const stagingFallbacks = {
 
 const invoiceSchema = {
   invoiceDate:   ['Invoice_Date', 'Invoice Date', 'Date'],
-  status:        ['Payment_status', 'Payment Status', 'Status', 'Invoice Status'],
+  paymentStatus: ['Payment_status', 'Payment Status'],
+  status:        ['Status', 'Invoice Status'],  // col E — Draft/Invoiced/Pipeline/etc
   customer:      ['Customer', 'Client', 'Customer Name'],
   project:       ['Project_name', 'Project Name', 'Project'],
   invoiceNo:     ['Invoice_number', 'Invoice No', 'Invoice #'],
@@ -771,7 +772,7 @@ const invoiceSchema = {
 };
 
 const invoiceFallbacks = {
-  invoiceDate:1, status:3, customer:7, amountNoVat:11,
+  invoiceDate:1, paymentStatus:3, status:4, customer:7, amountNoVat:11,
   collectionDate:16, monthLabel:17, amountDso:18, outstanding:20,
   notInvoicedAmt:11, project:8, company:10, amountGross:12
 };
@@ -852,7 +853,7 @@ async function loadAllData(){
     processCFF(cffRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
-    document.getElementById('hDate').textContent='v6May-o · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v6May-q · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1961,12 +1962,21 @@ let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
-      const status=(r[C.status]||'').trim().toLowerCase();
-      if(status==='draft'||status==='draft'){
-        notInvoicedTotal+=pv(r[C.notInvoicedAmt]);
+      const colEStatus = (r[C.status]||'').trim().toLowerCase();       // col E: Draft/Invoiced/Pipeline
+      const colDStatus = (r[C.paymentStatus]||'').trim().toLowerCase(); // col D: Outstanding/Paid/Draft
+      // Draft (to invoice) = col E says 'draft'
+      if(colEStatus==='draft'){
+        const draftCust=(r[C.customer]||'').trim();
+        const draftAmt=pv(r[C.notInvoicedAmt]);
+        notInvoicedTotal+=draftAmt;
+        if(draftCust&&draftAmt>0){
+          if(!notInvByCustomer) notInvByCustomer={};
+          notInvByCustomer[draftCust]=(notInvByCustomer[draftCust]||0)+draftAmt;
+        }
         continue;
       }
-      if(status !== 'outstanding' && status !== 'outstanding') continue;
+      // Outstanding invoices = col D says 'outstanding'
+      if(colDStatus !== 'outstanding') continue;
       const customer = (r[C.customer]||'').trim();
       if(!customer) continue;
       const outstanding = Math.abs(pv(r[C.outstanding]));  // accounting format: $(24,161) = owed
@@ -1977,15 +1987,16 @@ let notInvoicedTotal = 0;
       grandTotal += outstanding;
     }
     window._notInvoiced = notInvoicedTotal;
+    window._notInvoicedByCustomer = notInvByCustomer;
     const niEl2 = document.getElementById('col_not_inv');
     if(niEl2) niEl2.textContent = fC(notInvoicedTotal);
 
-    // Build To Be Invoiced by customer table
+    // Build To Be Invoiced by customer table — col E (Status) = 'draft'
     const notInvByCust={};
     for(let i=1;i<rows.length;i++){
       const r=rows[i];if(!r[0]||!r[0].trim())continue;
-      const st=(r[C.status]||'').trim().toLowerCase();
-      if(st!=='not invoiced')continue;
+      const st=(r[C.status]||'').trim().toLowerCase(); // col E
+      if(st!=='draft')continue;
       const cust=(r[C.customer]||'').trim();
       const amt=pv(r[C.notInvoicedAmt]);
       if(!cust||amt<=0)continue;
