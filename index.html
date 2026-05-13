@@ -1959,6 +1959,7 @@ function processInvoices(rows){
     let grandTotal = 0;
 
 let notInvoicedTotal = 0;
+    let notInvByCustomer = {};
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
@@ -1970,7 +1971,6 @@ let notInvoicedTotal = 0;
         const draftAmt=pv(r[C.notInvoicedAmt]);
         notInvoicedTotal+=draftAmt;
         if(draftCust&&draftAmt>0){
-          if(!notInvByCustomer) notInvByCustomer={};
           notInvByCustomer[draftCust]=(notInvByCustomer[draftCust]||0)+draftAmt;
         }
         continue;
@@ -2030,7 +2030,7 @@ let notInvoicedTotal = 0;
     const dsoByMonth={};
     for(let i=1;i<rows.length;i++){
       const r=rows[i];if(!r[0]||!r[0].trim())continue;
-      const _ds=(r[C.status]||'').trim().toLowerCase();if(_ds!=='outstanding'&&_ds!=='outstanding')continue;
+      const _ds=(r[C.paymentStatus]||'').trim().toLowerCase();if(_ds!=='paid')continue;
       if(!r[C.collectionDate]||!r[C.monthLabel]||!pv(r[C.amountDso]))continue;
       const invD=new Date(r[C.invoiceDate]),colD=new Date(r[C.collectionDate]),colMo=(r[C.monthLabel]||'').trim();
       if(isNaN(invD)||isNaN(colD)||!colMo)continue;
