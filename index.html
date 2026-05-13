@@ -901,7 +901,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v14May-align · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v15May-scen · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1791,7 +1791,7 @@ function buildScenChart(){
   const t_L26=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   if(t_body){
     t_body.innerHTML='';
-    var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0;
+    var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0,tBaseOut=0;
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
       var ia=i<actualCount;
@@ -1804,7 +1804,9 @@ function buildScenChart(){
       var loanV    = ia ? 0 : -(isJune ? loanMonthly * oblRate_sel : 0);
       var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
       var payV     = ia ? 0 :  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
-      tRI+=ri;tH+=hi;tM+=mi;tO+=co;tTax+=taxV||0;tLoan+=loanV||0;tPayroll+=payV||0;
+      tRI+=ri; tH+=hi; tM+=mi; tO+=co;
+      tBaseOut+=ia?(c_cash.cOA_op||0):baseOutV;
+      tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0;
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
@@ -1824,17 +1826,18 @@ function buildScenChart(){
     });
     if(t_foot){
       var fb=scenBal[scenBal.length-1];
-      // Accumulate tax/loan/payroll totals
+      var tNet=tRI+tH+tM+tO;
       t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total / Dec</strong></td><td></td>'
-        +'<td>'+fC(tRI)+'</td><td style="color:var(--coral)">'+fC(tH)+'</td>'
+        +'<td>'+fC(tRI)+'</td>'
+        +'<td style="color:var(--coral)">'+fC(tH)+'</td>'
         +'<td style="color:var(--amber)">'+fC(tM)+'</td>'
         +'<td><strong>'+fC(tRI+tH+tM)+'</strong></td>'
+        +'<td class="neg">'+fC(tBaseOut)+'</td>'
+        +'<td style="color:var(--coral)">'+(tLoan?'-'+fC(Math.abs(tLoan)):'—')+'</td>'
+        +'<td style="color:var(--coral)">'+(tTax?'-'+fC(Math.abs(tTax)):'—')+'</td>'
+        +'<td class="pos">'+(tPayroll?fC(tPayroll):'—')+'</td>'
         +'<td class="neg">'+fC(tO)+'</td>'
-        +'<td style="color:var(--coral)">'+fC(tTax)+'</td>'
-        +'<td style="color:var(--coral)">'+fC(tLoan)+'</td>'
-        +'<td class="pos">'+fC(tPayroll)+'</td>'
-        +'<td class="neg">'+fC(tO)+'</td>'
-        +'<td class="'+(tRI+tH+tM+tO>=0?'pos':'neg')+'"><strong>'+fC(tRI+tH+tM+tO)+'</strong></td>'
+        +'<td class="'+(tNet>=0?'pos':'neg')+'"><strong>'+fC(tNet)+'</strong></td>'
         +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
     }
   }
