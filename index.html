@@ -898,7 +898,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v10May-rwy · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v11May-pipe · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2282,7 +2282,8 @@ let notInvoicedTotal = 0;
       const ps=(r[C.paymentStatus]||'').trim().toLowerCase();
       if(ps!=='pipeline-won'&&ps!=='pipeline') continue;
       const cust=(r[C.customer]||'').trim();
-      const status=(r[C.status]||'').trim();   // col E: High / Medium / Low
+      // Pipeline-won = always High regardless of col E value
+      const status = ps==='pipeline-won' ? 'High' : (r[C.status]||'').trim();
       const amt=pv(r[C.amountNoVat]);          // col L: Amount_noVAT
       if(!cust) continue;
       pipeline.push({c:cust, s:status, a:amt});
