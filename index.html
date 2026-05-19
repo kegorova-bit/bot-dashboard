@@ -901,7 +901,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v15May-scen · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v18May-pipe · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1805,7 +1805,7 @@ function buildScenChart(){
       var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
       var payV     = ia ? 0 :  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
       tRI+=ri; tH+=hi; tM+=mi; tO+=co;
-      tBaseOut+=ia?(c_cash.cOA_op||0):baseOutV;
+      tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);  // accumulate what's actually displayed
       tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0;
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
@@ -1827,7 +1827,7 @@ function buildScenChart(){
     if(t_foot){
       var fb=scenBal[scenBal.length-1];
       var tNet=tRI+tH+tM+tO;
-      t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total / Dec</strong></td><td></td>'
+      t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total</strong></td><td></td>'
         +'<td>'+fC(tRI)+'</td>'
         +'<td style="color:var(--coral)">'+fC(tH)+'</td>'
         +'<td style="color:var(--amber)">'+fC(tM)+'</td>'
@@ -1938,7 +1938,6 @@ function buildDSO(){
   // patch toggle to rebuild chart
   const colTogEl=document.getElementById('colFcstTog');
   if(colTogEl) colTogEl.onchange=buildColChart;
-  buildColChart();
 
   // Invoice gap — invoiced minus collected
   const gap2026=inv2026.map((v,i)=>v-(col2026[i]||0));
@@ -2129,23 +2128,19 @@ function processInvoices(rows){
   console.log('Total rows in invoice CSV:', rows.length);
 
   try {
-    const byCustomerProject = [];  // [{key, customer, project, amount}]
+    const byCustomerProject = [];
     let grandTotal = 0;
+    let outstandingInvoiceCount = 0;  // actual invoice row count (not grouped)
 
-let notInvoicedTotal = 0;
-    let notInvByCustomer = {};
+    let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[0]||!r[0].trim()) continue;
       const colEStatus = (r[C.status]||'').trim().toLowerCase();
       const colDStatus = (r[C.paymentStatus]||'').trim().toLowerCase();
       if(colEStatus==='draft'){
-        const draftCust=(r[C.customer]||'').trim();
         const draftAmt=pv(r[C.notInvoicedAmt]);
         notInvoicedTotal+=draftAmt;
-        if(draftCust&&draftAmt>0){
-          notInvByCustomer[draftCust]=(notInvByCustomer[draftCust]||0)+draftAmt;
-        }
         continue;
       }
       if(colDStatus !== 'outstanding') continue;
@@ -2159,9 +2154,9 @@ let notInvoicedTotal = 0;
       if(existing){ existing.amount += outstanding; }
       else { byCustomerProject.push({key, customer, project, amount: outstanding}); }
       grandTotal += outstanding;
+      outstandingInvoiceCount++;
     }
     window._notInvoiced = notInvoicedTotal;
-    window._notInvoicedByCustomer = notInvByCustomer;
     const niEl2 = document.getElementById('col_not_inv');
     if(niEl2) niEl2.textContent = fC(notInvoicedTotal);
 
@@ -2218,10 +2213,6 @@ let notInvoicedTotal = 0;
     window._dsoMonths=dsoSorted.map(m=>{const p=m.split('-');return mN[parseInt(p[1])-1]+"'"+(p[0].slice(2));});
     window._dsoVals  =dsoSorted.map(m=>Math.round(dsoByMonth[m].sum/dsoByMonth[m].n));
 
-    // Update ALL outstanding invoice displays
-    window._invoicesOutstanding = grandTotal;
-    window._notInvoiced = notInvoicedTotal;
-
     // ── Live DSO calculation
     
     window._dsoAvg   =window._dsoVals.length?Math.round(window._dsoVals.reduce((s,v)=>s+v,0)/window._dsoVals.length):49;
@@ -2233,7 +2224,7 @@ let notInvoicedTotal = 0;
     const heroEl = document.getElementById('col_outstanding');
     const subEl  = document.getElementById('col_outstanding_sub');
     if(heroEl) heroEl.textContent = fC(grandTotal);
-    if(subEl)  subEl.textContent  = sorted.length + ' invoices outstanding';
+    if(subEl)  subEl.textContent  = outstandingInvoiceCount + ' invoice' + (outstandingInvoiceCount!==1?'s':'') + ' outstanding';
 
     // Collections tab table footer
     const totEl = document.getElementById('out_total_val');
@@ -2271,20 +2262,15 @@ let notInvoicedTotal = 0;
       tbody.appendChild(tr);
     });
 
-    // Update DSO context note with live total
-    window._invOutstanding = grandTotal;
     window._invoicesOutstanding = grandTotal;
-    const cinvEl2 = document.getElementById('col_inv_out');
-    if(cinvEl2) { cinvEl2.textContent = grandTotal > 0 ? fC(grandTotal) : '—'; }
-    window._invCount = sorted.length;
+    window._invOutstanding = grandTotal;
+    window._invCount = outstandingInvoiceCount;
 
     // ── PIPELINE from Invoice Tracker ─────────────────────────────────────────
-    // Source: Payment_status (col D) = 'Pipeline' or 'Pipeline-won'
-    // Customer from Customer (col H), Probability from Status (col E), Amount from Amount_noVAT (col L)
     const pipeline = [];
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
-      if(!r[0]||!r[0].trim()) continue;
+      if(!r[C.paymentStatus]||!r[C.paymentStatus].trim()) continue; // skip truly empty rows
       const ps=(r[C.paymentStatus]||'').trim().toLowerCase();
       if(ps!=='pipeline-won'&&ps!=='pipeline') continue;
       const cust=(r[C.customer]||'').trim();
@@ -2458,7 +2444,7 @@ function buildRefTable(){
     ['Cash Flow','Cash Out YTD',fC(ytdOut),'Staging_cash','Col I [8] · 2026 rows','Cash Out (A) Op+fin · sum actual months'],
     ['Cash Flow','Cash Balance (A)',fC(latA.balA||0),'Staging_cash','Col P [15] in live sheet','Latest actual month — name-resolved'],
     ['Cash Flow','Balance F2 (no loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast · no loans'],
-    ['Cash Flow','Balance F3 (incl loans)',fC(cash.length?cash[cash.length-1].balF2||0:0),'Staging_cash','Col P [15]','Dec forecast base (no tax no loans)'],
+    ['Cash Flow','Balance F3 (incl loans)',fC(cash.length?cash[cash.length-1].balF3||0:0),'Staging_cash','Col Q [16]','Dec forecast incl tax and loans'],
     ['Cash Flow','Runway (no loans)',(latA.runwayT?latA.runwayT.toFixed(2)+' mo':'—'),'Staging_cash','Col T [19]','Latest actual month'],
     ['Cash Flow','Runway (incl loans)',(latA.runwayU?latA.runwayU.toFixed(2)+' mo':'—'),'Staging_cash','Col U [20]','Latest actual month'],
     ['Cash Flow','Pipeline High (scenario)',fC(window._pipeHigh||0),'Invoice Tracker','Col D=Pipeline/Pipeline-won · Col E=High','Used in scenario builder'],
