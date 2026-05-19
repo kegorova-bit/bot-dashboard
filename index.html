@@ -145,7 +145,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .q1-stat-val{font-size:18px;font-weight:700;font-family:var(--mono);}
 /* COLLECTIONS */
 .dso-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
-.out-table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
+#col-tooltip{position:absolute;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text);pointer-events:none;z-index:999;min-width:220px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:opacity .15s;}
+#col-tooltip .ctt-month{font-weight:700;color:var(--teal);font-size:12px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px;}
+#col-tooltip .ctt-section{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--text3);text-transform:uppercase;margin:6px 0 4px;}
+#col-tooltip .ctt-row{display:flex;justify-content:space-between;gap:12px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03);}
+#col-tooltip .ctt-name{color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#col-tooltip .ctt-amt{font-family:var(--mono);color:var(--teal);white-space:nowrap;}
+#col-tooltip .ctt-amt.out{color:var(--amber);}
+#col-tooltip .ctt-amt.draft{color:var(--text3);}
+#col-tooltip .ctt-total{display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);font-weight:700;}
+.out-table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
 .out-table-wrap table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
 .out-table-wrap th{background:var(--bg3);color:var(--text3);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);}
 .out-table-wrap th:nth-child(1),.out-table-wrap td:nth-child(1){width:38px;}
@@ -653,7 +662,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           </div>
         </div>
       </div>
-      <div class="cw short"><canvas id="col_fwd"></canvas></div>
+      <div style="position:relative;">
+        <div class="cw short"><canvas id="col_fwd"></canvas></div>
+        <div id="col-tooltip" style="display:none;opacity:0;"></div>
+      </div>
     </div>
     <div class="card mb">
       <div class="ch"><div><div class="ctitle">Invoice Gap — Invoiced vs Cash Received</div><div class="csub">The lag between recognising revenue and receiving cash</div></div></div>
@@ -901,7 +913,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v18May-pipe · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v19May-tooltip · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2266,6 +2278,38 @@ function processInvoices(rows){
     window._invOutstanding = grandTotal;
     window._invCount = outstandingInvoiceCount;
 
+    // ── Invoice detail maps for Collections chart tooltip ──────────────────────
+    const invByCollMonth   = {};   // actual paid: keyed by Actual_Collection_month
+    const invByExpMonth    = {};   // outstanding + draft: keyed by Expected_Collection_Month
+    const MO_LABELS = {"jan '26":"Jan '26","feb '26":"Feb '26","mar '26":"Mar '26","apr '26":"Apr '26","may '26":"May '26","jun '26":"Jun '26","jul '26":"Jul '26","aug '26":"Aug '26","sep '26":"Sep '26","oct '26":"Oct '26","nov '26":"Nov '26","dec '26":"Dec '26"};
+    // map YYYY-MM format to label
+    const ym2label = ym => { if(!ym) return null; const p=ym.trim().split('-'); if(p.length<2) return null; const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return (mn[parseInt(p[1])-1]||'')+" '"+p[0].slice(2); };
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      if(!r[C.paymentStatus]) continue;
+      const ps  = (r[C.paymentStatus]||'').trim().toLowerCase();
+      const st  = (r[C.status]||'').trim().toLowerCase();
+      const cust= (r[C.customer]||'').trim();
+      const proj= (r[C.project]||'').trim();
+      if(!cust) continue;
+      const entry = { cust, proj, amt: 0 };
+      if(ps==='paid'){
+        entry.amt = Math.abs(pv(r[C.amountDso]||r[C.amountNoVat]));
+        const mo = ym2label((r[C.monthLabel]||'').trim());
+        if(mo){ if(!invByCollMonth[mo]) invByCollMonth[mo]=[]; invByCollMonth[mo].push(entry); }
+      } else if(ps==='outstanding'){
+        entry.amt = Math.abs(pv(r[C.outstanding]));
+        const mo = ym2label((r[C.collectionDate]||'').trim().slice(0,7)) || ym2label((r[14]||'').trim());
+        if(mo){ if(!invByExpMonth[mo]) invByExpMonth[mo]=[]; invByExpMonth[mo].push({...entry, type:'Outstanding'}); }
+      } else if(st==='draft'){
+        entry.amt = pv(r[C.notInvoicedAmt]);
+        const mo = ym2label((r[14]||'').trim()); // Expected_Collection_Month col 14
+        if(mo){ if(!invByExpMonth[mo]) invByExpMonth[mo]=[]; invByExpMonth[mo].push({...entry, type:'To Invoice'}); }
+      }
+    }
+    window._invByCollMonth = invByCollMonth;
+    window._invByExpMonth  = invByExpMonth;
+
     // ── PIPELINE from Invoice Tracker ─────────────────────────────────────────
     const pipeline = [];
     for(let i=1;i<rows.length;i++){
@@ -2529,12 +2573,79 @@ function buildColChart(){
     borderWidth:0,borderRadius:3,order:1,stack:'s'
   });
 
+  // External tooltip handler
+  const colTipEl = document.getElementById('col-tooltip');
+  const externalTooltip = (context) => {
+    const {chart, tooltip} = context;
+    if(!colTipEl) return;
+    if(tooltip.opacity === 0){ colTipEl.style.opacity='0'; setTimeout(()=>{colTipEl.style.display='none';},150); return; }
+    const label = tooltip.title?.[0] || '';
+    const byCollMonth = window._invByCollMonth || {};
+    const byExpMonth  = window._invByExpMonth  || {};
+    const collected   = byCollMonth[label] || [];
+    const expected    = byExpMonth[label]  || [];
+    const outstanding = expected.filter(e=>e.type==='Outstanding');
+    const drafts      = expected.filter(e=>e.type==='To Invoice');
+
+    let html = `<div class="ctt-month">${label}</div>`;
+
+    // Actual collected section
+    if(collected.length){
+      const tot = collected.reduce((s,e)=>s+e.amt,0);
+      html += `<div class="ctt-section">✓ Collected</div>`;
+      collected.forEach(e=>{
+        const nm = e.proj && e.proj!==e.cust ? `${e.cust} · ${e.proj}` : e.cust;
+        html += `<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt">${fC(e.amt)}</span></div>`;
+      });
+      html += `<div class="ctt-total"><span>Total collected</span><span style="color:var(--teal)">${fC(tot)}</span></div>`;
+    }
+
+    // Outstanding invoices expected this month
+    if(outstanding.length){
+      const tot = outstanding.reduce((s,e)=>s+e.amt,0);
+      html += `<div class="ctt-section" style="margin-top:${collected.length?'10px':'0'}">⏳ Outstanding</div>`;
+      outstanding.forEach(e=>{
+        const nm = e.proj && e.proj!==e.cust ? `${e.cust} · ${e.proj}` : e.cust;
+        html += `<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt out">${fC(e.amt)}</span></div>`;
+      });
+      html += `<div class="ctt-total"><span>Total outstanding</span><span style="color:var(--amber)">${fC(tot)}</span></div>`;
+    }
+
+    // Draft / to be invoiced
+    if(drafts.length){
+      const tot = drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
+      html += `<div class="ctt-section" style="margin-top:${(collected.length||outstanding.length)?'10px':'0'}">📝 To Invoice</div>`;
+      drafts.forEach(e=>{
+        const nm = e.proj && e.proj!==e.cust ? `${e.cust} · ${e.proj}` : e.cust;
+        html += `<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;
+      });
+      if(tot>0) html += `<div class="ctt-total"><span>Total to invoice</span><span style="color:var(--text2)">${fC(tot)}</span></div>`;
+    }
+
+    if(!collected.length && !outstanding.length && !drafts.length){
+      html += `<div style="color:var(--text3);font-size:11px;">No invoice detail available</div>`;
+    }
+
+    colTipEl.innerHTML = html;
+    colTipEl.style.display = 'block';
+    colTipEl.style.opacity = '1';
+
+    // Position tooltip relative to canvas
+    const {offsetLeft:pX, offsetTop:pY} = chart.canvas;
+    const tp = tooltip.caretX + pX;
+    const canvasW = chart.canvas.offsetWidth;
+    const tipW = colTipEl.offsetWidth || 280;
+    const left = tp + tipW + 10 > canvasW + pX ? tp - tipW - 10 : tp + 12;
+    colTipEl.style.left = left + 'px';
+    colTipEl.style.top  = (pY + tooltip.caretY - 20) + 'px';
+  };
+
   charts['col_fwd']=new Chart(el,{type:'bar',
     data:{labels:colL26_c,datasets},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{
         legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}
+        tooltip:{enabled:false, external:externalTooltip}
       },
       scales:{
         x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
