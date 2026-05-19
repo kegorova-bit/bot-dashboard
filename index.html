@@ -917,7 +917,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v23May-tip · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v24May-tip · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1823,9 +1823,39 @@ function buildScenChart(){
 
           // ── Cash In block ──
           html+=`<div class="ctt-section">💰 Cash In</div>`;
-          if(mo.baseIn) html+=`<div class="ctt-row"><span class="ctt-name">${isActM?'Collected':'Base forecast'}</span><span class="ctt-amt">${fC(mo.baseIn)}</span></div>`;
-          if(mo.pipeHighIn>0) html+=`<div class="ctt-row"><span class="ctt-name">Pipeline — High</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.pipeHighIn)}</span></div>`;
-          if(mo.pipeMedIn>0)  html+=`<div class="ctt-row"><span class="ctt-name">Pipeline — Medium</span><span class="ctt-amt" style="color:var(--amber)">${fC(mo.pipeMedIn)}</span></div>`;
+          if(isActM){
+            // Actual month — show collected invoices
+            if(collected.length){
+              collected.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt">${fC(e.amt)}</span></div>`;});
+            } else if(mo.baseIn){
+              html+=`<div class="ctt-row"><span class="ctt-name">Collected</span><span class="ctt-amt">${fC(mo.baseIn)}</span></div>`;
+            }
+          } else {
+            // Forecast month — show outstanding + won-not-yet-invoiced + pipeline
+            if(outstanding.length){
+              html+=`<div class="ctt-row" style="margin-top:2px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">⏳ OUTSTANDING</span></div>`;
+              outstanding.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt out">${fC(e.amt)}</span></div>`;});
+              const tot=outstanding.reduce((s,e)=>s+e.amt,0);
+              if(tot>0)html+=`<div class="ctt-row" style="padding:1px 0"><span class="ctt-name" style="color:var(--text3)">Subtotal</span><span class="ctt-amt out" style="font-size:12px">${fC(tot)}</span></div>`;
+            }
+            if(drafts.length){
+              html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">📝 WON — NOT YET INVOICED</span></div>`;
+              drafts.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;});
+              const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
+              if(tot>0)html+=`<div class="ctt-row" style="padding:1px 0"><span class="ctt-name" style="color:var(--text3)">Subtotal</span><span class="ctt-amt" style="font-size:12px">${fC(tot)}</span></div>`;
+            }
+            if(mo.pipeHighIn>0){
+              html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
+              html+=`<div class="ctt-row"><span class="ctt-name">High probability</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.pipeHighIn)}</span></div>`;
+              if(mo.pipeMedIn>0) html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:var(--amber)">${fC(mo.pipeMedIn)}</span></div>`;
+            } else if(mo.pipeMedIn>0){
+              html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
+              html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:var(--amber)">${fC(mo.pipeMedIn)}</span></div>`;
+            }
+            if(!outstanding.length&&!drafts.length&&!mo.pipeHighIn&&!mo.pipeMedIn&&mo.baseIn){
+              html+=`<div class="ctt-row"><span class="ctt-name">Base forecast</span><span class="ctt-amt">${fC(mo.baseIn)}</span></div>`;
+            }
+          }
           html+=`<div class="ctt-total"><span>Total Cash In</span><span style="color:var(--teal)">${fC(totalIn)}</span></div>`;
 
           // ── Cash Out block ──
@@ -1844,24 +1874,6 @@ function buildScenChart(){
           const balVal=(tooltip.dataPoints||[]).find(d=>d.dataset.label?.includes('Balance'))?.parsed?.y;
           if(balVal!=null){const bCol=balVal>=0?'var(--teal)':'var(--coral)';html+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Balance</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${bCol}">${fC(balVal)}</div></div>`;}
           html+=`</div>`;
-
-          // ── Invoice breakdown ──
-          if(isActM&&collected.length){
-            html+=`<div class="ctt-section" style="margin-top:8px">✓ Collected</div>`;
-            collected.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt">${fC(e.amt)}</span></div>`;});
-          }
-          if(!isActM&&outstanding.length){
-            html+=`<div class="ctt-section" style="margin-top:8px">⏳ Outstanding</div>`;
-            outstanding.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt out">${fC(e.amt)}</span></div>`;});
-            const tot=outstanding.reduce((s,e)=>s+e.amt,0);
-            html+=`<div class="ctt-total"><span>Outstanding</span><span style="color:var(--amber)">${fC(tot)}</span></div>`;
-          }
-          if(!isActM&&drafts.length){
-            html+=`<div class="ctt-section" style="margin-top:6px">📝 Won — not yet invoiced</div>`;
-            drafts.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;});
-            const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
-            if(tot>0)html+=`<div class="ctt-total"><span>Won — not yet invoiced</span><span style="color:var(--teal)">${fC(tot)}</span></div>`;
-          }
 
           sTip.innerHTML=html;sTip.style.display='block';sTip.style.opacity='1';
           const {offsetLeft:pX,offsetTop:pY}=chart.canvas;
