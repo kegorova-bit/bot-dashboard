@@ -917,7 +917,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v22May-tip · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v23May-tip · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1657,6 +1657,7 @@ function buildScenChart(){
   const scenHighIn  = [];  // High pipeline (coral)
   const scenMedIn   = [];  // Medium pipeline (amber)
   const scenCashOut = [];  // total outflows
+  const scenMonthly = [];  // full per-month breakdown for tooltip
   let runBal = startBal;
 
   const currentMonthIdx = actualCount - 1; // last month with actual data (may be partial)
@@ -1666,12 +1667,12 @@ function buildScenChart(){
   cash.forEach((c,i)=>{
     if(i < actualCount){
       scenBal.push(c.balA||c.balF2);
-      // Current month: show actual values (solid bars handled by chart opacity)
       scenRevIn.push(c.cIA||null);
       scenPipeIn.push(null);
       scenHighIn.push(null);
       scenMedIn.push(null);
       scenCashOut.push(c.cOA_op||null);
+      scenMonthly.push({baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true});
       runBal = c.balA || c.balF2 || runBal;
     } else {
       const isJunePlus   = i >= 5; // June (index 5) onwards = scenarios active
@@ -1701,9 +1702,12 @@ function buildScenChart(){
       scenPipeIn.push(pipelineIn||null);
       scenHighIn.push(pipeHighIn||null);
       scenMedIn.push(pipeMedIn||null);
-      scenCashOut.push(cashOut||null);  // cashOut is negative
+      scenCashOut.push(cashOut||null);
+      // Store full breakdown for tooltip
+      scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});
     }
   });
+  window._scenMonthly = scenMonthly;  // expose for tooltip
 
   // Scorecards
   const negIdx = scenBal.findIndex((v,i)=>i>=actualCount&&v<0);
@@ -1796,47 +1800,74 @@ function buildScenChart(){
           const L26T=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
           const label=L26T[mIdx]||'';
           const isActM=mIdx<(window._actualCount||0);
-          const byCollMonth=window._invByCollMonth||{};
-          const byExpMonth =window._invByExpMonth||{};
-          const collected  =(byCollMonth[label]||[]);
-          const expected   =(byExpMonth[label]||[]);
+          const mo=((window._scenMonthly||[])[mIdx])||{};
+          const byColl=window._invByCollMonth||{};
+          const byExp =window._invByExpMonth||{};
+          const collected  =(byColl[label]||[]);
+          const expected   =(byExp[label]||[]);
           const outstanding=expected.filter(e=>e.type==='Outstanding');
           const drafts     =expected.filter(e=>e.type==='Won — not yet invoiced');
-          // Pipeline slice for this month
           const pH=(window._colHighPM||[])[mIdx]||0;
           const pM=(window._colMedPM||[])[mIdx]||0;
+
+          const totalIn  = mo.totalIn  || 0;
+          const totalOut = mo.cashOut  || 0;  // negative
+          const netFlow  = mo.netFlow  || 0;
+          const bal      = (window._scenMonthly||[]).slice(0,mIdx+1).reduce((_,__,i)=>(window._scenMonthly[i]?.netFlow||0),0);
+          const scenBals = window._cash ? window._cash.map((_,i)=>{
+            const ms=window._scenMonthly||[];
+            return ms[i]?ms[i]:null;
+          }) : [];
+
           let html=`<div class="ctt-month">${label} · ${isActM?'Actual':'Forecast'}</div>`;
+
+          // ── Cash In block ──
+          html+=`<div class="ctt-section">💰 Cash In</div>`;
+          if(mo.baseIn) html+=`<div class="ctt-row"><span class="ctt-name">${isActM?'Collected':'Base forecast'}</span><span class="ctt-amt">${fC(mo.baseIn)}</span></div>`;
+          if(mo.pipeHighIn>0) html+=`<div class="ctt-row"><span class="ctt-name">Pipeline — High</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.pipeHighIn)}</span></div>`;
+          if(mo.pipeMedIn>0)  html+=`<div class="ctt-row"><span class="ctt-name">Pipeline — Medium</span><span class="ctt-amt" style="color:var(--amber)">${fC(mo.pipeMedIn)}</span></div>`;
+          html+=`<div class="ctt-total"><span>Total Cash In</span><span style="color:var(--teal)">${fC(totalIn)}</span></div>`;
+
+          // ── Cash Out block ──
+          html+=`<div class="ctt-section" style="margin-top:8px">💸 Cash Out</div>`;
+          if(mo.baseOut) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
+          if(mo.loanExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Loan repayment</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.loanExtra)}</span></div>`;
+          if(mo.taxThisMonth<0) html+=`<div class="ctt-row"><span class="ctt-name">Tax</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.taxThisMonth)}</span></div>`;
+          if(mo.payrollSave>0) html+=`<div class="ctt-row"><span class="ctt-name">Payroll saving</span><span class="ctt-amt" style="color:var(--green)">+${fC(mo.payrollSave)}</span></div>`;
+          html+=`<div class="ctt-total"><span>Total Cash Out</span><span style="color:var(--coral)">${fC(totalOut)}</span></div>`;
+
+          // ── Net Flow + Balance ──
+          const nfCol = netFlow>=0?'var(--green)':'var(--coral)';
+          html+=`<div style="display:flex;gap:6px;margin-top:8px;">`;
+          html+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Net Flow</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${nfCol}">${fC(netFlow)}</div></div>`;
+          const scenBal=(window._scenMonthly||[])[mIdx]?null:null; // balance from chart data
+          const balVal=(tooltip.dataPoints||[]).find(d=>d.dataset.label?.includes('Balance'))?.parsed?.y;
+          if(balVal!=null){const bCol=balVal>=0?'var(--teal)':'var(--coral)';html+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Balance</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${bCol}">${fC(balVal)}</div></div>`;}
+          html+=`</div>`;
+
+          // ── Invoice breakdown ──
           if(isActM&&collected.length){
-            const tot=collected.reduce((s,e)=>s+e.amt,0);
-            html+=`<div class="ctt-section">✓ Collected</div>`;
+            html+=`<div class="ctt-section" style="margin-top:8px">✓ Collected</div>`;
             collected.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt">${fC(e.amt)}</span></div>`;});
-            html+=`<div class="ctt-total"><span>Total</span><span style="color:var(--teal)">${fC(tot)}</span></div>`;
           }
           if(!isActM&&outstanding.length){
-            const tot=outstanding.reduce((s,e)=>s+e.amt,0);
-            html+=`<div class="ctt-section">⏳ Outstanding</div>`;
+            html+=`<div class="ctt-section" style="margin-top:8px">⏳ Outstanding</div>`;
             outstanding.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt out">${fC(e.amt)}</span></div>`;});
-            html+=`<div class="ctt-total"><span>Total</span><span style="color:var(--amber)">${fC(tot)}</span></div>`;
+            const tot=outstanding.reduce((s,e)=>s+e.amt,0);
+            html+=`<div class="ctt-total"><span>Outstanding</span><span style="color:var(--amber)">${fC(tot)}</span></div>`;
           }
           if(!isActM&&drafts.length){
-            const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
             html+=`<div class="ctt-section" style="margin-top:6px">📝 Won — not yet invoiced</div>`;
             drafts.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;});
+            const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
             if(tot>0)html+=`<div class="ctt-total"><span>Won — not yet invoiced</span><span style="color:var(--teal)">${fC(tot)}</span></div>`;
           }
-          if(!isActM&&(pH||pM)){
-            html+=`<div class="ctt-section" style="margin-top:6px">🔮 Pipeline</div>`;
-            if(pH)html+=`<div class="ctt-row"><span class="ctt-name">High</span><span class="ctt-amt" style="color:var(--coral)">${fC(pH)}</span></div>`;
-            if(pM)html+=`<div class="ctt-row"><span class="ctt-name">Medium</span><span class="ctt-amt" style="color:var(--amber)">${fC(pM)}</span></div>`;
-          }
-          if(!collected.length&&!outstanding.length&&!drafts.length&&!pH&&!pM){
-            html+=`<div style="color:var(--text3);font-size:11px">No invoice detail available</div>`;
-          }
+
           sTip.innerHTML=html;sTip.style.display='block';sTip.style.opacity='1';
           const {offsetLeft:pX,offsetTop:pY}=chart.canvas;
-          const tp=tooltip.caretX+pX,cW=chart.canvas.offsetWidth,tW=sTip.offsetWidth||280;
-          sTip.style.left=(tp+tW+10>cW+pX?tp-tW-10:tp+12)+'px';
-          sTip.style.top=(pY+tooltip.caretY-20)+'px';
+          const tp=tooltip.caretX+pX,cW=chart.canvas.offsetWidth,tW=sTip.offsetWidth||300;
+          sTip.style.left=(tp+tW+10>cW+pX?tp-tW-12:tp+12)+'px';
+          sTip.style.top=Math.max(pY,(pY+tooltip.caretY-40))+'px';
         }}
       },
       scales:{
