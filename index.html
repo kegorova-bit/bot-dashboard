@@ -145,15 +145,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .q1-stat-val{font-size:18px;font-weight:700;font-family:var(--mono);}
 /* COLLECTIONS */
 .dso-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
-#col-tooltip{position:absolute;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text);pointer-events:none;z-index:999;min-width:220px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:opacity .15s;}
-#col-tooltip .ctt-month{font-weight:700;color:var(--teal);font-size:12px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px;}
-#col-tooltip .ctt-section{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--text3);text-transform:uppercase;margin:6px 0 4px;}
-#col-tooltip .ctt-row{display:flex;justify-content:space-between;gap:12px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.03);}
-#col-tooltip .ctt-name{color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-#col-tooltip .ctt-amt{font-family:var(--mono);color:var(--teal);white-space:nowrap;}
-#col-tooltip .ctt-amt.out{color:var(--amber);}
-#col-tooltip .ctt-amt.draft{color:var(--text3);}
-#col-tooltip .ctt-total{display:flex;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px solid var(--border2);font-weight:700;}
+.inv-tip{position:absolute;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text);pointer-events:none;z-index:999;min-width:240px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:opacity .15s;}
+.inv-tip .ctt-month{font-weight:700;color:var(--teal);font-size:13px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px;}
+.inv-tip .ctt-section{font-size:10px;font-weight:700;letter-spacing:.6px;color:var(--text3);text-transform:uppercase;margin:8px 0 4px;}
+.inv-tip .ctt-row{display:flex;justify-content:space-between;gap:12px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.03);}
+.inv-tip .ctt-name{color:var(--text2);max-width:210px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.inv-tip .ctt-amt{font-family:var(--mono);color:var(--teal);white-space:nowrap;}
+.inv-tip .ctt-amt.out{color:var(--amber);}
+.inv-tip .ctt-amt.draft{color:var(--text2);}
+.inv-tip .ctt-total{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:7px 10px;background:rgba(255,255,255,.06);border-radius:7px;font-weight:700;font-size:12px;}
+.inv-tip .ctt-total span:last-child{font-size:14px;font-family:var(--mono);}
 .out-table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
 .out-table-wrap table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
 .out-table-wrap th{background:var(--bg3);color:var(--text3);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);}
@@ -541,7 +542,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div style="margin-top:16px;height:320px;position:relative;">
       <canvas id="cbal_scen"></canvas>
-      <div id="scen-tooltip" style="display:none;opacity:0;position:absolute;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--text);pointer-events:none;z-index:999;min-width:240px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.5);transition:opacity .15s;"></div>
+      <div id="scen-tooltip" class="inv-tip" style="display:none;opacity:0;"></div>
     </div>
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
@@ -625,7 +626,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
     <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="col_inv_out" style="color:var(--amber)">—</div><div class="cms">Status=Invoiced · live</div></div>
 
-    <div class="cm a"><div class="cml">Draft (To Invoice)</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Draft · col L</div></div>
+    <div class="cm a"><div class="cml">Won — Not Yet Invoiced</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Draft · col L</div></div>
     <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
     <div class="cm t"><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base + High + Medium</div></div>
   </div>
@@ -667,7 +668,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div style="position:relative;">
         <div class="cw short"><canvas id="col_fwd"></canvas></div>
-        <div id="col-tooltip" style="display:none;opacity:0;"></div>
+        <div id="col-tooltip" class="inv-tip" style="display:none;opacity:0;"></div>
       </div>
     </div>
     <div class="card mb">
@@ -916,7 +917,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v21May-inv · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v22May-tip · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1800,7 +1801,7 @@ function buildScenChart(){
           const collected  =(byCollMonth[label]||[]);
           const expected   =(byExpMonth[label]||[]);
           const outstanding=expected.filter(e=>e.type==='Outstanding');
-          const drafts     =expected.filter(e=>e.type==='To Invoice');
+          const drafts     =expected.filter(e=>e.type==='Won — not yet invoiced');
           // Pipeline slice for this month
           const pH=(window._colHighPM||[])[mIdx]||0;
           const pM=(window._colMedPM||[])[mIdx]||0;
@@ -1819,9 +1820,9 @@ function buildScenChart(){
           }
           if(!isActM&&drafts.length){
             const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
-            html+=`<div class="ctt-section" style="margin-top:6px">📝 To Invoice</div>`;
+            html+=`<div class="ctt-section" style="margin-top:6px">📝 Won — not yet invoiced</div>`;
             drafts.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;});
-            if(tot>0)html+=`<div class="ctt-total"><span>Total</span><span style="color:var(--text2)">${fC(tot)}</span></div>`;
+            if(tot>0)html+=`<div class="ctt-total"><span>Won — not yet invoiced</span><span style="color:var(--teal)">${fC(tot)}</span></div>`;
           }
           if(!isActM&&(pH||pM)){
             html+=`<div class="ctt-section" style="margin-top:6px">🔮 Pipeline</div>`;
@@ -2388,7 +2389,7 @@ function processInvoices(rows){
         if(mo){
           if(amt>0) invMonthlyDraft[mo] = (invMonthlyDraft[mo]||0) + amt;
           if(!invByExpMonth[mo]) invByExpMonth[mo]=[];
-          invByExpMonth[mo].push({cust,proj,amt,type:'To Invoice'});
+          invByExpMonth[mo].push({cust,proj,amt,type:'Won — not yet invoiced'});
         }
       }
     }
@@ -2648,7 +2649,7 @@ function buildColChart(){
       type:'bar', backgroundColor:'rgba(245,166,35,0.55)', borderColor:'rgba(245,166,35,0.8)',
       borderWidth:1, borderRadius:3, order:2, stack:'s' },
     // Draft / to invoice — dimmed teal, forecast months only
-    { label:'To Invoice',
+    { label:'Won — not yet invoiced',
       data: colDraft.map((v,i)=>isFcst(null,i)&&v>0?v:null),
       type:'bar', backgroundColor:'rgba(15,184,184,0.25)', borderColor:'rgba(15,184,184,0.5)',
       borderWidth:1, borderRadius:3, order:2, stack:'s' },
@@ -2681,7 +2682,7 @@ function buildColChart(){
     const collected   = byCollMonth[label] || [];
     const expected    = byExpMonth[label]  || [];
     const outstanding = expected.filter(e=>e.type==='Outstanding');
-    const drafts      = expected.filter(e=>e.type==='To Invoice');
+    const drafts      = expected.filter(e=>e.type==='Won — not yet invoiced');
     // Pipeline slice for this month
     const mIdx = (window._colL26_c||[]).indexOf(label);
     const pipeH = mIdx>=0 ? (window._colHighPM||[])[mIdx]||0 : 0;
@@ -2702,9 +2703,9 @@ function buildColChart(){
     }
     if(drafts.length){
       const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
-      html+=`<div class="ctt-section" style="margin-top:8px">📝 To Invoice</div>`;
+      html+=`<div class="ctt-section" style="margin-top:8px">📝 Won — not yet invoiced</div>`;
       drafts.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;});
-      if(tot>0) html+=`<div class="ctt-total"><span>Total to invoice</span><span style="color:var(--text2)">${fC(tot)}</span></div>`;
+      if(tot>0) html+=`<div class="ctt-total"><span>Won — not yet invoiced</span><span style="color:var(--teal)">${fC(tot)}</span></div>`;
     }
     if(usePipe && (pipeH||pipeM)){
       html+=`<div class="ctt-section" style="margin-top:8px">🔮 Pipeline (this month)</div>`;
