@@ -557,8 +557,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
-      Workforce cost (20/25/30% selectable): paid at invoice month = 1 month before pipeline cash received.
-      Payroll from CF_f per month · Pipeline spread from current month +2 (dynamic CCC).
+      Workforce cost (20/25/30%): applied to pipeline (month before cash) + draft/won invoices (invoice date month) · Amount_noVAT col K · Status: Draft, Won, High, Medium.
+      Payroll from CF_f · Pipeline CCC: current month +2.
     </div>
   </div>
   <!-- Scenario detail table -->
@@ -928,7 +928,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v26May-wf · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v27May-wf · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1639,6 +1639,12 @@ function buildScenChart(){
   // Pipeline: 100% face value (no probability weighting) — slider = % of full amount
   // CCC: current month + 4 → cash starts arriving in August (month index 7)
   // Remaining months after August split equally for both High and Medium
+  const L26_LABELS_S = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  // Draft invoices per month — keyed by Invoice_date month (col A), Payment_status=Draft/Won
+  // Use _invMonthlyWorkforce if available (built in processInvoices), else fall back to _invMonthlyDraft
+  const draftMap   = window._invMonthlyWorkforce || window._invMonthlyDraft || {};
+  const draftByIdx = L26_LABELS_S.map(l => draftMap[l] || 0);
+
   const pipeHigh = window._pipeHigh || 0;
   const pipeMed  = window._pipeMed  || 0;
   const cccStart = 7; // August = index 7 (0=Jan)
@@ -1696,10 +1702,12 @@ function buildScenChart(){
       const loanExtra    = isJunePlus ? -(loanMonthly * oblRate_sel) : 0;
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = isJunePlus ? monthPayroll * payrollCut : 0;
-      // Workforce: paid at invoice month = 1 month BEFORE pipeline cash is received
-      // So cost at month i = workRate × pipeline cash that will arrive at month i+1
-      const nextPipelineIn = isJunePlus ? ((pipePM_base[i+1]||0)) * pipeRate : 0;
-      const workforceExtra = isJunePlus ? -(nextPipelineIn * workRate) : 0;
+      // Workforce: paid at invoice month
+      // - Pipeline: 1 month BEFORE cash arrives (invoice sent before collection)
+      // - Draft invoices: same month as Invoice_date (col A) — Status Draft/Won/High/Medium
+      const nextPipelineIn  = isJunePlus ? (pipePM_base[i+1]||0) * pipeRate : 0;
+      const draftThisMonth  = isJunePlus ? (draftByIdx[i]||0) : 0;
+      const workforceExtra  = isJunePlus ? -((nextPipelineIn + draftThisMonth) * workRate) : 0;
       const taxThisMonth   = isJunePlus ? (taxLiability * taxRate / taxMonths) : 0;
       const cashOut        = baseOut + loanExtra + payrollSave - taxThisMonth + workforceExtra;
       runBal = runBal + baseIn + pipelineIn + cashOut;
@@ -1869,7 +1877,9 @@ function buildScenChart(){
           if(mo.baseOut) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
           if(mo.loanExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Loan repayment</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.loanExtra)}</span></div>`;
           if(mo.taxThisMonth<0) html+=`<div class="ctt-row"><span class="ctt-name">Tax</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.taxThisMonth)}</span></div>`;
-          if(mo.workforceExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Workforce (pipeline 20%)</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.workforceExtra)}</span></div>`;
+          if(mo.workforceExtra<0){
+            html+=`<div class="ctt-row"><span class="ctt-name">Workforce (pipeline + drafts)</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.workforceExtra)}</span></div>`;
+          }
           if(mo.payrollSave>0) html+=`<div class="ctt-row"><span class="ctt-name">Payroll saving</span><span class="ctt-amt" style="color:var(--green)">+${fC(mo.payrollSave)}</span></div>`;
           html+=`<div class="ctt-total"><span>Total Cash Out</span><span style="color:var(--coral)">${fC(totalOut)}</span></div>`;
 
@@ -1920,9 +1930,10 @@ function buildScenChart(){
       var loanV    = ia ? 0 : -(isJune ? loanMonthly * oblRate_sel : 0);
       var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
       var payV     = ia ? 0 :  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
-      // Workforce: fires at invoice month = 1 month before pipeline cash received
-      var nextPipeV = isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0)) * pipeRate : 0;
-      var workV    = ia ? 0 : -(isJune ? nextPipeV * workRate : 0);
+      // Workforce: pipeline (1 month before cash) + draft invoices (this month)
+      var nextPipeV    = isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0)) * pipeRate : 0;
+      var draftMonthV  = isJune ? (draftByIdx[i]||0) : 0;
+      var workV        = ia ? 0 : -(isJune ? (nextPipeV + draftMonthV) * workRate : 0);
       tRI+=ri; tH+=hi; tM+=mi; tO+=co;
       tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);
       tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0;
@@ -2453,6 +2464,31 @@ function processInvoices(rows){
     window._invMonthlyPaid        = invMonthlyPaid;
     window._invMonthlyOutstanding = invMonthlyOutstanding;
     window._invMonthlyDraft       = invMonthlyDraft;
+
+    // ── Workforce base — Amount_noVAT by Invoice_date month ───────────────────
+    // Applies to: Payment_status = Draft, Won, Pipeline, Pipeline-won
+    // OR Status = Draft, High, Medium, Low (any active project)
+    // Keyed by Invoice_date (col A) month label — workforce paid when project invoiced
+    const invMonthlyWorkforce = {};
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i];
+      if(!r[C.paymentStatus]) continue;
+      const ps = (r[C.paymentStatus]||'').trim().toLowerCase();
+      const st = (r[C.status]||'').trim().toLowerCase();
+      // Include: draft, won, pipeline, pipeline-won in payment status
+      // OR high/medium/low/draft in status column
+      const psMatch = ['draft','won','pipeline','pipeline-won'].includes(ps);
+      const stMatch = ['draft','high','medium','low','won'].includes(st);
+      if(!psMatch && !stMatch) continue;
+      const amt = pv(r[C.amountNoVat]);
+      if(amt <= 0) continue;
+      // Use Invoice_date (col 0 = col A) for timing
+      const invDateRaw = (r[0]||'').trim();
+      const mo = ym2label(invDateRaw.slice(0,7));
+      if(!mo) continue;
+      invMonthlyWorkforce[mo] = (invMonthlyWorkforce[mo]||0) + amt;
+    }
+    window._invMonthlyWorkforce = invMonthlyWorkforce;
 
     // ── PIPELINE from Invoice Tracker ─────────────────────────────────────────
     const pipeline = [];
