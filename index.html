@@ -529,6 +529,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </select>
       </div>
 
+      <!-- Workforce Cost -->
+      <div>
+        <div class="tl" style="margin-bottom:4px;">Workforce cost</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_workforce_amt">on invoice month</div>
+        <select class="ts" id="scen_workforce" onchange="buildScenChart()">
+          <option value="0.20" selected>20% — Base</option>
+          <option value="0.25">25% — Mid</option>
+          <option value="0.30">30% — High</option>
+        </select>
+      </div>
+
       <!-- Scorecards + Set Default -->
       <div class="scr">
           <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="scen_neg">—</div></div>
@@ -546,9 +557,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
-      Pipeline: High &amp; Medium split equally from current month +2 (dynamic CCC).
-      Outstanding &amp; To-Invoice: per invoice expected collection date from Invoice Tracker.
-      Workforce cost: base from CF_f + 20% of pipeline realized · Payroll from CF_f per month.
+      Workforce cost (20/25/30% selectable): paid at invoice month = 1 month before pipeline cash received.
+      Payroll from CF_f per month · Pipeline spread from current month +2 (dynamic CCC).
     </div>
   </div>
   <!-- Scenario detail table -->
@@ -564,6 +574,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <th style="color:var(--amber)">Pipeline Med</th><th>Total In</th>
             <th>Base Out</th><th style="color:var(--coral)">Loans</th>
             <th style="color:var(--coral)">Tax</th><th style="color:var(--amber)">Payroll Save</th>
+            <th style="color:var(--coral)">Workforce</th>
             <th>Total Out</th><th>Net Flow</th><th>Balance</th>
           </tr>
         </thead>
@@ -917,7 +928,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v24May-tip · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v26May-wf · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1614,8 +1625,9 @@ function buildScenChart(){
   if(el_t) el_t.textContent='Outstanding: '+fC(taxAmtLbl);
   if(el_py) el_py.textContent='Monthly avg: '+fC(Math.round(payBase/12));
   const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
-  const oblRate     = oblRate_sel; // same as oblRate_sel above
+  const oblRate     = oblRate_sel;
   const taxRate     = parseFloat(document.getElementById('scen_tax')?.value??1);
+  const workRate    = parseFloat(document.getElementById('scen_workforce')?.value||0.20);
   const taxLiability= Math.abs(window._db1Taxes||0); // DB1 O12
   // Tax repayment starts June (index 5), spreads over Jun-Dec = 7 months
   const TAX_START   = 5; // June = index 5
@@ -1680,19 +1692,14 @@ function buildScenChart(){
       const pipelineIn   = isJunePlus ? (pipePM_base[i]||0) * pipeRate : 0;
       const pipeHighIn   = isJunePlus ? (highPM_base[i]||0) * pipeRate : 0;
       const pipeMedIn    = isJunePlus ? (medPM_base[i]||0)  * pipeRate : 0;
-      const baseOut      = c.cOutF2||0;  // F2 = pure ops, no tax, no loans
-      // All scenario adjustments apply from June (index 5) onwards only
-      // May (index 4) uses base forecast only
-      const loanExtra    = isJunePlus ? -(loanMonthly * oblRate_sel) : 0; // negative = outflow
+      const baseOut      = c.cOutF2||0;
+      const loanExtra    = isJunePlus ? -(loanMonthly * oblRate_sel) : 0;
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = isJunePlus ? monthPayroll * payrollCut : 0;
-      // Workforce cost:
-      // Base = CF_f row 23 monthly value (without pipeline)
-      // Variable = 20% of pipeline realized this month
-      // Both are outflows (negative)
-      // Workforce variable cost: 20% of pipeline realised (June+ only)
-      // Note: workforce base is already included in F2 (cOutF2)
-      const workforceExtra = isJunePlus ? -(pipelineIn * 0.20) : 0;
+      // Workforce: paid at invoice month = 1 month BEFORE pipeline cash is received
+      // So cost at month i = workRate × pipeline cash that will arrive at month i+1
+      const nextPipelineIn = isJunePlus ? ((pipePM_base[i+1]||0)) * pipeRate : 0;
+      const workforceExtra = isJunePlus ? -(nextPipelineIn * workRate) : 0;
       const taxThisMonth   = isJunePlus ? (taxLiability * taxRate / taxMonths) : 0;
       const cashOut        = baseOut + loanExtra + payrollSave - taxThisMonth + workforceExtra;
       runBal = runBal + baseIn + pipelineIn + cashOut;
@@ -1704,8 +1711,7 @@ function buildScenChart(){
       scenMedIn.push(pipeMedIn||null);
       scenCashOut.push(cashOut||null);
       // Store full breakdown for tooltip
-      scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});
-    }
+      scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});    }
   });
   window._scenMonthly = scenMonthly;  // expose for tooltip
 
@@ -1863,6 +1869,7 @@ function buildScenChart(){
           if(mo.baseOut) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
           if(mo.loanExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Loan repayment</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.loanExtra)}</span></div>`;
           if(mo.taxThisMonth<0) html+=`<div class="ctt-row"><span class="ctt-name">Tax</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.taxThisMonth)}</span></div>`;
+          if(mo.workforceExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Workforce (pipeline 20%)</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.workforceExtra)}</span></div>`;
           if(mo.payrollSave>0) html+=`<div class="ctt-row"><span class="ctt-name">Payroll saving</span><span class="ctt-amt" style="color:var(--green)">+${fC(mo.payrollSave)}</span></div>`;
           html+=`<div class="ctt-total"><span>Total Cash Out</span><span style="color:var(--coral)">${fC(totalOut)}</span></div>`;
 
@@ -1900,7 +1907,7 @@ function buildScenChart(){
   const t_L26=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
   if(t_body){
     t_body.innerHTML='';
-    var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0,tBaseOut=0;
+    var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0,tBaseOut=0,tWork=0;
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
       var ia=i<actualCount;
@@ -1913,9 +1920,12 @@ function buildScenChart(){
       var loanV    = ia ? 0 : -(isJune ? loanMonthly * oblRate_sel : 0);
       var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
       var payV     = ia ? 0 :  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
+      // Workforce: fires at invoice month = 1 month before pipeline cash received
+      var nextPipeV = isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0)) * pipeRate : 0;
+      var workV    = ia ? 0 : -(isJune ? nextPipeV * workRate : 0);
       tRI+=ri; tH+=hi; tM+=mi; tO+=co;
-      tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);  // accumulate what's actually displayed
-      tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0;
+      tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);
+      tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0;
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
@@ -1928,6 +1938,7 @@ function buildScenChart(){
         +td(loanV?'-'+fC(Math.abs(loanV)):'—','','color:var(--coral)')
         +td(taxV?'-'+fC(Math.abs(taxV)):'—','','color:var(--coral)')
         +td(payV?fC(payV):'—','pos')
+        +td(workV?'-'+fC(Math.abs(workV)):'—','','color:var(--coral)')
         +td(fC(co),'neg')
         +td(fC(nt),nt>=0?'pos':'neg')
         +td(fC(bv),bv<0?'neg':'pos','font-weight:700');
@@ -1945,6 +1956,7 @@ function buildScenChart(){
         +'<td style="color:var(--coral)">'+(tLoan?'-'+fC(Math.abs(tLoan)):'—')+'</td>'
         +'<td style="color:var(--coral)">'+(tTax?'-'+fC(Math.abs(tTax)):'—')+'</td>'
         +'<td class="pos">'+(tPayroll?fC(tPayroll):'—')+'</td>'
+        +'<td style="color:var(--coral)">'+(tWork?'-'+fC(Math.abs(tWork)):'—')+'</td>'
         +'<td class="neg">'+fC(tO)+'</td>'
         +'<td class="'+(tNet>=0?'pos':'neg')+'"><strong>'+fC(tNet)+'</strong></td>'
         +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
@@ -2800,10 +2812,11 @@ function switchSubTab(view, btn){
 
 function saveScenDefault(){
   const vals={
-    pipe:     document.getElementById('scen_pipe')?.value||'1',
-    oblig:    document.getElementById('scen_obligations')?.value||'1',
-    tax:      document.getElementById('scen_tax')?.value||'1',
-    payroll:  document.getElementById('scen_payroll')?.value||'0'
+    pipe:      document.getElementById('scen_pipe')?.value||'1',
+    oblig:     document.getElementById('scen_obligations')?.value||'1',
+    tax:       document.getElementById('scen_tax')?.value||'1',
+    payroll:   document.getElementById('scen_payroll')?.value||'0',
+    workforce: document.getElementById('scen_workforce')?.value||'0.20'
   };
   localStorage.setItem('scen_defaults', JSON.stringify(vals));
   const note=document.getElementById('scen_default_note');
@@ -2815,11 +2828,12 @@ function loadScenDefaults(){
     const saved=localStorage.getItem('scen_defaults');
     if(!saved) return;
     const vals=JSON.parse(saved);
-    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
-    set('scen_pipe',    vals.pipe);
-    set('scen_obligations', vals.oblig);
-    set('scen_tax',     vals.tax);
-    set('scen_payroll', vals.payroll);
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+    set('scen_pipe',       vals.pipe);
+    set('scen_obligations',vals.oblig);
+    set('scen_tax',        vals.tax);
+    set('scen_payroll',    vals.payroll);
+    set('scen_workforce',  vals.workforce);
     const note=document.getElementById('scen_default_note');
     if(note) note.textContent='Default loaded';
     setTimeout(()=>{const n=document.getElementById('scen_default_note');if(n)n.textContent='';},2000);
