@@ -440,17 +440,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- ── Secondary metrics row ── -->
   <div class="cash-grid">
     <div class="cm a" id="cm_inv_wrap"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices" style="color:var(--amber)">—</div><div class="cms">From Invoice Tracker · live</div></div>
-    <div class="cm" id="cm_runway_wrap" style="border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06)">
-      <div class="cml" style="display:flex;align-items:center;justify-content:space-between;">
-        <span>Runway</span>
-        <select class="ts" id="rwyTog" onchange="updateRunwayCard()" style="font-size:9px;padding:2px 18px 2px 6px;height:auto;">
-          <option value="excl" selected>Excl. loans &amp; tax</option>
-          <option value="incl">Incl. loans &amp; tax</option>
-        </select>
-      </div>
-      <div class="cmv" id="cm_runway" style="font-size:22px;font-weight:700;font-family:var(--mono);">—</div>
-      <div class="cms" id="cm_runway_sub">months · avg next 3 mo</div>
-    </div>
   </div>
   <div class="cash-grid-2">
     <div class="cm g"><div class="cml">Cash In YTD</div><div class="cmv g" id="cm_ytd_in">—</div><div class="cms">Jan–today actual</div></div>
@@ -584,6 +573,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
       * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
+    </div>
+
+    <!-- ── Runway summary ── -->
+    <div id="scen_runway_wrap" style="margin-top:18px;padding:16px 20px;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.25);border-radius:12px;display:flex;align-items:center;gap:32px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Runway — this scenario</div>
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span id="scen_runway_val" style="font-size:32px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</span>
+          <span style="font-size:13px;color:var(--text3);">months</span>
+        </div>
+        <div id="scen_runway_sub" style="font-size:11px;color:var(--text3);margin-top:2px;">balance hits zero in —</div>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Monthly balance projection</div>
+        <div id="scen_runway_bars" style="display:flex;align-items:flex-end;gap:3px;height:48px;"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--text3);">
+          <span id="scen_runway_start_mo">—</span><span id="scen_runway_end_mo">Dec '26</span>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">End balance</div>
+        <div id="scen_runway_endbал" style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">Dec 2026</div>
+      </div>
     </div>
 
 </div>
@@ -928,7 +941,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v27May-wf · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v30May-rwy · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1723,6 +1736,52 @@ function buildScenChart(){
   });
   window._scenMonthly = scenMonthly;  // expose for tooltip
 
+  // ── Runway calculation from scenario balance walk ─────────────────────────
+  const L26M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let runwayMo = null;  // index where balance first hits zero
+  for(let i = actualCount; i < scenBal.length; i++){
+    if(scenBal[i] <= 0){ runwayMo = i; break; }
+  }
+  const runwayMonths = runwayMo !== null ? runwayMo - actualCount : scenBal.length - actualCount;
+  const endBal_scen  = scenBal[scenBal.length - 1];
+  const rVal  = document.getElementById('scen_runway_val');
+  const rSub  = document.getElementById('scen_runway_sub');
+  const rEnd  = document.getElementById('scen_runway_endbал');
+  const rBars = document.getElementById('scen_runway_bars');
+  const rWrap = document.getElementById('scen_runway_wrap');
+  const rStartMo = document.getElementById('scen_runway_start_mo');
+  if(rVal){
+    rVal.textContent = runwayMo !== null ? runwayMonths + ' mo' : '12+ mo';
+    rVal.style.color = runwayMonths < 2 ? 'var(--coral)' : runwayMonths < 4 ? 'var(--amber)' : 'var(--teal)';
+  }
+  if(rSub){
+    rSub.textContent = runwayMo !== null
+      ? `balance hits zero in ${L26M[runwayMo]} '26`
+      : 'balance stays positive through Dec \'26';
+  }
+  if(rEnd){
+    rEnd.textContent = fC(endBal_scen);
+    rEnd.style.color = endBal_scen < 0 ? 'var(--coral)' : 'var(--teal)';
+  }
+  if(rWrap){
+    rWrap.style.borderColor = runwayMonths < 2 ? 'rgba(255,107,107,.35)'
+      : runwayMonths < 4 ? 'rgba(245,166,35,.35)' : 'rgba(15,184,184,.25)';
+    rWrap.style.background  = runwayMonths < 2 ? 'rgba(255,107,107,.06)'
+      : runwayMonths < 4 ? 'rgba(245,166,35,.06)' : 'rgba(15,184,184,.06)';
+  }
+  if(rStartMo) rStartMo.textContent = L26M[actualCount] + " '26";
+  // Mini bar chart — one bar per forecast month
+  if(rBars){
+    const fcastBals = scenBal.slice(actualCount);
+    const maxAbs = Math.max(1, ...fcastBals.map(Math.abs));
+    rBars.innerHTML = fcastBals.map((b, i) => {
+      const pct  = Math.min(100, Math.abs(b) / maxAbs * 100);
+      const col  = b < 0 ? 'var(--coral)' : b < startBal * 0.3 ? 'var(--amber)' : 'var(--teal)';
+      const mo   = L26M[actualCount + i];
+      return `<div title="${mo}: ${fC(b)}" style="flex:1;background:${col};height:${Math.max(4,pct*0.48)}px;border-radius:2px 2px 0 0;opacity:${b<0?1:0.7};cursor:default;"></div>`;
+    }).join('');
+  }
+
   // Scorecards
   const negIdx = scenBal.findIndex((v,i)=>i>=actualCount&&v<0);
   const scNeg  = document.getElementById('scen_neg');
@@ -2182,74 +2241,8 @@ function updateProfitScorecard(){
 }
 
 function updateRunwayCard(){
-  const mode      = document.getElementById('rwyTog')?.value || 'excl';
-  const cash      = window._cash        || [];
-  const actualCount = window._actualCount || 0;
-  if(!cash.length || actualCount < 1){ return; }
-
-  // Current end balance = last confirmed month's actual closing balance
-  const latestActual = window._latestActual || cash[actualCount-1] || cash[0];
-  const endBal = latestActual.balA || 0;
-
-  // Next 3 forecast months after the last confirmed month
-  const fwd3 = cash.slice(actualCount, actualCount + 3);
-  if(!fwd3.length){
-    const el = document.getElementById('cm_runway');
-    if(el) el.textContent = '—';
-    return;
-  }
-
-  // Monthly loan + tax additions for 'incl' mode
-  // loanMonthly spread over remaining forecast months (same as scenario builder)
-  const fcstLeft   = Math.max(1, cash.slice(actualCount).length);
-  const loanMonthly = Math.abs(window._db1Loans  || 0) / fcstLeft;
-  // taxMonthly spread over Jun–Dec = 7 months (TAX_START index 5)
-  const TAX_MONTHS  = 7;
-  const taxMonthly  = Math.abs(window._db1Taxes  || 0) / TAX_MONTHS;
-
-  // Compute net cash flow per month for the 3 forward months
-  // cIF = forecast cash in, cOutF2 = base out (no tax, no loans) — already negative
-  const netFlows = fwd3.map((c, idx) => {
-    const i = actualCount + idx; // absolute month index
-    const baseNet = (c.cIF || 0) + (c.cOutF2 || 0); // cOutF2 is negative
-    if(mode === 'incl'){
-      // Deduct loan and tax (both outflows, Jun+ only = index 5+)
-      const loanOut = i >= 5 ? -loanMonthly : 0;
-      const taxOut  = i >= 5 ? -taxMonthly  : 0;
-      return baseNet + loanOut + taxOut;
-    }
-    return baseNet;
-  });
-
-  const avgNetCF = netFlows.reduce((s, v) => s + v, 0) / netFlows.length;
-
-  let val;
-  if(avgNetCF >= 0){
-    // Positive or neutral cash flow — not burning
-    val = Infinity;
-  } else {
-    // Negative: months until balance hits zero
-    val = endBal / Math.abs(avgNetCF);
-  }
-
-  const el   = document.getElementById('cm_runway');
-  const wrap = document.getElementById('cm_runway_wrap');
-  const sub  = document.getElementById('cm_runway_sub');
-  if(el){
-    el.textContent = val === Infinity ? '12+ mo' : (val > 0 ? val.toFixed(1)+' mo' : '< 0');
-    el.style.color = val < 0 ? 'var(--coral)' : val < 2 ? 'var(--amber)' : 'var(--teal)';
-  }
-  if(sub){
-    sub.textContent = mode==='incl'
-      ? 'months · incl loans & tax'
-      : 'months · excl loans & tax';
-  }
-  if(wrap){
-    const danger = val !== Infinity && val < 2;
-    const warn   = val !== Infinity && val >= 2 && val < 4;
-    wrap.style.borderColor = danger ? 'rgba(255,107,107,.4)' : warn ? 'rgba(245,166,35,.4)' : 'rgba(15,184,184,.4)';
-    wrap.style.background  = danger ? 'rgba(255,107,107,.06)' : warn ? 'rgba(245,166,35,.06)' : 'rgba(15,184,184,.06)';
-  }
+  // Runway now calculated inside buildScenChart and displayed in scen_runway_wrap
+  // This stub kept so existing setTimeout(updateRunwayCard,50) calls don't error
 }
 
 function processRevenues(rows){
