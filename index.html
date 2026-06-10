@@ -547,7 +547,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
       Workforce cost (20/25/30%): applied to pipeline (month before cash) + draft/won invoices (invoice date month) · Amount_noVAT col K · Status: Draft, Won, High, Medium.
-      Payroll from CF_f · Pipeline CCC: current month +2.
+      Payroll from CF_f · Pipeline CCC: current month +3.
     </div>
   </div>
   <!-- Scenario detail table -->
@@ -572,7 +572,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </table>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
-      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
+      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 3-month CCC applied
     </div>
 
     <!-- ── Runway summary ── -->
@@ -946,7 +946,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v32Jun-dc · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v34Jun-ccc · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1674,9 +1674,9 @@ function buildScenChart(){
 
   const pipeHigh = window._pipeHigh || 0;
   const pipeMed  = window._pipeMed  || 0;
-  const cccStart = 7; // August = index 7 (0=Jan)
-  const highMonths = 12 - cccStart;          // Aug through Dec = 5 months
-  const medMonths  = 12 - cccStart;          // same spread
+  const cccStart = Math.min(11, (window._actualCount||5) - 1 + 3); // current confirmed month index + 3 months CCC
+  const highMonths = 12 - cccStart;
+  const medMonths  = 12 - cccStart;
   const highPerMo  = pipeHigh / highMonths;
   const medPerMo   = pipeMed  / medMonths;
   const highPM_base = Array.from({length:12},(_,i)=>i>=cccStart?highPerMo:0);
@@ -1876,6 +1876,7 @@ function buildScenChart(){
        segment:{borderColor:ctx=>forecastScen[ctx.p1DataIndex]<0?coral:'rgba(46,204,143,0.7)'}}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
         tooltip:{enabled:false, external:(context)=>{
@@ -1947,7 +1948,7 @@ function buildScenChart(){
 
           // ── Cash Out block ──
           html+=`<div class="ctt-section" style="margin-top:8px">💸 Cash Out</div>`;
-          if(mo.baseOut) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
+          if(mo.baseOut!=null&&mo.baseOut!==0) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
           if(mo.loanExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Loan repayment</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.loanExtra)}</span></div>`;
           if(mo.taxThisMonth<0) html+=`<div class="ctt-row"><span class="ctt-name">Tax</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.taxThisMonth)}</span></div>`;
           if(mo.workforceExtra<0){
@@ -2122,7 +2123,7 @@ function buildDSO(){
 
   // Pipeline spread: dynamic — start at actualCount-1 + 2 months from current
   const _actC = window._actualCount || 0;
-  const _pipeStart = Math.min(11, (_actC - 1) + 2); // current month index + 2
+  const _pipeStart = Math.min(11, (_actC - 1) + 3); // current month index + 3 months CCC
   const _pipeMos   = Math.max(1, 12 - _pipeStart);
   const HIGH_TOTAL  = window._pipeHigh || 0;
   const MED_TOTAL   = window._pipeMed  || 0;
