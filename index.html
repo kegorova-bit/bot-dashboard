@@ -223,7 +223,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Actual expenses (col N) + forecast where not yet entered (col O)</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc" id="sc_pA_wrap"><div class="slb" id="sc_pA_label">Op Profit YTD</div><div class="sv" id="sc_pA">—</div></div>
@@ -834,12 +834,17 @@ const stagingSchema = {
   sF_nopipe:  ['Sales (F) no pipeline', 'Sales Forecast no pipeline'],
   gA:         ['Grants (A)', 'Grants Actual', 'Total Grants (A)'],
   gF:         ['Grants (F)', 'Grants Forecast'],
-  done:       ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'], // same as rA — row is 'done' when rA != 0
+  dcA:        ['Data Collection (A)', 'DC (A)'],
+  haivoA:     ['Haivo (A)', 'HAIVO (A)', 'Haivo Actual'],
+  dcF:        ['Data Collection (F)', 'DC (F)'],
+  haivoF:     ['Haivo (F)', 'HAIVO (F)', 'Haivo Forecast'],
+  done:       ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'],
 };
 
 const stagingFallbacks = {
   date:0, year:2, rA:3, rF:7, eF:12, eAcol:13, eFonly:14,
-  pFn:16, pFp:17, pA:18, pl:5, sA:19, sF:20, sF_pipe:21, sF_nopipe:22, gA:25, gF:29, done:3
+  pFn:16, pFp:17, pA:18, pl:5, sA:19, sF:20, sF_pipe:21, sF_nopipe:22,
+  dcA:23, haivoA:24, gA:25, dcF:26, haivoF:27, gF:29, done:3
 };
 
 const invoiceSchema = {
@@ -941,7 +946,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v30May-rwy · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v32Jun-dc · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -993,7 +998,7 @@ function processStaging(rows){
       eA_raw:   eAraw,                              // Expenses Actual raw (col N)
       pFn:      pv(r[C.pFn]),                       // Op Profit Forecast no pipeline
       pFp:      pv(r[C.pFp]),                       // Op Profit Forecast incl pipeline
-      pA:       pv(r[C.pA]),                        // Op Profit Actual
+      pA:       rAval - (eAraw!==0 ? eAraw : eFonly), // Op Profit = rA − eA (consistent N+O source)
       pl:       pv(r[C.pl]),                        // Pipeline flag
       sA:       pv(r[C.sA]),                        // Sales Actual
       sF:       pv(r[C.sF]),                        // Sales Forecast static
@@ -1003,6 +1008,10 @@ function processStaging(rows){
       sFnopipe: pv(r[C.sF_nopipe]),                 // alias
       gA:       pv(r[C.gA]),                        // Grants Actual
       gF:       r.length>30 ? pv(r[C.gF]) : 0,     // Grants Forecast
+      dcA:      pv(r[C.dcA]),                       // Data Collection Actual (col X)
+      haivoA:   pv(r[C.haivoA]),                    // HAIVO Actual (col Y)
+      dcF:      pv(r[C.dcF]),                       // Data Collection Forecast (col AA)
+      haivoF:   pv(r[C.haivoF]),                    // HAIVO Forecast (col AB)
       done:     rAval !== 0
     };
     if(yr===2026)s26.push(d);else if(yr===2025)s25.push(d);
@@ -1026,16 +1035,21 @@ function processStaging(rows){
 
   // 2026 YTD
   const done26=s26.filter(r=>r.done);
-  const t26={rA:0,sA:0,gA:0,eA:0,pA:0,rF:0};
-  done26.forEach(r=>{t26.rA+=r.rA;t26.sA+=r.sA;t26.gA+=r.gA;t26.eA+=r.eA;t26.pA+=r.pA;t26.rF+=r.rF;});
+  const t26={rA:0,sA:0,gA:0,eA:0,pA:0,rF:0,dcA:0,haivoA:0,dcF:0,haivoF:0};
+  done26.forEach(r=>{t26.rA+=r.rA;t26.sA+=r.sA;t26.gA+=r.gA;t26.eA+=r.eA;t26.pA+=r.pA;t26.rF+=r.rF;
+    t26.dcA+=(r.dcA||0);t26.haivoA+=(r.haivoA||0);});
   const totRF26=s26.reduce((s,r)=>s+r.rF,0);
+  const totDCF26=s26.reduce((s,r)=>s+(r.dcF||0),0);
+  const totHaivoF26=s26.reduce((s,r)=>s+(r.haivoF||0),0);
   document.getElementById('yc2026').innerHTML=`
     <div><div class="ycl">Revenue (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.rA)}</div><div class="ycs">${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} target</div></div>
     <div><div class="ycl">Full Year Forecast</div><div class="ycv" style="color:var(--text3)">${fC(totRF26)}</div></div>
     <div><div class="ycl">Op Profit (A) YTD</div><div class="ycv" style="color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</div><div class="ycs">Margin: ${fPct(t26.pA,t26.rA)}</div></div>
     <div><div class="ycl">Expenses (A) YTD</div><div class="ycv" style="color:var(--coral)">${fC(t26.eA)}</div></div>
     <div><div class="ycl">Sales (A) YTD</div><div class="ycv" style="color:${t26.sA>=0?'var(--text)':'var(--coral)'}">${fC(t26.sA)}</div></div>
-    <div><div class="ycl">Grants (A) YTD</div><div class="ycv" style="color:var(--green)">${fC(t26.gA)}</div></div>`;
+    <div><div class="ycl">Grants (A) YTD</div><div class="ycv" style="color:var(--green)">${fC(t26.gA)}</div></div>
+    <div><div class="ycl">Data Collection (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.dcA)}</div><div class="ycs">${fPct(t26.dcA,totDCF26)} of ${fmt(totDCF26)} target</div></div>
+    <div><div class="ycl">HAIVO (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.haivoA)}</div><div class="ycs">${fPct(t26.haivoA,totHaivoF26)} of ${fmt(totHaivoF26)} target</div></div>`;
   const sc=document.getElementById('sc_pA');sc.textContent=fmt(t26.pA);sc.className='sv '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_pA_wrap').className='sc '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_mA').textContent=fPct(t26.pA,t26.rA);
@@ -1216,8 +1230,8 @@ function buildVarTable(s26){
       <td class="${va!=null?(va>=0?'pos':'neg'):''}">${va!=null?fC(va):'—'}</td>
       <td class="${vp!=null?(va>=0?'pos':'neg'):''}">${vp!=null?(va>=0?'+':'')+vp+'%':'—'}</td>
       <td>${r.done&&r.eA?fC(r.eA):'—'}</td><td>${fC(r.eF)}</td>
-      <td class="${evar!=null?(evar<=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
-      <td class="${evarp!=null?(evar<=0?'pos':'neg'):''}">${evarp!=null?(evar<=0?'+':'')+evarp+'%':'—'}</td>
+      <td class="${evar!=null?(evar>=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
+      <td class="${evarp!=null?(evar>=0?'pos':'neg'):''}">${evarp!=null?(evar>=0?'+':'')+evarp+'%':'—'}</td>
       <td class="${r.done?(r.pA>=0?'pos':'neg'):''}">${r.done&&r.pA?fC(r.pA):'—'}</td>`;
     vb.appendChild(tr);
   });
@@ -1228,8 +1242,8 @@ function buildVarTable(s26){
     <td class="${totVA>=0?'pos':'neg'}"><strong>${fC(totVA)}</strong></td>
     <td class="${totVA>=0?'pos':'neg'}"><strong>${tRF?(totVA/Math.abs(tRF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td>${fC(tEA)}</td><td>${fC(tEF)}</td>
-    <td class="${totEVar<=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
-    <td class="${totEVar<=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
+    <td class="${totEVar>=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
+    <td class="${totEVar>=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td class="${tPA>=0?'pos':'neg'}"><strong>${fC(tPA)}</strong></td></tr>`;
   vt.appendChild(vb);vt.appendChild(tf);
 }
