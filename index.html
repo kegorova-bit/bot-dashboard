@@ -946,7 +946,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v34Jun-ccc · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v36Jun-op · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -998,7 +998,7 @@ function processStaging(rows){
       eA_raw:   eAraw,                              // Expenses Actual raw (col N)
       pFn:      pv(r[C.pFn]),                       // Op Profit Forecast no pipeline
       pFp:      pv(r[C.pFp]),                       // Op Profit Forecast incl pipeline
-      pA:       rAval - (eAraw!==0 ? eAraw : eFonly), // Op Profit = rA − eA (consistent N+O source)
+      pA:       rAval + (eAraw !== 0 ? eAraw : eFonly), // Op Profit = rA + eA (expenses already negative)
       pl:       pv(r[C.pl]),                        // Pipeline flag
       sA:       pv(r[C.sA]),                        // Sales Actual
       sF:       pv(r[C.sF]),                        // Sales Forecast static
@@ -1716,7 +1716,7 @@ function buildScenChart(){
       scenPipeIn.push(null);
       scenHighIn.push(null);
       scenMedIn.push(null);
-      scenCashOut.push(c.cOA_op||null);
+      scenCashOut.push(c.cOA_op || -0.001); // never null
       scenMonthly.push({baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true});
       runBal = c.balA || c.balF2 || runBal;
     } else {
@@ -1744,9 +1744,9 @@ function buildScenChart(){
       scenPipeIn.push(pipelineIn||null);
       scenHighIn.push(pipeHighIn||null);
       scenMedIn.push(pipeMedIn||null);
-      scenCashOut.push(cashOut||null);
+      scenCashOut.push(cashOut !== 0 ? cashOut : -0.001); // never null — ensures tooltip fires
       // Store full breakdown for tooltip
-      scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});    }
+      scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});
   });
   window._scenMonthly = scenMonthly;  // expose for tooltip
 
@@ -1879,7 +1879,7 @@ function buildScenChart(){
       interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
-        tooltip:{enabled:false, external:(context)=>{
+        tooltip:{enabled:false, mode:'index', intersect:false, external:(context)=>{
           const {chart,tooltip}=context;
           const sTip=document.getElementById('scen-tooltip');if(!sTip)return;
           if(tooltip.opacity===0){sTip.style.opacity='0';setTimeout(()=>{sTip.style.display='none';},150);return;}
