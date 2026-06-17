@@ -66,7 +66,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .yc{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 .yyy{font-size:10px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .yyy span{color:var(--teal);}
-.ycg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ycg{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
 .ycl{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:3px;}
 .ycv{font-size:17px;font-weight:700;font-family:var(--mono);}
 .ycs{font-size:10px;color:var(--text3);margin-top:1px;}
@@ -946,7 +946,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v36Jun-op · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v38Jun-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1042,14 +1042,47 @@ function processStaging(rows){
   const totDCF26=s26.reduce((s,r)=>s+(r.dcF||0),0);
   const totHaivoF26=s26.reduce((s,r)=>s+(r.haivoF||0),0);
   document.getElementById('yc2026').innerHTML=`
-    <div><div class="ycl">Revenue (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.rA)}</div><div class="ycs">${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} target</div></div>
-    <div><div class="ycl">Full Year Forecast</div><div class="ycv" style="color:var(--text3)">${fC(totRF26)}</div></div>
-    <div><div class="ycl">Op Profit (A) YTD</div><div class="ycv" style="color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</div><div class="ycs">Margin: ${fPct(t26.pA,t26.rA)}</div></div>
-    <div><div class="ycl">Expenses (A) YTD</div><div class="ycv" style="color:var(--coral)">${fC(t26.eA)}</div></div>
-    <div><div class="ycl">Sales (A) YTD</div><div class="ycv" style="color:${t26.sA>=0?'var(--text)':'var(--coral)'}">${fC(t26.sA)}</div></div>
-    <div><div class="ycl">Grants (A) YTD</div><div class="ycv" style="color:var(--green)">${fC(t26.gA)}</div></div>
-    <div><div class="ycl">Data Collection (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.dcA)}</div><div class="ycs">${fPct(t26.dcA,totDCF26)} of ${fmt(totDCF26)} target</div></div>
-    <div><div class="ycl">HAIVO (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.haivoA)}</div><div class="ycs">${fPct(t26.haivoA,totHaivoF26)} of ${fmt(totHaivoF26)} target</div></div>`;
+    <div style="grid-column:1/-1;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:2px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Revenue (A) YTD</div>
+        <div style="font-size:38px;font-weight:700;font-family:var(--mono);color:var(--teal);line-height:1">${fC(t26.rA)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:5px;">${fPct(t26.rA,totRF26)} of <span style="color:var(--text2)">${fmt(totRF26)}</span> full-year target</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Full Year Forecast</div>
+        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text3)">${fC(totRF26)}</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;">Sales Breakdown</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-size:11px;color:var(--text2)">Sales (A)</span>
+        <span style="font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)">${fC(t26.sA)}</span>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;padding-left:10px;">
+        <span style="font-size:10px;color:var(--text3)">Data Collection</span>
+        <div style="text-align:right"><span style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal)">${fC(t26.dcA)}</span><span style="font-size:10px;color:var(--text3);margin-left:6px;">${fPct(t26.dcA,totDCF26)} of target</span></div>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;padding-left:10px;">
+        <span style="font-size:10px;color:var(--text3)">HAIVO</span>
+        <div style="text-align:right"><span style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal)">${fC(t26.haivoA)}</span><span style="font-size:10px;color:var(--text3);margin-left:6px;">${fPct(t26.haivoA,totHaivoF26)} of target</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;">Profitability</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-size:11px;color:var(--text2)">Grants (A)</span>
+        <span style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--amber)">${fC(t26.gA)}</span>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-size:11px;color:var(--text2)">Op Profit (A)</span>
+        <div style="text-align:right"><span style="font-size:20px;font-weight:700;font-family:var(--mono);color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</span><span style="font-size:10px;color:var(--text3);margin-left:6px;">${fPct(t26.pA,t26.rA)}</span></div>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;">
+        <span style="font-size:11px;color:var(--text2)">Expenses (A)</span>
+        <span style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--coral)">${fC(t26.eA)}</span>
+      </div>
+    </div>`;
   const sc=document.getElementById('sc_pA');sc.textContent=fmt(t26.pA);sc.className='sv '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_pA_wrap').className='sc '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_mA').textContent=fPct(t26.pA,t26.rA);
@@ -1747,6 +1780,7 @@ function buildScenChart(){
       scenCashOut.push(cashOut !== 0 ? cashOut : -0.001); // never null — ensures tooltip fires
       // Store full breakdown for tooltip
       scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});
+    }
   });
   window._scenMonthly = scenMonthly;  // expose for tooltip
 
