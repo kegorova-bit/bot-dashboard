@@ -946,7 +946,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v38Jun-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v39Jun-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1283,6 +1283,8 @@ function buildVarTable(s26){
 
 // ─── Q1 TAB ───────────────────────────────────────────────────────
 function buildQ1(s26,s25){
+  const sv=document.getElementById('sv-q1');
+  if(!sv||sv.style.display==='none')return; // skip if hidden — switchSubTab will call again
   const q1=s26.filter((r,i)=>i<3&&r.done); // Jan Feb Mar
   const q1rev=q1.reduce((s,r)=>s+r.rA,0);
   const q1exp=q1.reduce((s,r)=>s+r.eA,0);
@@ -1382,6 +1384,8 @@ function buildQ1(s26,s25){
 
 // ─── Q2 TAB ───────────────────────────────────────────────────────
 function buildQ2(s26arg,s25arg){
+  const sv=document.getElementById('sv-q2');
+  if(!sv||sv.style.display==='none')return; // skip if hidden — switchSubTab will call again
   const s26=s26arg||window._s26||[];if(!s26.length)return;
   const q2all=s26.slice(3,6);               // Apr=3 May=4 Jun=5
   const q2=q2all.filter(r=>r.done);         // confirmed months only
@@ -2307,10 +2311,6 @@ function processInvoices(rows){
   // Resolve columns from header row using invoiceSchema — resilient to column shifts
   window._invoiceColMap = mapHeaders(rows[0], invoiceSchema, invoiceFallbacks);
   const C = window._invoiceColMap;
-  // Log live headers and col map for debugging
-  console.log('Invoice tracker live headers:', rows[0] ? rows[0].slice(0,25).join(' | ') : 'NO HEADER ROW');
-  console.log('Invoice COL map:', JSON.stringify(C));
-  console.log('Total rows in invoice CSV:', rows.length);
 
   try {
     const byCustomerProject = [];
