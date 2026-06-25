@@ -987,7 +987,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v41Jun-cur · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v43Jun-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1967,7 +1967,57 @@ function buildScenChart(){
           const L26T=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
           const label=L26T[mIdx]||'';
           const isActM=mIdx<(window._actualCount||0);
+          const isCurrent = mIdx === ((window._actualCount||1)-1); // last month with any actual data — show BOTH
+
+          if(isCurrent){
+            // ── Build two separate mini-tables: ACTUAL (to date) and FORECAST (full month) ──
+            const c_cash = cash[mIdx]||{};
+            const isJuneM = mIdx >= 5;
+            // ACTUAL figures
+            const aIn = c_cash.cIA||0, aOut = c_cash.cOA_op||0, aNet = aIn+aOut, aBal = c_cash.balA||0;
+            // FORECAST figures (full month, scenario sliders applied)
+            const fPipeH = isJuneM ? (highPM_base[mIdx]||0)*pipeRate : 0;
+            const fPipeM = isJuneM ? (medPM_base[mIdx]||0)*pipeRate  : 0;
+            const fIn = (c_cash.cIF||0)+fPipeH+fPipeM;
+            const fLoan = isJuneM ? -(loanMonthly*oblRate_sel) : 0;
+            const fTax  = isJuneM ? -(taxLiability*taxRate/taxMonths) : 0;
+            const fPay  = isJuneM ? (PAYROLL_MONTHLY[mIdx]||0)*payrollCut : 0;
+            const fNextPipe = isJuneM ? ((highPM_base[mIdx+1]||0)+(medPM_base[mIdx+1]||0))*pipeRate : 0;
+            const fDraft = isJuneM ? (draftByIdx[mIdx]||0) : 0;
+            const fWork = isJuneM ? -((fNextPipe+fDraft)*workRate) : 0;
+            const fOut = (c_cash.cOutF2||0)+fLoan+fTax+fPay+fWork;
+            const fNet = fIn+fOut;
+            const prevBal = mIdx>0 ? (cash[mIdx-1]?.balA||0) : aBal;
+            const fBal = prevBal+fNet;
+
+            const card = (title,color,inLbl,inVal,outVal,netVal,balVal)=>`
+              <div style="flex:1;min-width:150px;border:1px solid ${color}33;border-radius:9px;padding:10px;background:${color}0d;">
+                <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:${color};text-transform:uppercase;margin-bottom:6px;">${title}</div>
+                <div class="ctt-row"><span class="ctt-name">Cash In</span><span class="ctt-amt" style="color:${color}">${fC(inVal)}</span></div>
+                <div class="ctt-row"><span class="ctt-name">Cash Out</span><span class="ctt-amt" style="color:var(--coral)">${fC(outVal)}</span></div>
+                <div class="ctt-total" style="margin-top:6px;"><span>Net Flow</span><span style="color:${netVal>=0?'var(--green)':'var(--coral)'}">${fC(netVal)}</span></div>
+                <div class="ctt-total" style="margin-top:4px;background:rgba(255,255,255,.04)"><span>Balance</span><span style="color:${balVal>=0?'var(--teal)':'var(--coral)'}">${fC(balVal)}</span></div>
+              </div>`;
+
+            let html = `<div class="ctt-month">${label} · In Progress</div>`;
+            html += `<div style="display:flex;gap:8px;">`;
+            html += card('Actual (to date)','var(--teal)','Collected',aIn,aOut,aNet,aBal);
+            html += card('Forecast (full month)','var(--amber)','Expected',fIn,fOut,fNet,fBal);
+            html += `</div>`;
+
+            sTip.innerHTML=html;sTip.style.display='block';sTip.style.opacity='1';
+            sTip.style.minWidth='340px';
+            sTip.style.maxWidth='420px';
+            const {offsetLeft:pX,offsetTop:pY}=chart.canvas;
+            const tp=tooltip.caretX+pX,cW=chart.canvas.offsetWidth,tW=sTip.offsetWidth||340;
+            sTip.style.left=(tp+tW+10>cW+pX?tp-tW-12:tp+12)+'px';
+            sTip.style.top=Math.max(pY,(pY+tooltip.caretY-40))+'px';
+            return;
+          }
+
           const mo=((window._scenMonthly||[])[mIdx])||{};
+          sTip.style.maxWidth='340px';
+          sTip.style.minWidth='240px';
           const byColl=window._invByCollMonth||{};
           const byExp =window._invByExpMonth||{};
           const collected  =(byColl[label]||[]);
@@ -2071,7 +2121,6 @@ function buildScenChart(){
   if(t_body){
     t_body.innerHTML='';
     var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0,tBaseOut=0,tWork=0;
-    var currentMonthIdx = actualCount - 1; // last month with any actual data (may be partial)
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
       var ia=i<actualCount;
