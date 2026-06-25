@@ -987,7 +987,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v43Jun-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v44Jun-items · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1973,6 +1973,13 @@ function buildScenChart(){
             // ── Build two separate mini-tables: ACTUAL (to date) and FORECAST (full month) ──
             const c_cash = cash[mIdx]||{};
             const isJuneM = mIdx >= 5;
+            // Invoice-level detail — same sources as other months
+            const byColl = window._invByCollMonth||{};
+            const byExp  = window._invByExpMonth||{};
+            const collected   = byColl[label]||[];
+            const expected    = byExp[label]||[];
+            const outstanding = expected.filter(e=>e.type==='Outstanding');
+            const drafts      = expected.filter(e=>e.type==='Won — not yet invoiced');
             // ACTUAL figures
             const aIn = c_cash.cIA||0, aOut = c_cash.cOA_op||0, aNet = aIn+aOut, aBal = c_cash.balA||0;
             // FORECAST figures (full month, scenario sliders applied)
@@ -1990,10 +1997,37 @@ function buildScenChart(){
             const prevBal = mIdx>0 ? (cash[mIdx-1]?.balA||0) : aBal;
             const fBal = prevBal+fNet;
 
-            const card = (title,color,inLbl,inVal,outVal,netVal,balVal)=>`
-              <div style="flex:1;min-width:150px;border:1px solid ${color}33;border-radius:9px;padding:10px;background:${color}0d;">
+            const itemRow = (e,cls)=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;return `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">${nm}</span><span class="ctt-amt ${cls||''}" style="font-size:10px;">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;};
+
+            let actItems = '';
+            if(collected.length){
+              actItems = collected.map(e=>itemRow(e)).join('');
+            } else if(aIn){
+              actItems = `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">Collected</span><span class="ctt-amt" style="font-size:10px;">${fC(aIn)}</span></div>`;
+            } else {
+              actItems = `<div style="font-size:10px;color:var(--text3);padding:2px 0;">No invoices collected yet</div>`;
+            }
+
+            let fcItems = '';
+            if(outstanding.length){
+              fcItems += `<div style="font-size:9px;color:var(--text3);letter-spacing:.4px;margin-top:2px;">⏳ OUTSTANDING</div>`;
+              fcItems += outstanding.map(e=>itemRow(e,'out')).join('');
+            }
+            if(drafts.length){
+              fcItems += `<div style="font-size:9px;color:var(--text3);letter-spacing:.4px;margin-top:4px;">📝 WON — NOT YET INVOICED</div>`;
+              fcItems += drafts.map(e=>itemRow(e,'draft')).join('');
+            }
+            if(fPipeH>0) fcItems += `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">Pipeline — High</span><span class="ctt-amt" style="font-size:10px;color:var(--coral)">${fC(fPipeH)}</span></div>`;
+            if(fPipeM>0) fcItems += `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">Pipeline — Medium</span><span class="ctt-amt" style="font-size:10px;color:var(--amber)">${fC(fPipeM)}</span></div>`;
+            if(!outstanding.length&&!drafts.length&&!fPipeH&&!fPipeM){
+              fcItems += `<div style="font-size:10px;color:var(--text3);padding:2px 0;">No itemised forecast invoices</div>`;
+            }
+
+            const card = (title,color,inVal,outVal,netVal,balVal,items)=>`
+              <div style="flex:1;min-width:170px;border:1px solid ${color}33;border-radius:9px;padding:10px;background:${color}0d;">
                 <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:${color};text-transform:uppercase;margin-bottom:6px;">${title}</div>
-                <div class="ctt-row"><span class="ctt-name">Cash In</span><span class="ctt-amt" style="color:${color}">${fC(inVal)}</span></div>
+                <div style="max-height:130px;overflow-y:auto;margin-bottom:6px;padding-right:2px;">${items}</div>
+                <div class="ctt-row" style="border-top:1px solid rgba(255,255,255,.06);padding-top:4px;"><span class="ctt-name">Cash In</span><span class="ctt-amt" style="color:${color}">${fC(inVal)}</span></div>
                 <div class="ctt-row"><span class="ctt-name">Cash Out</span><span class="ctt-amt" style="color:var(--coral)">${fC(outVal)}</span></div>
                 <div class="ctt-total" style="margin-top:6px;"><span>Net Flow</span><span style="color:${netVal>=0?'var(--green)':'var(--coral)'}">${fC(netVal)}</span></div>
                 <div class="ctt-total" style="margin-top:4px;background:rgba(255,255,255,.04)"><span>Balance</span><span style="color:${balVal>=0?'var(--teal)':'var(--coral)'}">${fC(balVal)}</span></div>
@@ -2001,15 +2035,15 @@ function buildScenChart(){
 
             let html = `<div class="ctt-month">${label} · In Progress</div>`;
             html += `<div style="display:flex;gap:8px;">`;
-            html += card('Actual (to date)','var(--teal)','Collected',aIn,aOut,aNet,aBal);
-            html += card('Forecast (full month)','var(--amber)','Expected',fIn,fOut,fNet,fBal);
+            html += card('Actual (to date)','var(--teal)',aIn,aOut,aNet,aBal,actItems);
+            html += card('Forecast (full month)','var(--amber)',fIn,fOut,fNet,fBal,fcItems);
             html += `</div>`;
 
             sTip.innerHTML=html;sTip.style.display='block';sTip.style.opacity='1';
-            sTip.style.minWidth='340px';
-            sTip.style.maxWidth='420px';
+            sTip.style.minWidth='380px';
+            sTip.style.maxWidth='480px';
             const {offsetLeft:pX,offsetTop:pY}=chart.canvas;
-            const tp=tooltip.caretX+pX,cW=chart.canvas.offsetWidth,tW=sTip.offsetWidth||340;
+            const tp=tooltip.caretX+pX,cW=chart.canvas.offsetWidth,tW=sTip.offsetWidth||380;
             sTip.style.left=(tp+tW+10>cW+pX?tp-tW-12:tp+12)+'px';
             sTip.style.top=Math.max(pY,(pY+tooltip.caretY-40))+'px';
             return;
