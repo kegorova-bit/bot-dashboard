@@ -987,7 +987,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v40Jun-theme · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v41Jun-cur · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2071,9 +2071,11 @@ function buildScenChart(){
   if(t_body){
     t_body.innerHTML='';
     var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0,tBaseOut=0,tWork=0;
+    var currentMonthIdx = actualCount - 1; // last month with any actual data (may be partial)
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
       var ia=i<actualCount;
+      var isCurrent = (i === currentMonthIdx); // current/partial month gets BOTH rows
       var ri=scenRevIn[i]||0,hi=scenHighIn[i]||0,mi=scenMedIn[i]||0;
       var ti=ri+hi+mi,co=scenCashOut[i]||0,nt=ti+co;
       // Break out cash out components for table display
@@ -2090,8 +2092,65 @@ function buildScenChart(){
       tRI+=ri; tH+=hi; tM+=mi; tO+=co;
       tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);
       tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0;
-      var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
+
+      if(isCurrent){
+        // ── ACTUAL row: what's actually happened so far this month ──
+        var actIn  = c_cash.cIA||0;
+        var actOut = c_cash.cOA_op||0;
+        var actNet = actIn+actOut;
+        var actBal = c_cash.balA || (bv);
+        var trA=document.createElement('tr');
+        trA.style.background='rgba(15,184,184,.05)';
+        trA.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
+          +td('ACTUAL (to date)','','font-size:10px;color:var(--teal);font-weight:600')
+          +td(fC(actIn))
+          +td('—')+td('—')
+          +td(fC(actIn),'','font-weight:600')
+          +td(fC(actOut),'neg')
+          +td('—','','color:var(--coral)')+td('—','','color:var(--coral)')+td('—','pos')+td('—','','color:var(--coral)')
+          +td(fC(actOut),'neg')
+          +td(fC(actNet),actNet>=0?'pos':'neg')
+          +td(fC(actBal),actBal<0?'neg':'pos','font-weight:700');
+        t_body.appendChild(trA);
+
+        // ── FORECAST row: full-month forecast incl. scenario sliders, for comparison ──
+        var fcBaseIn  = c_cash.cIF||0;
+        var fcPipeH   = isJune ? (highPM_base[i]||0)*pipeRate : 0;
+        var fcPipeM   = isJune ? (medPM_base[i]||0)*pipeRate  : 0;
+        var fcTotalIn = fcBaseIn+fcPipeH+fcPipeM;
+        var fcBaseOut = c_cash.cOutF2||0;
+        var fcLoan    = isJune ? -(loanMonthly*oblRate_sel) : 0;
+        var fcTax     = isJune ? -(taxLiability*taxRate/taxMonths) : 0;
+        var fcPay     = isJune ? (PAYROLL_MONTHLY[i]||0)*payrollCut : 0;
+        var fcNextPipe= isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0))*pipeRate : 0;
+        var fcDraft   = isJune ? (draftByIdx[i]||0) : 0;
+        var fcWork    = isJune ? -((fcNextPipe+fcDraft)*workRate) : 0;
+        var fcTotalOut= fcBaseOut+fcLoan+fcTax+fcPay+fcWork;
+        var fcNet     = fcTotalIn+fcTotalOut;
+        var prevBal   = i>0 ? (cash[i-1]?.balA || scenBal[i-1] || 0) : startBal;
+        var fcBal     = prevBal + fcNet;
+        var trF=document.createElement('tr');
+        trF.style.background='rgba(245,166,35,.05)';
+        trF.innerHTML=td('','','text-align:left;font-family:var(--font)')
+          +td('FORECAST (full month)','','font-size:10px;color:var(--amber);font-weight:600')
+          +td(fC(fcBaseIn))
+          +td(fcPipeH?fC(fcPipeH):'—','','color:var(--coral)')
+          +td(fcPipeM?fC(fcPipeM):'—','','color:var(--amber)')
+          +td(fC(fcTotalIn),'','font-weight:600')
+          +td(fC(fcBaseOut),'neg')
+          +td(fcLoan?'-'+fC(Math.abs(fcLoan)):'—','','color:var(--coral)')
+          +td(fcTax?'-'+fC(Math.abs(fcTax)):'—','','color:var(--coral)')
+          +td(fcPay?fC(fcPay):'—','pos')
+          +td(fcWork?'-'+fC(Math.abs(fcWork)):'—','','color:var(--coral)')
+          +td(fC(fcTotalOut),'neg')
+          +td(fC(fcNet),fcNet>=0?'pos':'neg')
+          +td(fC(fcBal),fcBal<0?'neg':'pos','font-weight:700');
+        t_body.appendChild(trF);
+        return; // skip the normal single-row render below for this index
+      }
+
+      var tr=document.createElement('tr');
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
         +td(ia?'ACTUAL':'FORECAST','','font-size:10px;color:'+(ia?'var(--teal)':'var(--amber)'))
         +td(fC(ri))
