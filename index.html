@@ -5,6 +5,7 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>B.O.T — Company Financial Health 2026</title>
+<script>(function(){try{var t=localStorage.getItem('bot_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -22,6 +23,19 @@
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --radius:14px;
 }
+:root[data-theme="light"]{
+  --bg:#f4f6f9;--bg2:#ffffff;--bg3:#eef1f5;--bg4:#e3e7ee;
+  --border:rgba(15,23,42,0.09);--border2:rgba(15,23,42,0.16);
+  --teal:#0e7c7c;--tDim:rgba(14,124,124,0.10);
+  --coral:#d9433f;--cDim:rgba(217,67,63,0.10);
+  --green:#1e9e63;--gDim:rgba(30,158,99,0.10);
+  --amber:#b3760f;--aDim:rgba(179,118,15,0.10);
+  --cyan:rgba(14,124,150,0.65);
+  --text:#1e293b;--text2:#475569;--text3:#64748b;
+}
+:root[data-theme="light"] body{background:var(--bg);}
+:root[data-theme="light"] .loading-overlay{background:rgba(244,246,249,0.94);}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb{background:#cbd5e1;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
@@ -191,6 +205,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
     <button class="refresh-btn" id="refreshBtn" onclick="loadAllData()">⟳ Refresh</button>
+    <button class="refresh-btn" id="themeToggleBtn" onclick="toggleTheme()" style="color:var(--text2);background:var(--bg3);border-color:var(--border2);" title="Switch theme">Theme</button>
     <span class="hdate" id="hDate">Loading...</span>
   </div>
 </div>
@@ -723,6 +738,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <script>
 
+// ═══════════════════════════════════════════════════════════════
+// THEME TOGGLE — dark/light mode with localStorage persistence
+// ═══════════════════════════════════════════════════════════════
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('themeToggleBtn');
+  if(btn){
+    btn.textContent = theme === 'light' ? '☀️ Light' : '🌙 Dark';
+  }
+  try{ localStorage.setItem('bot_theme', theme); }catch(e){}
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  applyTheme(current === 'light' ? 'dark' : 'light');
+}
+(function initTheme(){
+  let saved = 'dark';
+  try{ saved = localStorage.getItem('bot_theme') || 'dark'; }catch(e){}
+  document.documentElement.setAttribute('data-theme', saved);
+})();
+document.addEventListener('DOMContentLoaded', function(){
+  let saved = 'dark';
+  try{ saved = localStorage.getItem('bot_theme') || 'dark'; }catch(e){}
+  applyTheme(saved);
+});
+
 
 // ═══════════════════════════════════════════════════════════════
 // DATA PARSING UTILITIES — header-based, label-based access
@@ -946,7 +987,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v39Jun-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v40Jun-theme · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
