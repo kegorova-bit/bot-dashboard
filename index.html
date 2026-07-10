@@ -5,7 +5,6 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>B.O.T — Company Financial Health 2026</title>
-<script>(function(){try{var t=localStorage.getItem('bot_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -23,19 +22,6 @@
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --radius:14px;
 }
-:root[data-theme="light"]{
-  --bg:#f4f6f9;--bg2:#ffffff;--bg3:#eef1f5;--bg4:#e3e7ee;
-  --border:rgba(15,23,42,0.09);--border2:rgba(15,23,42,0.16);
-  --teal:#0e7c7c;--tDim:rgba(14,124,124,0.10);
-  --coral:#d9433f;--cDim:rgba(217,67,63,0.10);
-  --green:#1e9e63;--gDim:rgba(30,158,99,0.10);
-  --amber:#b3760f;--aDim:rgba(179,118,15,0.10);
-  --cyan:rgba(14,124,150,0.65);
-  --text:#1e293b;--text2:#475569;--text3:#64748b;
-}
-:root[data-theme="light"] body{background:var(--bg);}
-:root[data-theme="light"] .loading-overlay{background:rgba(244,246,249,0.94);}
-:root[data-theme="light"] ::-webkit-scrollbar-thumb{background:#cbd5e1;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
@@ -80,7 +66,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .yc{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 .yyy{font-size:10px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .yyy span{color:var(--teal);}
-.ycg{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.ycg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .ycl{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:3px;}
 .ycv{font-size:17px;font-weight:700;font-family:var(--mono);}
 .ycs{font-size:10px;color:var(--text3);margin-top:1px;}
@@ -205,7 +191,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
     <button class="refresh-btn" id="refreshBtn" onclick="loadAllData()">⟳ Refresh</button>
-    <button class="refresh-btn" id="themeToggleBtn" onclick="toggleTheme()" style="color:var(--text2);background:var(--bg3);border-color:var(--border2);" title="Switch theme">Theme</button>
     <span class="hdate" id="hDate">Loading...</span>
   </div>
 </div>
@@ -217,6 +202,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="tab" onclick="goTab('dso',this)">📬 Collections</div>
   <div class="tab" onclick="goTab('pipe',this)">🔮 Pipeline</div>
   <div class="tab" onclick="goTab('revpnl',this)">📊 Revenue & Profitability</div>
+  <div class="tab" onclick="goTab('h1',this)">📋 H1 Results</div>
 </div>
 
 <!-- ══════════ FINANCIALS 2026 ══════════ -->
@@ -238,7 +224,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Actual expenses (col N) + forecast where not yet entered (col O)</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc" id="sc_pA_wrap"><div class="slb" id="sc_pA_label">Op Profit YTD</div><div class="sv" id="sc_pA">—</div></div>
@@ -562,7 +548,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
       Workforce cost (20/25/30%): applied to pipeline (month before cash) + draft/won invoices (invoice date month) · Amount_noVAT col K · Status: Draft, Won, High, Medium.
-      Payroll from CF_f · Pipeline CCC: current month +3.
+      Payroll from CF_f · Pipeline CCC: current month +2.
     </div>
   </div>
   <!-- Scenario detail table -->
@@ -587,7 +573,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </table>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
-      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 3-month CCC applied
+      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
     </div>
 
     <!-- ── Runway summary ── -->
@@ -736,33 +722,68 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 
-<script>
+<!-- ══════════ H1 RESULTS ══════════ -->
+<div class="page" id="page-h1">
+  <div class="slabel"><span>H1 Results</span> — January to June 2026 · Budget vs Dynamic Forecast</div>
 
-// ═══════════════════════════════════════════════════════════════
-// THEME TOGGLE — dark/light mode with localStorage persistence
-// ═══════════════════════════════════════════════════════════════
-function applyTheme(theme){
-  document.documentElement.setAttribute('data-theme', theme);
-  const btn = document.getElementById('themeToggleBtn');
-  if(btn){
-    btn.textContent = theme === 'light' ? '☀️ Light' : '🌙 Dark';
-  }
-  try{ localStorage.setItem('bot_theme', theme); }catch(e){}
-}
-function toggleTheme(){
-  const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-  applyTheme(current === 'light' ? 'dark' : 'light');
-}
-(function initTheme(){
-  let saved = 'dark';
-  try{ saved = localStorage.getItem('bot_theme') || 'dark'; }catch(e){}
-  document.documentElement.setAttribute('data-theme', saved);
-})();
-document.addEventListener('DOMContentLoaded', function(){
-  let saved = 'dark';
-  try{ saved = localStorage.getItem('bot_theme') || 'dark'; }catch(e){}
-  applyTheme(saved);
-});
+  <!-- Income section -->
+  <div class="card mb">
+    <div class="ch">
+      <div><div class="ctitle">Income — H1 2026</div><div class="csub">Base Budget vs Dynamic Forecast · Jan–Jun sum</div></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;" id="h1_income_table">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Line Item</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Base Budget</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--teal);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Dynamic Forecast</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Variance</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Var %</th>
+          </tr>
+        </thead>
+        <tbody id="h1_income_body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Expenses section -->
+  <div class="card mb">
+    <div class="ch">
+      <div><div class="ctitle">Expenses — H1 2026</div><div class="csub">Base Budget vs Dynamic Forecast · Jan–Jun sum</div></div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;" id="h1_exp_table">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Category</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Base Budget</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--teal);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Dynamic Forecast</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Variance</th>
+            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Var %</th>
+          </tr>
+        </thead>
+        <tbody id="h1_exp_body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Monthly trend chart -->
+  <div class="two">
+    <div class="card">
+      <div class="ch"><div><div class="ctitle">Monthly Income — Base vs Dynamic</div><div class="csub">Jan–Jun 2026</div></div></div>
+      <div class="cw"><canvas id="h1_inc_chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><div class="ctitle">Monthly Expenses — Base vs Dynamic</div><div class="csub">Jan–Jun 2026</div></div></div>
+      <div class="cw"><canvas id="h1_exp_chart"></canvas></div>
+    </div>
+  </div>
+
+</div>
+
+
+<script>
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -875,17 +896,12 @@ const stagingSchema = {
   sF_nopipe:  ['Sales (F) no pipeline', 'Sales Forecast no pipeline'],
   gA:         ['Grants (A)', 'Grants Actual', 'Total Grants (A)'],
   gF:         ['Grants (F)', 'Grants Forecast'],
-  dcA:        ['Data Collection (A)', 'DC (A)'],
-  haivoA:     ['Haivo (A)', 'HAIVO (A)', 'Haivo Actual'],
-  dcF:        ['Data Collection (F)', 'DC (F)'],
-  haivoF:     ['Haivo (F)', 'HAIVO (F)', 'Haivo Forecast'],
-  done:       ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'],
+  done:       ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'], // same as rA — row is 'done' when rA != 0
 };
 
 const stagingFallbacks = {
   date:0, year:2, rA:3, rF:7, eF:12, eAcol:13, eFonly:14,
-  pFn:16, pFp:17, pA:18, pl:5, sA:19, sF:20, sF_pipe:21, sF_nopipe:22,
-  dcA:23, haivoA:24, gA:25, dcF:26, haivoF:27, gF:29, done:3
+  pFn:16, pFp:17, pA:18, pl:5, sA:19, sF:20, sF_pipe:21, sF_nopipe:22, gA:25, gF:29, done:3
 };
 
 const invoiceSchema = {
@@ -934,6 +950,8 @@ const URLS = {
   db1:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1289407979&single=true&output=csv',
   invoices: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1097401785&single=true&output=csv',
   cff:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1467204008&single=true&output=csv',
+  budBase:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=983623975&single=true&output=csv',
+  budFcst:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1352150871&single=true&output=csv',
 };
 
 const pv=v=>{if(!v)return 0;const s=v.trim().replace(/[\$,\s%]/g,'').replace(/\(/g,'-').replace(/\)/g,'');if(s===''||s==='-'||s.includes('#'))return 0;return parseFloat(s)||0;};
@@ -977,17 +995,18 @@ async function loadAllData(){
     return;
   }
   try{
-    const[stRows,cashRows,revRows,db1Rows,invRows,cffRows]=await Promise.all([fetchCSV(URLS.staging),fetchCSV(URLS.cash),fetchCSV(URLS.revenues),fetchCSV(URLS.db1),fetchCSV(URLS.invoices),fetchCSV(URLS.cff)]);
+    const[stRows,cashRows,revRows,db1Rows,invRows,cffRows,budBaseRows,budFcstRows]=await Promise.all([fetchCSV(URLS.staging),fetchCSV(URLS.cash),fetchCSV(URLS.revenues),fetchCSV(URLS.db1),fetchCSV(URLS.invoices),fetchCSV(URLS.cff),fetchCSV(URLS.budBase),fetchCSV(URLS.budFcst)]);
     processStaging(stRows);
     processCash(cashRows);
     processRevenues(revRows);
     processDB1(db1Rows);
     processInvoices(invRows);
     processCFF(cffRows);
+    processBudget(budBaseRows, budFcstRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v45Jul-cur · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v47Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1039,7 +1058,7 @@ function processStaging(rows){
       eA_raw:   eAraw,                              // Expenses Actual raw (col N)
       pFn:      pv(r[C.pFn]),                       // Op Profit Forecast no pipeline
       pFp:      pv(r[C.pFp]),                       // Op Profit Forecast incl pipeline
-      pA:       rAval + (eAraw !== 0 ? eAraw : eFonly), // Op Profit = rA + eA (expenses already negative)
+      pA:       pv(r[C.pA]),                        // Op Profit Actual
       pl:       pv(r[C.pl]),                        // Pipeline flag
       sA:       pv(r[C.sA]),                        // Sales Actual
       sF:       pv(r[C.sF]),                        // Sales Forecast static
@@ -1049,10 +1068,6 @@ function processStaging(rows){
       sFnopipe: pv(r[C.sF_nopipe]),                 // alias
       gA:       pv(r[C.gA]),                        // Grants Actual
       gF:       r.length>30 ? pv(r[C.gF]) : 0,     // Grants Forecast
-      dcA:      pv(r[C.dcA]),                       // Data Collection Actual (col X)
-      haivoA:   pv(r[C.haivoA]),                    // HAIVO Actual (col Y)
-      dcF:      pv(r[C.dcF]),                       // Data Collection Forecast (col AA)
-      haivoF:   pv(r[C.haivoF]),                    // HAIVO Forecast (col AB)
       done:     rAval !== 0
     };
     if(yr===2026)s26.push(d);else if(yr===2025)s25.push(d);
@@ -1076,54 +1091,16 @@ function processStaging(rows){
 
   // 2026 YTD
   const done26=s26.filter(r=>r.done);
-  const t26={rA:0,sA:0,gA:0,eA:0,pA:0,rF:0,dcA:0,haivoA:0,dcF:0,haivoF:0};
-  done26.forEach(r=>{t26.rA+=r.rA;t26.sA+=r.sA;t26.gA+=r.gA;t26.eA+=r.eA;t26.pA+=r.pA;t26.rF+=r.rF;
-    t26.dcA+=(r.dcA||0);t26.haivoA+=(r.haivoA||0);});
+  const t26={rA:0,sA:0,gA:0,eA:0,pA:0,rF:0};
+  done26.forEach(r=>{t26.rA+=r.rA;t26.sA+=r.sA;t26.gA+=r.gA;t26.eA+=r.eA;t26.pA+=r.pA;t26.rF+=r.rF;});
   const totRF26=s26.reduce((s,r)=>s+r.rF,0);
-  const totDCF26=s26.reduce((s,r)=>s+(r.dcF||0),0);
-  const totHaivoF26=s26.reduce((s,r)=>s+(r.haivoF||0),0);
   document.getElementById('yc2026').innerHTML=`
-    <div style="grid-column:1/-1;border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:2px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;">
-      <div>
-        <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Revenue (A) YTD</div>
-        <div style="font-size:38px;font-weight:700;font-family:var(--mono);color:var(--teal);line-height:1">${fC(t26.rA)}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:5px;">${fPct(t26.rA,totRF26)} of <span style="color:var(--text2)">${fmt(totRF26)}</span> full-year target</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px;">Full Year Forecast</div>
-        <div style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text3)">${fC(totRF26)}</div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;">Sales Breakdown</div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;">
-        <span style="font-size:11px;color:var(--text2)">Sales (A)</span>
-        <span style="font-size:24px;font-weight:700;font-family:var(--mono);color:var(--teal)">${fC(t26.sA)}</span>
-      </div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;padding-left:10px;">
-        <span style="font-size:10px;color:var(--text3)">Data Collection</span>
-        <div style="text-align:right"><span style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal)">${fC(t26.dcA)}</span><span style="font-size:10px;color:var(--text3);margin-left:6px;">${fPct(t26.dcA,totDCF26)} of target</span></div>
-      </div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;padding-left:10px;">
-        <span style="font-size:10px;color:var(--text3)">HAIVO</span>
-        <div style="text-align:right"><span style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal)">${fC(t26.haivoA)}</span><span style="font-size:10px;color:var(--text3);margin-left:6px;">${fPct(t26.haivoA,totHaivoF26)} of target</span></div>
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:6px;">
-      <div style="font-size:10px;color:var(--text3);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;">Profitability</div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;">
-        <span style="font-size:11px;color:var(--text2)">Grants (A)</span>
-        <span style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--amber)">${fC(t26.gA)}</span>
-      </div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;">
-        <span style="font-size:11px;color:var(--text2)">Op Profit (A)</span>
-        <div style="text-align:right"><span style="font-size:20px;font-weight:700;font-family:var(--mono);color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</span><span style="font-size:10px;color:var(--text3);margin-left:6px;">${fPct(t26.pA,t26.rA)}</span></div>
-      </div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;">
-        <span style="font-size:11px;color:var(--text2)">Expenses (A)</span>
-        <span style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--coral)">${fC(t26.eA)}</span>
-      </div>
-    </div>`;
+    <div><div class="ycl">Revenue (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.rA)}</div><div class="ycs">${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} target</div></div>
+    <div><div class="ycl">Full Year Forecast</div><div class="ycv" style="color:var(--text3)">${fC(totRF26)}</div></div>
+    <div><div class="ycl">Op Profit (A) YTD</div><div class="ycv" style="color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</div><div class="ycs">Margin: ${fPct(t26.pA,t26.rA)}</div></div>
+    <div><div class="ycl">Expenses (A) YTD</div><div class="ycv" style="color:var(--coral)">${fC(t26.eA)}</div></div>
+    <div><div class="ycl">Sales (A) YTD</div><div class="ycv" style="color:${t26.sA>=0?'var(--text)':'var(--coral)'}">${fC(t26.sA)}</div></div>
+    <div><div class="ycl">Grants (A) YTD</div><div class="ycv" style="color:var(--green)">${fC(t26.gA)}</div></div>`;
   const sc=document.getElementById('sc_pA');sc.textContent=fmt(t26.pA);sc.className='sv '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_pA_wrap').className='sc '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_mA').textContent=fPct(t26.pA,t26.rA);
@@ -1304,8 +1281,8 @@ function buildVarTable(s26){
       <td class="${va!=null?(va>=0?'pos':'neg'):''}">${va!=null?fC(va):'—'}</td>
       <td class="${vp!=null?(va>=0?'pos':'neg'):''}">${vp!=null?(va>=0?'+':'')+vp+'%':'—'}</td>
       <td>${r.done&&r.eA?fC(r.eA):'—'}</td><td>${fC(r.eF)}</td>
-      <td class="${evar!=null?(evar>=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
-      <td class="${evarp!=null?(evar>=0?'pos':'neg'):''}">${evarp!=null?(evar>=0?'+':'')+evarp+'%':'—'}</td>
+      <td class="${evar!=null?(evar<=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
+      <td class="${evarp!=null?(evar<=0?'pos':'neg'):''}">${evarp!=null?(evar<=0?'+':'')+evarp+'%':'—'}</td>
       <td class="${r.done?(r.pA>=0?'pos':'neg'):''}">${r.done&&r.pA?fC(r.pA):'—'}</td>`;
     vb.appendChild(tr);
   });
@@ -1316,16 +1293,14 @@ function buildVarTable(s26){
     <td class="${totVA>=0?'pos':'neg'}"><strong>${fC(totVA)}</strong></td>
     <td class="${totVA>=0?'pos':'neg'}"><strong>${tRF?(totVA/Math.abs(tRF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td>${fC(tEA)}</td><td>${fC(tEF)}</td>
-    <td class="${totEVar>=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
-    <td class="${totEVar>=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
+    <td class="${totEVar<=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
+    <td class="${totEVar<=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td class="${tPA>=0?'pos':'neg'}"><strong>${fC(tPA)}</strong></td></tr>`;
   vt.appendChild(vb);vt.appendChild(tf);
 }
 
 // ─── Q1 TAB ───────────────────────────────────────────────────────
 function buildQ1(s26,s25){
-  const sv=document.getElementById('sv-q1');
-  if(!sv||sv.style.display==='none')return; // skip if hidden — switchSubTab will call again
   const q1=s26.filter((r,i)=>i<3&&r.done); // Jan Feb Mar
   const q1rev=q1.reduce((s,r)=>s+r.rA,0);
   const q1exp=q1.reduce((s,r)=>s+r.eA,0);
@@ -1425,8 +1400,6 @@ function buildQ1(s26,s25){
 
 // ─── Q2 TAB ───────────────────────────────────────────────────────
 function buildQ2(s26arg,s25arg){
-  const sv=document.getElementById('sv-q2');
-  if(!sv||sv.style.display==='none')return; // skip if hidden — switchSubTab will call again
   const s26=s26arg||window._s26||[];if(!s26.length)return;
   const q2all=s26.slice(3,6);               // Apr=3 May=4 Jun=5
   const q2=q2all.filter(r=>r.done);         // confirmed months only
@@ -1752,9 +1725,9 @@ function buildScenChart(){
 
   const pipeHigh = window._pipeHigh || 0;
   const pipeMed  = window._pipeMed  || 0;
-  const cccStart = Math.min(11, (window._actualCount||5) - 1 + 3); // current confirmed month index + 3 months CCC
-  const highMonths = 12 - cccStart;
-  const medMonths  = 12 - cccStart;
+  const cccStart = 7; // August = index 7 (0=Jan)
+  const highMonths = 12 - cccStart;          // Aug through Dec = 5 months
+  const medMonths  = 12 - cccStart;          // same spread
   const highPerMo  = pipeHigh / highMonths;
   const medPerMo   = pipeMed  / medMonths;
   const highPM_base = Array.from({length:12},(_,i)=>i>=cccStart?highPerMo:0);
@@ -1783,9 +1756,7 @@ function buildScenChart(){
   const scenMonthly = [];  // full per-month breakdown for tooltip
   let runBal = startBal;
 
-  // Current calendar month index (0=Jan) — only show dual row for today's actual month
-  const now2026 = new Date();
-  const currentMonthIdx = (now2026.getFullYear() === 2026) ? now2026.getMonth() : -1;
+  const currentMonthIdx = actualCount - 1; // last month with actual data (may be partial)
   // Hoist loanMonthly to function scope (used by both forEach loops)
   const loanMonthly = fcstLeft > 0 ? (Math.abs(window._db1Loans||0) / fcstLeft) : 0;
 
@@ -1796,7 +1767,7 @@ function buildScenChart(){
       scenPipeIn.push(null);
       scenHighIn.push(null);
       scenMedIn.push(null);
-      scenCashOut.push(c.cOA_op || -0.001); // never null
+      scenCashOut.push(c.cOA_op||null);
       scenMonthly.push({baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true});
       runBal = c.balA || c.balF2 || runBal;
     } else {
@@ -1824,10 +1795,9 @@ function buildScenChart(){
       scenPipeIn.push(pipelineIn||null);
       scenHighIn.push(pipeHighIn||null);
       scenMedIn.push(pipeMedIn||null);
-      scenCashOut.push(cashOut !== 0 ? cashOut : -0.001); // never null — ensures tooltip fires
+      scenCashOut.push(cashOut||null);
       // Store full breakdown for tooltip
-      scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});
-    }
+      scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});    }
   });
   window._scenMonthly = scenMonthly;  // expose for tooltip
 
@@ -1957,10 +1927,9 @@ function buildScenChart(){
        segment:{borderColor:ctx=>forecastScen[ctx.p1DataIndex]<0?coral:'rgba(46,204,143,0.7)'}}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
-      interaction:{ mode:'index', intersect:false },
       plugins:{
         legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
-        tooltip:{enabled:false, mode:'index', intersect:false, external:(context)=>{
+        tooltip:{enabled:false, external:(context)=>{
           const {chart,tooltip}=context;
           const sTip=document.getElementById('scen-tooltip');if(!sTip)return;
           if(tooltip.opacity===0){sTip.style.opacity='0';setTimeout(()=>{sTip.style.display='none';},150);return;}
@@ -1969,91 +1938,7 @@ function buildScenChart(){
           const L26T=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
           const label=L26T[mIdx]||'';
           const isActM=mIdx<(window._actualCount||0);
-          const isCurrent = mIdx === ((window._actualCount||1)-1); // last month with any actual data — show BOTH
-
-          if(isCurrent){
-            // ── Build two separate mini-tables: ACTUAL (to date) and FORECAST (full month) ──
-            const c_cash = cash[mIdx]||{};
-            const isJuneM = mIdx >= 5;
-            // Invoice-level detail — same sources as other months
-            const byColl = window._invByCollMonth||{};
-            const byExp  = window._invByExpMonth||{};
-            const collected   = byColl[label]||[];
-            const expected    = byExp[label]||[];
-            const outstanding = expected.filter(e=>e.type==='Outstanding');
-            const drafts      = expected.filter(e=>e.type==='Won — not yet invoiced');
-            // ACTUAL figures
-            const aIn = c_cash.cIA||0, aOut = c_cash.cOA_op||0, aNet = aIn+aOut, aBal = c_cash.balA||0;
-            // FORECAST figures (full month, scenario sliders applied)
-            const fPipeH = isJuneM ? (highPM_base[mIdx]||0)*pipeRate : 0;
-            const fPipeM = isJuneM ? (medPM_base[mIdx]||0)*pipeRate  : 0;
-            const fIn = (c_cash.cIF||0)+fPipeH+fPipeM;
-            const fLoan = isJuneM ? -(loanMonthly*oblRate_sel) : 0;
-            const fTax  = isJuneM ? -(taxLiability*taxRate/taxMonths) : 0;
-            const fPay  = isJuneM ? (PAYROLL_MONTHLY[mIdx]||0)*payrollCut : 0;
-            const fNextPipe = isJuneM ? ((highPM_base[mIdx+1]||0)+(medPM_base[mIdx+1]||0))*pipeRate : 0;
-            const fDraft = isJuneM ? (draftByIdx[mIdx]||0) : 0;
-            const fWork = isJuneM ? -((fNextPipe+fDraft)*workRate) : 0;
-            const fOut = (c_cash.cOutF2||0)+fLoan+fTax+fPay+fWork;
-            const fNet = fIn+fOut;
-            const prevBal = mIdx>0 ? (cash[mIdx-1]?.balA||0) : aBal;
-            const fBal = prevBal+fNet;
-
-            const itemRow = (e,cls)=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;return `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">${nm}</span><span class="ctt-amt ${cls||''}" style="font-size:10px;">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;};
-
-            let actItems = '';
-            if(collected.length){
-              actItems = collected.map(e=>itemRow(e)).join('');
-            } else if(aIn){
-              actItems = `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">Collected</span><span class="ctt-amt" style="font-size:10px;">${fC(aIn)}</span></div>`;
-            } else {
-              actItems = `<div style="font-size:10px;color:var(--text3);padding:2px 0;">No invoices collected yet</div>`;
-            }
-
-            let fcItems = '';
-            if(outstanding.length){
-              fcItems += `<div style="font-size:9px;color:var(--text3);letter-spacing:.4px;margin-top:2px;">⏳ OUTSTANDING</div>`;
-              fcItems += outstanding.map(e=>itemRow(e,'out')).join('');
-            }
-            if(drafts.length){
-              fcItems += `<div style="font-size:9px;color:var(--text3);letter-spacing:.4px;margin-top:4px;">📝 WON — NOT YET INVOICED</div>`;
-              fcItems += drafts.map(e=>itemRow(e,'draft')).join('');
-            }
-            if(fPipeH>0) fcItems += `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">Pipeline — High</span><span class="ctt-amt" style="font-size:10px;color:var(--coral)">${fC(fPipeH)}</span></div>`;
-            if(fPipeM>0) fcItems += `<div class="ctt-row"><span class="ctt-name" style="font-size:10px;">Pipeline — Medium</span><span class="ctt-amt" style="font-size:10px;color:var(--amber)">${fC(fPipeM)}</span></div>`;
-            if(!outstanding.length&&!drafts.length&&!fPipeH&&!fPipeM){
-              fcItems += `<div style="font-size:10px;color:var(--text3);padding:2px 0;">No itemised forecast invoices</div>`;
-            }
-
-            const card = (title,color,inVal,outVal,netVal,balVal,items)=>`
-              <div style="flex:1;min-width:170px;border:1px solid ${color}33;border-radius:9px;padding:10px;background:${color}0d;">
-                <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:${color};text-transform:uppercase;margin-bottom:6px;">${title}</div>
-                <div style="max-height:130px;overflow-y:auto;margin-bottom:6px;padding-right:2px;">${items}</div>
-                <div class="ctt-row" style="border-top:1px solid rgba(255,255,255,.06);padding-top:4px;"><span class="ctt-name">Cash In</span><span class="ctt-amt" style="color:${color}">${fC(inVal)}</span></div>
-                <div class="ctt-row"><span class="ctt-name">Cash Out</span><span class="ctt-amt" style="color:var(--coral)">${fC(outVal)}</span></div>
-                <div class="ctt-total" style="margin-top:6px;"><span>Net Flow</span><span style="color:${netVal>=0?'var(--green)':'var(--coral)'}">${fC(netVal)}</span></div>
-                <div class="ctt-total" style="margin-top:4px;background:rgba(255,255,255,.04)"><span>Balance</span><span style="color:${balVal>=0?'var(--teal)':'var(--coral)'}">${fC(balVal)}</span></div>
-              </div>`;
-
-            let html = `<div class="ctt-month">${label} · In Progress</div>`;
-            html += `<div style="display:flex;gap:8px;">`;
-            html += card('Actual (to date)','var(--teal)',aIn,aOut,aNet,aBal,actItems);
-            html += card('Forecast (full month)','var(--amber)',fIn,fOut,fNet,fBal,fcItems);
-            html += `</div>`;
-
-            sTip.innerHTML=html;sTip.style.display='block';sTip.style.opacity='1';
-            sTip.style.minWidth='380px';
-            sTip.style.maxWidth='480px';
-            const {offsetLeft:pX,offsetTop:pY}=chart.canvas;
-            const tp=tooltip.caretX+pX,cW=chart.canvas.offsetWidth,tW=sTip.offsetWidth||380;
-            sTip.style.left=(tp+tW+10>cW+pX?tp-tW-12:tp+12)+'px';
-            sTip.style.top=Math.max(pY,(pY+tooltip.caretY-40))+'px';
-            return;
-          }
-
           const mo=((window._scenMonthly||[])[mIdx])||{};
-          sTip.style.maxWidth='340px';
-          sTip.style.minWidth='240px';
           const byColl=window._invByCollMonth||{};
           const byExp =window._invByExpMonth||{};
           const collected  =(byColl[label]||[]);
@@ -2113,7 +1998,7 @@ function buildScenChart(){
 
           // ── Cash Out block ──
           html+=`<div class="ctt-section" style="margin-top:8px">💸 Cash Out</div>`;
-          if(mo.baseOut!=null&&mo.baseOut!==0) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
+          if(mo.baseOut) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
           if(mo.loanExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Loan repayment</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.loanExtra)}</span></div>`;
           if(mo.taxThisMonth<0) html+=`<div class="ctt-row"><span class="ctt-name">Tax</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.taxThisMonth)}</span></div>`;
           if(mo.workforceExtra<0){
@@ -2160,7 +2045,6 @@ function buildScenChart(){
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
       var ia=i<actualCount;
-      var isCurrent = (i === currentMonthIdx); // current/partial month gets BOTH rows
       var ri=scenRevIn[i]||0,hi=scenHighIn[i]||0,mi=scenMedIn[i]||0;
       var ti=ri+hi+mi,co=scenCashOut[i]||0,nt=ti+co;
       // Break out cash out components for table display
@@ -2177,65 +2061,8 @@ function buildScenChart(){
       tRI+=ri; tH+=hi; tM+=mi; tO+=co;
       tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);
       tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0;
-      var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
-
-      if(isCurrent){
-        // ── ACTUAL row: what's actually happened so far this month ──
-        var actIn  = c_cash.cIA||0;
-        var actOut = c_cash.cOA_op||0;
-        var actNet = actIn+actOut;
-        var actBal = c_cash.balA || (bv);
-        var trA=document.createElement('tr');
-        trA.style.background='rgba(15,184,184,.05)';
-        trA.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
-          +td('ACTUAL (to date)','','font-size:10px;color:var(--teal);font-weight:600')
-          +td(fC(actIn))
-          +td('—')+td('—')
-          +td(fC(actIn),'','font-weight:600')
-          +td(fC(actOut),'neg')
-          +td('—','','color:var(--coral)')+td('—','','color:var(--coral)')+td('—','pos')+td('—','','color:var(--coral)')
-          +td(fC(actOut),'neg')
-          +td(fC(actNet),actNet>=0?'pos':'neg')
-          +td(fC(actBal),actBal<0?'neg':'pos','font-weight:700');
-        t_body.appendChild(trA);
-
-        // ── FORECAST row: full-month forecast incl. scenario sliders, for comparison ──
-        var fcBaseIn  = c_cash.cIF||0;
-        var fcPipeH   = isJune ? (highPM_base[i]||0)*pipeRate : 0;
-        var fcPipeM   = isJune ? (medPM_base[i]||0)*pipeRate  : 0;
-        var fcTotalIn = fcBaseIn+fcPipeH+fcPipeM;
-        var fcBaseOut = c_cash.cOutF2||0;
-        var fcLoan    = isJune ? -(loanMonthly*oblRate_sel) : 0;
-        var fcTax     = isJune ? -(taxLiability*taxRate/taxMonths) : 0;
-        var fcPay     = isJune ? (PAYROLL_MONTHLY[i]||0)*payrollCut : 0;
-        var fcNextPipe= isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0))*pipeRate : 0;
-        var fcDraft   = isJune ? (draftByIdx[i]||0) : 0;
-        var fcWork    = isJune ? -((fcNextPipe+fcDraft)*workRate) : 0;
-        var fcTotalOut= fcBaseOut+fcLoan+fcTax+fcPay+fcWork;
-        var fcNet     = fcTotalIn+fcTotalOut;
-        var prevBal   = i>0 ? (cash[i-1]?.balA || scenBal[i-1] || 0) : startBal;
-        var fcBal     = prevBal + fcNet;
-        var trF=document.createElement('tr');
-        trF.style.background='rgba(245,166,35,.05)';
-        trF.innerHTML=td('','','text-align:left;font-family:var(--font)')
-          +td('FORECAST (full month)','','font-size:10px;color:var(--amber);font-weight:600')
-          +td(fC(fcBaseIn))
-          +td(fcPipeH?fC(fcPipeH):'—','','color:var(--coral)')
-          +td(fcPipeM?fC(fcPipeM):'—','','color:var(--amber)')
-          +td(fC(fcTotalIn),'','font-weight:600')
-          +td(fC(fcBaseOut),'neg')
-          +td(fcLoan?'-'+fC(Math.abs(fcLoan)):'—','','color:var(--coral)')
-          +td(fcTax?'-'+fC(Math.abs(fcTax)):'—','','color:var(--coral)')
-          +td(fcPay?fC(fcPay):'—','pos')
-          +td(fcWork?'-'+fC(Math.abs(fcWork)):'—','','color:var(--coral)')
-          +td(fC(fcTotalOut),'neg')
-          +td(fC(fcNet),fcNet>=0?'pos':'neg')
-          +td(fC(fcBal),fcBal<0?'neg':'pos','font-weight:700');
-        t_body.appendChild(trF);
-        return; // skip the normal single-row render below for this index
-      }
-
       var tr=document.createElement('tr');
+      var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
         +td(ia?'ACTUAL':'FORECAST','','font-size:10px;color:'+(ia?'var(--teal)':'var(--amber)'))
         +td(fC(ri))
@@ -2346,7 +2173,7 @@ function buildDSO(){
 
   // Pipeline spread: dynamic — start at actualCount-1 + 2 months from current
   const _actC = window._actualCount || 0;
-  const _pipeStart = Math.min(11, (_actC - 1) + 3); // current month index + 3 months CCC
+  const _pipeStart = Math.min(11, (_actC - 1) + 2); // current month index + 2
   const _pipeMos   = Math.max(1, 12 - _pipeStart);
   const HIGH_TOTAL  = window._pipeHigh || 0;
   const MED_TOTAL   = window._pipeMed  || 0;
@@ -2492,10 +2319,137 @@ function processRevenues(rows){
   } catch(e){ console.warn('Revenue parse failed', e); }
 }
 
+// ── H1 BUDGET ANALYSIS ────────────────────────────────────────────────────────
+// Row indices (0-based) matching Budget 2026F structure
+// Monthly columns: Jan=33, Feb=34, Mar=35, Apr=36, May=37, Jun=38
+function processBudget(baseRows, fcstRows){
+  try {
+    const H1_COLS = [33,34,35,36,37,38]; // Jan-Jun 2026
+    const h1sum = (rows, ri) => H1_COLS.reduce((s,c) => s + (rows[ri]&&rows[ri][c] ? pv(rows[ri][c]) : 0), 0);
+    const monthly = (rows, ri) => H1_COLS.map(c => rows[ri]&&rows[ri][c] ? pv(rows[ri][c]) : 0);
+
+    // Income rows
+    const incomeMetrics = [
+      { label:'Sales Total',      bRow:8,  fRow:8,  note:'Total Income (excl grants)', isSubtotal:false },
+      { label:'Data Collection',  bRow:10, fRow:10, note:'DC LB + DC JO',              isSubtotal:false },
+      { label:'HAIVO',            bRow:5,  fRow:5,  note:'',                            isSubtotal:false },
+      { label:'Grants',           bRow:7,  fRow:7,  note:'',                            isSubtotal:false },
+      { label:'Total Income',     bRow:8,  fRow:8,  note:'',                            isSubtotal:true  },
+    ];
+
+    // For Sales Total: Total Income row (8 in base = row 9 in 1-indexed) minus grants
+    // Adjust: Sales = Total Income - Grants
+    const incRows = incomeMetrics.map(m => {
+      let bVal, fVal;
+      if(m.label === 'Sales Total'){
+        bVal = h1sum(baseRows,8) - h1sum(baseRows,6);
+        fVal = h1sum(fcstRows,8) - h1sum(fcstRows,6);
+      } else if(m.label === 'Data Collection'){
+        bVal = h1sum(baseRows,2) + h1sum(baseRows,3); // DC LB + DC JO
+        fVal = h1sum(fcstRows,2) + h1sum(fcstRows,3);
+      } else {
+        bVal = h1sum(baseRows, m.bRow);
+        fVal = h1sum(fcstRows, m.fRow);
+      }
+      const varV = fVal - bVal;
+      const varP = bVal ? varV/Math.abs(bVal)*100 : 0;
+      return {...m, bVal, fVal, varV, varP};
+    });
+
+    // Expense rows 137-141 (0-indexed) = rows 138-142 in sheet
+    const expMetrics = [
+      { label:'Direct Cost',        ri:137 },
+      { label:'Payroll',            ri:138 },
+      { label:'R&D',                ri:139 },
+      { label:'BD & Marketing',     ri:140 },
+      { label:'Office & Services',  ri:141 },
+    ];
+
+    const expRows = expMetrics.map(m => {
+      const bVal = h1sum(baseRows, m.ri);
+      const fVal = h1sum(fcstRows, m.ri);
+      const varV = fVal - bVal;
+      const varP = bVal ? varV/Math.abs(bVal)*100 : 0;
+      return {...m, bVal, fVal, varV, varP};
+    });
+    // Total expenses row
+    const bExpTot = expRows.reduce((s,r)=>s+r.bVal,0);
+    const fExpTot = expRows.reduce((s,r)=>s+r.fVal,0);
+    expRows.push({label:'Total Expenses', ri:-1, bVal:bExpTot, fVal:fExpTot,
+      varV:fExpTot-bExpTot, varP:bExpTot?(fExpTot-bExpTot)/Math.abs(bExpTot)*100:0, isSubtotal:true});
+
+    // ── Render Income table ────────────────────────────────────────────────
+    const renderTable = (tbodyId, rows, isCost) => {
+      const tbody = document.getElementById(tbodyId);
+      if(!tbody) return;
+      tbody.innerHTML = '';
+      rows.forEach(r => {
+        const fav = isCost ? r.varV <= 0 : r.varV >= 0;
+        const varColor = r.varV === 0 ? 'var(--text3)' : (fav ? 'var(--green)' : 'var(--coral)');
+        const bg = r.isSubtotal ? 'background:rgba(255,255,255,.04);font-weight:700;' : '';
+        const td = (v, style='') => `<td style="padding:9px 14px;border-bottom:1px solid var(--border);${style}">${v}</td>`;
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          td(r.label, `text-align:left;color:var(--text);${bg}`) +
+          td(fC(r.bVal), `text-align:right;font-family:var(--mono);color:var(--text2);${bg}`) +
+          td(fC(r.fVal), `text-align:right;font-family:var(--mono);color:var(--teal);${bg}`) +
+          td((r.varV>=0?'+':'')+fC(r.varV), `text-align:right;font-family:var(--mono);color:${varColor};${bg}`) +
+          td((r.varP>=0?'+':'')+r.varP.toFixed(1)+'%', `text-align:right;font-size:11px;color:${varColor};${bg}`);
+        tbody.appendChild(tr);
+      });
+    };
+
+    renderTable('h1_income_body', incRows, false);
+    renderTable('h1_exp_body',    expRows, true);
+
+    // ── Charts ────────────────────────────────────────────────────────────
+    const months = ["Jan","Feb","Mar","Apr","May","Jun"];
+
+    // Monthly income: Total Income base vs fcst
+    const incBase  = monthly(baseRows, 8);
+    const incFcst  = monthly(fcstRows, 8);
+    destroyChart('h1_inc_chart');
+    const incEl = document.getElementById('h1_inc_chart');
+    if(incEl) charts['h1_inc_chart'] = new Chart(incEl, {type:'bar',
+      data:{labels:months, datasets:[
+        {label:'Base Budget', data:incBase, backgroundColor:'rgba(148,163,184,0.45)', borderColor:'#94a3b8', borderWidth:1, borderRadius:3},
+        {label:'Dynamic Forecast', data:incFcst, backgroundColor:tA, borderColor:teal, borderWidth:1, borderRadius:3},
+      ]},
+      options:{responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}}});
+
+    // Monthly expenses: sum of all expense categories
+    const expBase = H1_COLS.map((_,i) => expMetrics.reduce((s,m)=>s+(baseRows[m.ri]&&baseRows[m.ri][H1_COLS[i]]?pv(baseRows[m.ri][H1_COLS[i]]):0),0));
+    const expFcst = H1_COLS.map((_,i) => expMetrics.reduce((s,m)=>s+(fcstRows[m.ri]&&fcstRows[m.ri][H1_COLS[i]]?pv(fcstRows[m.ri][H1_COLS[i]]):0),0));
+    destroyChart('h1_exp_chart');
+    const expEl = document.getElementById('h1_exp_chart');
+    if(expEl) charts['h1_exp_chart'] = new Chart(expEl, {type:'bar',
+      data:{labels:months, datasets:[
+        {label:'Base Budget', data:expBase, backgroundColor:'rgba(148,163,184,0.45)', borderColor:'#94a3b8', borderWidth:1, borderRadius:3},
+        {label:'Dynamic Forecast', data:expFcst, backgroundColor:'rgba(255,107,107,0.55)', borderColor:coral, borderWidth:1, borderRadius:3},
+      ]},
+      options:{responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}}});
+
+  } catch(e){ console.warn('Budget parse failed', e); }
+}
+
+
+
 function processInvoices(rows){
   // Resolve columns from header row using invoiceSchema — resilient to column shifts
   window._invoiceColMap = mapHeaders(rows[0], invoiceSchema, invoiceFallbacks);
   const C = window._invoiceColMap;
+  // Log live headers and col map for debugging
+  console.log('Invoice tracker live headers:', rows[0] ? rows[0].slice(0,25).join(' | ') : 'NO HEADER ROW');
+  console.log('Invoice COL map:', JSON.stringify(C));
+  console.log('Total rows in invoice CSV:', rows.length);
 
   try {
     const byCustomerProject = [];
