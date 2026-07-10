@@ -202,7 +202,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="tab" onclick="goTab('dso',this)">📬 Collections</div>
   <div class="tab" onclick="goTab('pipe',this)">🔮 Pipeline</div>
   <div class="tab" onclick="goTab('revpnl',this)">📊 Revenue & Profitability</div>
-  <div class="tab" onclick="goTab('h1',this)">📋 H1 Results</div>
 </div>
 
 <!-- ══════════ FINANCIALS 2026 ══════════ -->
@@ -212,6 +211,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <button class="sub-tab active" id="st_fin26" onclick="switchSubTab('fin26',this)">📊 2026 Financials</button>
     <button class="sub-tab" id="st_q1"    onclick="switchSubTab('q1',this)">🏁 Q1 Results</button>
     <button class="sub-tab" id="st_q2"    onclick="switchSubTab('q2',this)">🏁 Q2 Results</button>
+    <button class="sub-tab" id="st_h1"    onclick="switchSubTab('h1',this)">📋 H1 Results</button>
+    <button class="sub-tab" id="st_6mfcst" onclick="switchSubTab('6mfcst',this)">🔀 6M Forecast</button>
     <button class="sub-tab" id="st_fin25" onclick="switchSubTab('fin25',this)">📋 2025 Financials</button>
   </div>
   <!-- 2026 Financials sub-view -->
@@ -382,6 +383,119 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 </div>
+  <!-- H1 Results sub-view -->
+  <div id="sv-h1" class="sub-view" style="display:none;">
+  <div class="slabel"><span>H1 Results</span> — January · February · March · April · May · June 2026</div>
+  <style>
+    .q1-month.jan{border-top:3px solid var(--teal);}
+    .q1-month.feb{border-top:3px solid var(--green);}
+    .q1-month.mar{border-top:3px solid var(--amber);}
+  </style>
+  <div class="q1-hero">
+    <div class="hero-card hc-teal">
+      <div class="hero-label">H1 Revenue</div>
+      <div class="hero-val teal" id="h1_rev">—</div>
+      <div class="hero-sub" id="h1_rev_sub">vs target</div>
+      <div class="hero-badge" id="h1_rev_badge"></div>
+    </div>
+    <div class="hero-card hc-green">
+      <div class="hero-label">H1 Operating Profit</div>
+      <div class="hero-val green" id="h1_profit">—</div>
+      <div class="hero-sub" id="h1_margin_sub">Operating margin</div>
+      <div class="hero-badge hb-teal" id="h1_margin_badge"></div>
+    </div>
+    <div class="hero-card hc-amber">
+      <div class="hero-label">H1 Total Expenses</div>
+      <div class="hero-val amber" id="h1_exp">—</div>
+      <div class="hero-sub">Jan–Jun confirmed</div>
+    </div>
+    <div class="hero-card hc-teal">
+      <div class="hero-label">Revenue vs H1 Target</div>
+      <div class="hero-val" id="h1_var" style="font-size:28px;">—</div>
+      <div class="hero-sub" id="h1_var_sub">Variance</div>
+      <div class="hero-badge" id="h1_var_badge"></div>
+    </div>
+  </div>
+  <div class="q1-month-grid" id="h1_months"></div>
+  <div class="card accent mb">
+    <div class="ch"><div><div class="ctitle">H1 Revenue vs Expenses vs Operating Profit</div><div class="csub">Month by month · Jan–Jun 2026</div></div></div>
+    <div class="cw"><canvas id="h1chart"></canvas></div>
+  </div>
+  <div class="two">
+    <div class="card">
+      <div class="ch"><div><div class="ctitle">Revenue by Type — H1 2026</div></div></div>
+      <div class="cw short"><canvas id="h1bytype"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><div class="ctitle">H1 vs Full Year Target Progress</div></div></div>
+      <div class="cw short"><canvas id="h1pace"></canvas></div>
+    </div>
+  </div>
+</div>
+
+  <!-- 6M Forecast Variance sub-view -->
+  <div id="sv-6mfcst" class="sub-view" style="display:none;">
+  <div class="slabel"><span>6M Forecast Variance</span> — Base Budget vs Dynamic Forecast · Jul–Dec 2026</div>
+  <div class="q1-hero">
+    <div class="hero-card hc-teal">
+      <div class="hero-label">Revenue Change H2</div>
+      <div class="hero-val" id="fcst_rev_var" style="font-size:26px;">—</div>
+      <div class="hero-sub" id="fcst_rev_sub">Dynamic vs Base</div>
+      <div class="hero-badge" id="fcst_rev_badge"></div>
+    </div>
+    <div class="hero-card hc-green">
+      <div class="hero-label">Op Profit Change H2</div>
+      <div class="hero-val" id="fcst_op_var" style="font-size:26px;">—</div>
+      <div class="hero-sub" id="fcst_op_sub">Dynamic vs Base</div>
+      <div class="hero-badge" id="fcst_op_badge"></div>
+    </div>
+    <div class="hero-card hc-amber">
+      <div class="hero-label">Expense Change H2</div>
+      <div class="hero-val amber" id="fcst_exp_var" style="font-size:26px;">—</div>
+      <div class="hero-sub">Dynamic vs Base</div>
+    </div>
+    <div class="hero-card hc-teal">
+      <div class="hero-label">Key Driver</div>
+      <div class="hero-val" id="fcst_driver_val" style="font-size:20px;line-height:1.2;">—</div>
+      <div class="hero-sub" id="fcst_driver_sub"></div>
+    </div>
+  </div>
+
+  <!-- Income variance table -->
+  <div class="card mb">
+    <div class="ch"><div><div class="ctitle">Income Variance — Jul–Dec 2026</div><div class="csub">Base Budget vs Dynamic Forecast · monthly breakdown</div></div></div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead id="fcst_inc_thead"></thead>
+        <tbody id="fcst_inc_tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Expense variance table -->
+  <div class="card mb">
+    <div class="ch"><div><div class="ctitle">Expense Variance — Jul–Dec 2026</div><div class="csub">Base Budget vs Dynamic Forecast · by category</div></div></div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead id="fcst_exp_thead"></thead>
+        <tbody id="fcst_exp_tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Trend charts -->
+  <div class="two">
+    <div class="card">
+      <div class="ch"><div><div class="ctitle">Revenue: Base vs Dynamic Forecast</div><div class="csub">Jul–Dec 2026 · grey = base · teal = dynamic</div></div></div>
+      <div class="cw"><canvas id="fcst_rev_chart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><div class="ctitle">Operating Profit: Base vs Dynamic</div><div class="csub">Jul–Dec 2026</div></div></div>
+      <div class="cw"><canvas id="fcst_op_chart"></canvas></div>
+    </div>
+  </div>
+</div>
+
   <!-- 2025 Financials sub-view -->
   <div id="sv-fin25" class="sub-view" style="display:none;">
     <div class="slabel"><span>2025 Financials</span> — Full Year Actuals</div>
@@ -722,66 +836,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 </div>
 
 
-<!-- ══════════ H1 RESULTS ══════════ -->
-<div class="page" id="page-h1">
-  <div class="slabel"><span>H1 Results</span> — January to June 2026 · Budget vs Dynamic Forecast</div>
-
-  <!-- Income section -->
-  <div class="card mb">
-    <div class="ch">
-      <div><div class="ctitle">Income — H1 2026</div><div class="csub">Base Budget vs Dynamic Forecast · Jan–Jun sum</div></div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;" id="h1_income_table">
-        <thead>
-          <tr>
-            <th style="text-align:left;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Line Item</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Base Budget</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--teal);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Dynamic Forecast</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Variance</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Var %</th>
-          </tr>
-        </thead>
-        <tbody id="h1_income_body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Expenses section -->
-  <div class="card mb">
-    <div class="ch">
-      <div><div class="ctitle">Expenses — H1 2026</div><div class="csub">Base Budget vs Dynamic Forecast · Jan–Jun sum</div></div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:12px;" id="h1_exp_table">
-        <thead>
-          <tr>
-            <th style="text-align:left;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Category</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Base Budget</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--teal);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Dynamic Forecast</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Variance</th>
-            <th style="text-align:right;padding:10px 14px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);">Var %</th>
-          </tr>
-        </thead>
-        <tbody id="h1_exp_body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Monthly trend chart -->
-  <div class="two">
-    <div class="card">
-      <div class="ch"><div><div class="ctitle">Monthly Income — Base vs Dynamic</div><div class="csub">Jan–Jun 2026</div></div></div>
-      <div class="cw"><canvas id="h1_inc_chart"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="ch"><div><div class="ctitle">Monthly Expenses — Base vs Dynamic</div><div class="csub">Jan–Jun 2026</div></div></div>
-      <div class="cw"><canvas id="h1_exp_chart"></canvas></div>
-    </div>
-  </div>
-
-</div>
-
 
 <script>
 
@@ -1006,7 +1060,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v47Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v48Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2319,126 +2373,251 @@ function processRevenues(rows){
   } catch(e){ console.warn('Revenue parse failed', e); }
 }
 
-// ── H1 BUDGET ANALYSIS ────────────────────────────────────────────────────────
-// Row indices (0-based) matching Budget 2026F structure
-// Monthly columns: Jan=33, Feb=34, Mar=35, Apr=36, May=37, Jun=38
+// ── BUDGET DATA STORE ─────────────────────────────────────────────────────────
 function processBudget(baseRows, fcstRows){
   try {
-    const H1_COLS = [33,34,35,36,37,38]; // Jan-Jun 2026
-    const h1sum = (rows, ri) => H1_COLS.reduce((s,c) => s + (rows[ri]&&rows[ri][c] ? pv(rows[ri][c]) : 0), 0);
-    const monthly = (rows, ri) => H1_COLS.map(c => rows[ri]&&rows[ri][c] ? pv(rows[ri][c]) : 0);
-
-    // Income rows
-    const incomeMetrics = [
-      { label:'Sales Total',      bRow:8,  fRow:8,  note:'Total Income (excl grants)', isSubtotal:false },
-      { label:'Data Collection',  bRow:10, fRow:10, note:'DC LB + DC JO',              isSubtotal:false },
-      { label:'HAIVO',            bRow:5,  fRow:5,  note:'',                            isSubtotal:false },
-      { label:'Grants',           bRow:7,  fRow:7,  note:'',                            isSubtotal:false },
-      { label:'Total Income',     bRow:8,  fRow:8,  note:'',                            isSubtotal:true  },
-    ];
-
-    // For Sales Total: Total Income row (8 in base = row 9 in 1-indexed) minus grants
-    // Adjust: Sales = Total Income - Grants
-    const incRows = incomeMetrics.map(m => {
-      let bVal, fVal;
-      if(m.label === 'Sales Total'){
-        bVal = h1sum(baseRows,8) - h1sum(baseRows,6);
-        fVal = h1sum(fcstRows,8) - h1sum(fcstRows,6);
-      } else if(m.label === 'Data Collection'){
-        bVal = h1sum(baseRows,2) + h1sum(baseRows,3); // DC LB + DC JO
-        fVal = h1sum(fcstRows,2) + h1sum(fcstRows,3);
-      } else {
-        bVal = h1sum(baseRows, m.bRow);
-        fVal = h1sum(fcstRows, m.fRow);
-      }
-      const varV = fVal - bVal;
-      const varP = bVal ? varV/Math.abs(bVal)*100 : 0;
-      return {...m, bVal, fVal, varV, varP};
-    });
-
-    // Expense rows 137-141 (0-indexed) = rows 138-142 in sheet
-    const expMetrics = [
-      { label:'Direct Cost',        ri:137 },
-      { label:'Payroll',            ri:138 },
-      { label:'R&D',                ri:139 },
-      { label:'BD & Marketing',     ri:140 },
-      { label:'Office & Services',  ri:141 },
-    ];
-
-    const expRows = expMetrics.map(m => {
-      const bVal = h1sum(baseRows, m.ri);
-      const fVal = h1sum(fcstRows, m.ri);
-      const varV = fVal - bVal;
-      const varP = bVal ? varV/Math.abs(bVal)*100 : 0;
-      return {...m, bVal, fVal, varV, varP};
-    });
-    // Total expenses row
-    const bExpTot = expRows.reduce((s,r)=>s+r.bVal,0);
-    const fExpTot = expRows.reduce((s,r)=>s+r.fVal,0);
-    expRows.push({label:'Total Expenses', ri:-1, bVal:bExpTot, fVal:fExpTot,
-      varV:fExpTot-bExpTot, varP:bExpTot?(fExpTot-bExpTot)/Math.abs(bExpTot)*100:0, isSubtotal:true});
-
-    // ── Render Income table ────────────────────────────────────────────────
-    const renderTable = (tbodyId, rows, isCost) => {
-      const tbody = document.getElementById(tbodyId);
-      if(!tbody) return;
-      tbody.innerHTML = '';
-      rows.forEach(r => {
-        const fav = isCost ? r.varV <= 0 : r.varV >= 0;
-        const varColor = r.varV === 0 ? 'var(--text3)' : (fav ? 'var(--green)' : 'var(--coral)');
-        const bg = r.isSubtotal ? 'background:rgba(255,255,255,.04);font-weight:700;' : '';
-        const td = (v, style='') => `<td style="padding:9px 14px;border-bottom:1px solid var(--border);${style}">${v}</td>`;
-        const tr = document.createElement('tr');
-        tr.innerHTML =
-          td(r.label, `text-align:left;color:var(--text);${bg}`) +
-          td(fC(r.bVal), `text-align:right;font-family:var(--mono);color:var(--text2);${bg}`) +
-          td(fC(r.fVal), `text-align:right;font-family:var(--mono);color:var(--teal);${bg}`) +
-          td((r.varV>=0?'+':'')+fC(r.varV), `text-align:right;font-family:var(--mono);color:${varColor};${bg}`) +
-          td((r.varP>=0?'+':'')+r.varP.toFixed(1)+'%', `text-align:right;font-size:11px;color:${varColor};${bg}`);
-        tbody.appendChild(tr);
-      });
-    };
-
-    renderTable('h1_income_body', incRows, false);
-    renderTable('h1_exp_body',    expRows, true);
-
-    // ── Charts ────────────────────────────────────────────────────────────
-    const months = ["Jan","Feb","Mar","Apr","May","Jun"];
-
-    // Monthly income: Total Income base vs fcst
-    const incBase  = monthly(baseRows, 8);
-    const incFcst  = monthly(fcstRows, 8);
-    destroyChart('h1_inc_chart');
-    const incEl = document.getElementById('h1_inc_chart');
-    if(incEl) charts['h1_inc_chart'] = new Chart(incEl, {type:'bar',
-      data:{labels:months, datasets:[
-        {label:'Base Budget', data:incBase, backgroundColor:'rgba(148,163,184,0.45)', borderColor:'#94a3b8', borderWidth:1, borderRadius:3},
-        {label:'Dynamic Forecast', data:incFcst, backgroundColor:tA, borderColor:teal, borderWidth:1, borderRadius:3},
-      ]},
-      options:{responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
-        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}}});
-
-    // Monthly expenses: sum of all expense categories
-    const expBase = H1_COLS.map((_,i) => expMetrics.reduce((s,m)=>s+(baseRows[m.ri]&&baseRows[m.ri][H1_COLS[i]]?pv(baseRows[m.ri][H1_COLS[i]]):0),0));
-    const expFcst = H1_COLS.map((_,i) => expMetrics.reduce((s,m)=>s+(fcstRows[m.ri]&&fcstRows[m.ri][H1_COLS[i]]?pv(fcstRows[m.ri][H1_COLS[i]]):0),0));
-    destroyChart('h1_exp_chart');
-    const expEl = document.getElementById('h1_exp_chart');
-    if(expEl) charts['h1_exp_chart'] = new Chart(expEl, {type:'bar',
-      data:{labels:months, datasets:[
-        {label:'Base Budget', data:expBase, backgroundColor:'rgba(148,163,184,0.45)', borderColor:'#94a3b8', borderWidth:1, borderRadius:3},
-        {label:'Dynamic Forecast', data:expFcst, backgroundColor:'rgba(255,107,107,0.55)', borderColor:coral, borderWidth:1, borderRadius:3},
-      ]},
-      options:{responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
-          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
-        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}}});
-
+    window._budBase = baseRows;
+    window._budFcst = fcstRows;
+    // Pre-cache H1 and H2 column sets
+    window._budH1cols = [33,34,35,36,37,38]; // Jan-Jun
+    window._budH2cols = [39,40,41,42,43,44]; // Jul-Dec
+    // Rebuild visible sub-tab if open
+    const sv = document.getElementById('sv-h1');
+    if(sv && sv.style.display !== 'none') buildH1();
+    const sv2 = document.getElementById('sv-6mfcst');
+    if(sv2 && sv2.style.display !== 'none') build6MFcst();
   } catch(e){ console.warn('Budget parse failed', e); }
 }
+
+// ── H1 RESULTS ────────────────────────────────────────────────────────────────
+function buildH1(){
+  const sv = document.getElementById('sv-h1');
+  if(!sv || sv.style.display==='none') return;
+  const s26 = window._s26 || [];
+  if(!s26.length) return;
+
+  // Use Staging actuals (s26) for H1 — same as Q1/Q2 pattern
+  const h1all = s26.slice(0,6);              // Jan-Jun
+  const h1done = h1all.filter(r=>r.done);
+
+  const h1rev  = h1done.reduce((s,r)=>s+r.rA,0);
+  const h1exp  = h1done.reduce((s,r)=>s+r.eA,0);
+  const h1profit = h1done.reduce((s,r)=>s+r.pA,0);
+  const h1sales  = h1done.reduce((s,r)=>s+r.sA,0);
+  const h1grants = h1done.reduce((s,r)=>s+r.gA,0);
+  const h1dc     = h1done.reduce((s,r)=>s+(r.dcA||0),0);
+  const h1haivo  = h1done.reduce((s,r)=>s+(r.haivoA||0),0);
+
+  // Full year target for variance
+  const totRF26 = s26.reduce((s,r)=>s+r.rF,0);
+  const h1target = totRF26 / 2;
+  const h1var  = h1rev - h1target;
+  const h1margin = h1rev > 0 ? h1profit/h1rev*100 : 0;
+
+  // Hero cards
+  const el = id => document.getElementById(id);
+  if(el('h1_rev')) el('h1_rev').textContent = h1done.length ? fC(h1rev) : 'In progress';
+  if(el('h1_rev_sub')) el('h1_rev_sub').textContent = h1done.length ? fPct(h1rev,h1target)+' of '+fC(h1target)+' H1 target' : 'Jan–Jun not yet complete';
+  if(el('h1_rev_badge')){
+    el('h1_rev_badge').textContent = h1done.length ? (h1rev>=h1target?'✓ Above target':'Below target') : 'Pending';
+    el('h1_rev_badge').className = 'hero-badge '+(h1done.length?(h1rev>=h1target?'hb-green':'hb-red'):'hb-teal');
+  }
+  if(el('h1_profit')){
+    el('h1_profit').textContent = h1done.length ? fC(h1profit) : '—';
+    el('h1_profit').style.color = h1profit>=0 ? 'var(--green)' : 'var(--coral)';
+  }
+  if(el('h1_margin_sub')) el('h1_margin_sub').textContent = h1done.length ? 'Operating margin: '+h1margin.toFixed(1)+'%' : 'Awaiting confirmed months';
+  if(el('h1_margin_badge')) el('h1_margin_badge').textContent = h1done.length ? h1margin.toFixed(1)+'% margin' : '';
+  if(el('h1_exp')) el('h1_exp').textContent = h1done.length ? fC(Math.abs(h1exp)) : '—';
+  if(el('h1_var')){
+    el('h1_var').textContent = h1done.length ? fmt(h1var) : '—';
+    el('h1_var').style.color = h1var>=0 ? 'var(--green)' : 'var(--coral)';
+  }
+  if(el('h1_var_sub')) el('h1_var_sub').textContent = h1done.length ? 'vs H1 target of '+fC(h1target) : 'H1 target: '+fC(h1target);
+  if(el('h1_var_badge')){
+    el('h1_var_badge').textContent = h1done.length ? (h1var>=0?'+':'')+fPct(h1var,h1target) : '';
+    el('h1_var_badge').className = 'hero-badge '+(h1done.length?(h1var>=0?'hb-green':'hb-red'):'hb-teal');
+  }
+
+  // Monthly cards — Jan through Jun
+  const monthLabels = ["January '26","February '26","March '26","April '26","May '26","June '26"];
+  const colorClasses = ['jan','feb','mar','apr','may','jun'];
+  const grid = el('h1_months');
+  if(grid){ grid.innerHTML='';
+    h1all.forEach((r,i)=>{
+      const m = document.createElement('div');
+      m.className = `q1-month ${colorClasses[i]}`;
+      if(!r.done){
+        m.innerHTML = `<div class="q1-month-title">${monthLabels[i]}</div><div style="font-size:11px;color:var(--text3);margin-top:8px;">Not yet confirmed</div>`;
+      } else {
+        const varV = r.rA-r.rF, varP = r.rF?(varV/Math.abs(r.rF)*100).toFixed(1):0;
+        m.innerHTML = `
+          <div class="q1-month-title">${monthLabels[i]}</div>
+          <div class="q1-stat"><div class="q1-stat-label">Revenue (A)</div><div class="q1-stat-val" style="color:var(--teal)">${fC(r.rA)}</div></div>
+          <div class="q1-stat"><div class="q1-stat-label">vs Forecast</div><div class="q1-stat-val" style="color:${varV>=0?'var(--green)':'var(--coral)'};font-size:14px">${(varV>=0?'+':'')+fC(varV)} (${(varV>=0?'+':'')+varP}%)</div></div>
+          <div class="q1-stat"><div class="q1-stat-label">Expenses (A)</div><div class="q1-stat-val" style="color:var(--coral);font-size:16px">${r.eA?fC(Math.abs(r.eA)):'—'}</div></div>
+          <div class="q1-stat"><div class="q1-stat-label">Op Profit (A)</div><div class="q1-stat-val" style="color:${r.pA>=0?'var(--green)':'var(--coral)'};font-size:16px">${r.pA!=null?fC(r.pA):'—'}</div></div>
+          <div class="q1-stat"><div class="q1-stat-label">Sales</div><div class="q1-stat-val" style="font-size:14px;color:var(--text2)">${fC(r.sA)}${r.gA?' + '+fC(r.gA)+' grants':''}</div></div>`;
+      }
+      grid.appendChild(m);
+    });
+  }
+
+  // Main bar+line chart
+  destroyChart('h1chart');
+  const h1cEl = document.getElementById('h1chart'); if(!h1cEl) return;
+  const shortLabels = ["Jan","Feb","Mar","Apr","May","Jun"];
+  charts['h1chart'] = new Chart(h1cEl, {type:'bar',
+    data:{labels:shortLabels, datasets:[
+      {label:'Sales (A)',    data:h1all.map(r=>r.done?(r.sA||null):null),  backgroundColor:tA, stack:'rev', borderRadius:2, order:2},
+      {label:'Grants (A)',  data:h1all.map(r=>r.done?(r.gA||null):null),  backgroundColor:cyan, stack:'rev', borderRadius:2, order:2},
+      {label:'Expenses (A)',data:h1all.map(r=>r.done?(r.eA||null):null),  backgroundColor:cA, stack:'exp', borderRadius:2, order:2},
+      {label:'Rev Target',  data:h1all.map(r=>r.rF||null), type:'line', borderColor:amber, borderWidth:1.5, borderDash:[5,4], pointRadius:4, pointBackgroundColor:amber, fill:false, tension:0.1, order:1},
+      {label:'Op Profit (A)',data:h1all.map(r=>r.done?r.pA:null), type:'line',
+       borderColor:green, borderWidth:2.5, pointRadius:7,
+       pointBackgroundColor:h1all.map(r=>r.done?(r.pA>=0?green:coral):green),
+       fill:false, tension:0.1, order:1},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
+      }}});
+
+  // Revenue by type donut
+  destroyChart('h1bytype');
+  const h1btEl = document.getElementById('h1bytype');
+  if(h1btEl) charts['h1bytype'] = new Chart(h1btEl,{type:'doughnut',
+    data:{labels:['Sales','Grants'],datasets:[{data:[h1sales,h1grants],backgroundColor:[teal,'rgba(103,232,249,0.8)'],borderWidth:3,borderColor:'#161b27',hoverOffset:6}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fC(c.parsed)}}}}});
+
+  // Pacing vs full year
+  destroyChart('h1pace');
+  const h1pEl = document.getElementById('h1pace');
+  if(h1pEl) charts['h1pace'] = new Chart(h1pEl,{type:'bar',
+    data:{labels:['H1 Actual','H1 Target','Full Year Target'],datasets:[{
+      label:'Revenue', data:[h1rev,h1target,totRF26],
+      backgroundColor:[tA,aDim,'rgba(148,163,184,0.2)'],
+      borderColor:[teal,amber,'rgba(148,163,184,0.5)'],
+      borderWidth:1.5,borderRadius:6
+    }]},
+    options:{...{responsive:true,maintainAspectRatio:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fC(c.parsed.y)}}}}});
+}
+
+// ── 6M FORECAST VARIANCE ──────────────────────────────────────────────────────
+function build6MFcst(){
+  const sv = document.getElementById('sv-6mfcst');
+  if(!sv || sv.style.display==='none') return;
+  const base = window._budBase;
+  const fcst = window._budFcst;
+  if(!base || !fcst){ return; }
+
+  const H2 = [39,40,41,42,43,44];
+  const MONTHS = ["Jul","Aug","Sep","Oct","Nov","Dec"];
+  const g = (rows,ri,ci) => { try{ return pv(rows[ri][ci])||0; }catch(e){return 0;} };
+  const h2sum = (rows,ri) => H2.reduce((s,c)=>s+g(rows,ri,c),0);
+  const monthly = (rows,ri) => H2.map(c=>g(rows,ri,c));
+
+  // Income metrics
+  const incMetrics = [
+    {label:'Data Collection LB', ri:2},
+    {label:'Data Collection JO', ri:3},
+    {label:'HAIVO',              ri:4},
+    {label:'Pipeline H/M',       ri:5},
+    {label:'Grants',             ri:6},
+    {label:'Total Income',       ri:8, bold:true},
+  ];
+  const expMetrics = [
+    {label:'Direct Cost',       ri:137},
+    {label:'Payroll',           ri:138},
+    {label:'R&D',               ri:139},
+    {label:'BD & Marketing',    ri:140},
+    {label:'Office & Services', ri:141},
+    {label:'Total Expenses',    ri:146, bold:true},
+  ];
+
+  // Hero cards
+  const h2revBase = h2sum(base,8), h2revFcst = h2sum(fcst,8);
+  const h2opBase  = h2sum(base,20),h2opFcst  = h2sum(fcst,20);
+  const h2expBase = h2sum(base,146),h2expFcst = h2sum(fcst,146);
+  const pipeVar   = h2sum(fcst,5) - h2sum(base,5);
+  const el = id => document.getElementById(id);
+  const vc = (v,isCost) => v===0?'var(--text3)':((isCost?v<=0:v>=0)?'var(--green)':'var(--coral)');
+  const badge = (v,isCost) => v===0?'':((isCost?v<=0:v>=0)?'hb-green':'hb-red');
+
+  [[el('fcst_rev_var'),  h2revFcst-h2revBase, false],
+   [el('fcst_op_var'),   h2opFcst-h2opBase,   false],
+   [el('fcst_exp_var'),  h2expFcst-h2expBase,  true],
+  ].forEach(([e,v,ic])=>{ if(e){ e.textContent=(v>=0?'+':'')+fC(v); e.style.color=vc(v,ic); }});
+  if(el('fcst_rev_sub')) el('fcst_rev_sub').textContent = 'Dynamic $'+Math.round(h2revFcst).toLocaleString()+' vs Base $'+Math.round(h2revBase).toLocaleString();
+  if(el('fcst_op_sub'))  el('fcst_op_sub').textContent  = 'Dynamic $'+Math.round(h2opFcst).toLocaleString()+' vs Base $'+Math.round(h2opBase).toLocaleString();
+  if(el('fcst_rev_badge')){ el('fcst_rev_badge').textContent=(h2revFcst>=h2revBase?'▲ Revenue up':'▼ Revenue down'); el('fcst_rev_badge').className='hero-badge '+badge(h2revFcst-h2revBase,false); }
+  if(el('fcst_op_badge')){ el('fcst_op_badge').textContent=(h2opFcst>=h2opBase?'▲ Profit up':'▼ Profit down'); el('fcst_op_badge').className='hero-badge '+badge(h2opFcst-h2opBase,false); }
+  if(el('fcst_driver_val')) el('fcst_driver_val').textContent = fC(pipeVar);
+  if(el('fcst_driver_sub')) el('fcst_driver_sub').textContent = 'Pipeline H/M change (main driver)';
+
+  // Table renderer
+  const renderVarTable = (theadId, tbodyId, metrics, isCost) => {
+    const thead = document.getElementById(theadId);
+    const tbody = document.getElementById(tbodyId);
+    if(!thead||!tbody) return;
+    const thStyle = 'padding:8px 10px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;';
+    thead.innerHTML = '<tr><th style="'+thStyle+';text-align:left;min-width:140px;">Line Item</th>'+
+      MONTHS.map(m=>'<th style="'+thStyle+'">'+m+'<br><span style="font-size:8px;color:var(--text3)">Base</span></th><th style="'+thStyle+';color:var(--teal)">'+m+'<br><span style="font-size:8px">Dynamic</span></th><th style="'+thStyle+'">'+m+'<br><span style="font-size:8px">Var</span></th>').join('')+
+      '<th style="'+thStyle+'">H2 Total<br><span style="font-size:8px">Var</span></th></tr>';
+    tbody.innerHTML = '';
+    metrics.forEach(m=>{
+      const bVals = monthly(base,m.ri);
+      const fVals = monthly(fcst,m.ri);
+      const vars  = bVals.map((b,i)=>fVals[i]-b);
+      const totVar = vars.reduce((s,v)=>s+v,0);
+      const bg = m.bold ? 'background:rgba(255,255,255,.04);' : '';
+      const fw = m.bold ? 'font-weight:700;' : '';
+      let html = `<td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);${bg}${fw}text-align:left;">${m.label}</td>`;
+      for(let i=0;i<6;i++){
+        const v = vars[i], fav = isCost ? v<=0 : v>=0;
+        const vc2 = v===0?'var(--text3)':(fav?'var(--green)':'var(--coral)');
+        html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:var(--text2);font-size:11px;${bg}">${fC(bVals[i])}</td>`;
+        html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:var(--teal);font-size:11px;${bg}">${fC(fVals[i])}</td>`;
+        html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:${vc2};font-size:11px;${bg}">${v>=0?'+':''}${fC(v)}</td>`;
+      }
+      const fav = isCost ? totVar<=0 : totVar>=0;
+      const vc3 = totVar===0?'var(--text3)':(fav?'var(--green)':'var(--coral)');
+      html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:${vc3};font-weight:700;font-size:11px;${bg}">${totVar>=0?'+':''}${fC(totVar)}</td>`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = html;
+      tbody.appendChild(tr);
+    });
+  };
+
+  renderVarTable('fcst_inc_thead','fcst_inc_tbody', incMetrics, false);
+  renderVarTable('fcst_exp_thead','fcst_exp_tbody', expMetrics, true);
+
+  // Charts
+  const incBase_mo = monthly(base,8), incFcst_mo = monthly(fcst,8);
+  const opBase_mo  = monthly(base,20),opFcst_mo  = monthly(fcst,20);
+
+  const makeChart = (id, baseData, fcstData, color) => {
+    destroyChart(id);
+    const el2 = document.getElementById(id); if(!el2) return;
+    charts[id] = new Chart(el2,{type:'bar',
+      data:{labels:MONTHS, datasets:[
+        {label:'Base Budget',       data:baseData, backgroundColor:'rgba(148,163,184,0.35)', borderColor:'#94a3b8', borderWidth:1, borderRadius:3},
+        {label:'Dynamic Forecast',  data:fcstData, backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:3},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}}});
+  };
+  makeChart('fcst_rev_chart', incBase_mo, incFcst_mo, teal);
+  makeChart('fcst_op_chart',  opBase_mo,  opFcst_mo,  green);
+}
+
+
 
 
 
@@ -3023,6 +3202,8 @@ function switchSubTab(view, btn){
     if(view==='fin25'){ /* charts already built */ }
     if(view==='q1')   { buildQ1(); }
     if(view==='q2')   { buildQ2(); }
+    if(view==='h1')   { buildH1(); }
+    if(view==='6mfcst'){ build6MFcst(); }
     Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}});
   },50);
 }
