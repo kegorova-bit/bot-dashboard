@@ -427,7 +427,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="card accent mb">
     <div class="ch"><div>
       <div class="ctitle">Revenue & Expenses — Actual vs Target · H1 2026</div>
-      <div class="csub">Revenue actual/target above axis · Expenses actual/target below axis</div>
+      <div class="csub">Per month: solid bar = Actual · transparent bar = Forecast · green line = Op Profit</div>
     </div></div>
     <div class="cw tall"><canvas id="h1chart"></canvas></div>
   </div>
@@ -1060,7 +1060,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v49Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v51Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2412,34 +2412,40 @@ function buildH1(){
   const h1expTarget = h1all.reduce((s,r)=>s+(r.eF||0),0);
   const h1profitTarget = h1target + h1expTarget;
 
-  // Progress bar helper
+  // Progress bar helper — thick pill for hero cards
   const progBar = (actual, target, color, id) => {
     const e2 = document.getElementById(id); if(!e2) return;
     const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
     const over = actual > Math.abs(target);
-    e2.innerHTML = `<div style="height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:4px;"><div style="height:100%;width:${pct.toFixed(1)}%;background:${over?'var(--green)':color};border-radius:3px;"></div></div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);"><span>${pct.toFixed(0)}% of target</span><span>${fC(Math.abs(target))}</span></div>`;
+    const barCol = over ? 'var(--green)' : color;
+    e2.innerHTML = `
+      <div style="height:12px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden;margin-bottom:5px;">
+        <div style="height:100%;width:${pct.toFixed(0)}%;background:${barCol};border-radius:6px;transition:width .6s;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);">
+        <span style="font-weight:600;color:${barCol}">${pct.toFixed(0)}%</span>
+        <span>of ${fC(Math.abs(target))}</span>
+      </div>`;
   };
 
-  // Category bar helper
+  // Category bar helper — compact, thick, readable
   const catBar = (label, actual, target, color) => {
     const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
-    const over = actual >= Math.abs(target); const vc = over?'var(--green)':'var(--coral)';
+    const over = actual >= Math.abs(target);
     const barColor = over ? 'var(--green)' : color;
-    return `<div style="margin-bottom:20px;padding:0 4px;">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
-        <span style="font-size:12px;font-weight:600;color:var(--text)">${label}</span>
-        <div style="display:flex;gap:16px;align-items:baseline;">
-          <span style="font-size:16px;font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</span>
-          <span style="font-size:11px;color:var(--text3)">Target: ${fC(Math.abs(target))}</span>
-          <span style="font-size:11px;font-weight:700;color:${vc}">${actual>=Math.abs(target)?'+':''}${fC(actual-Math.abs(target))}</span>
+    const vc = over ? 'var(--green)' : 'var(--coral)';
+    const varV = actual - Math.abs(target);
+    return `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">${label}</span>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <div style="height:14px;background:rgba(255,255,255,.07);border-radius:7px;overflow:hidden;">
+          <div style="height:100%;width:${Math.min(100,pct).toFixed(1)}%;background:${barColor};border-radius:7px;transition:width .6s;"></div>
         </div>
+        <div style="font-size:9px;color:var(--text3)">${pct.toFixed(0)}% of target</div>
       </div>
-      <div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;position:relative;">
-        <div style="height:100%;width:${Math.min(100,pct).toFixed(1)}%;background:${barColor};border-radius:4px;"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:9px;color:var(--text3);">
-        <span>${pct.toFixed(1)}% achieved</span><span>${over?'✓ Target met':fC(Math.abs(target)-actual)+' remaining'}</span>
-      </div>
+      <div style="text-align:right;font-size:15px;font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
+      <div style="text-align:right;font-size:11px;color:var(--text3)">${fC(Math.abs(target))}</div>
+      <div style="text-align:right;font-size:12px;font-weight:700;color:${vc}">${varV>=0?'+':''}${fC(varV)}</div>
     </div>`;
   };
 
@@ -2462,39 +2468,55 @@ function buildH1(){
   if(el('h1_var_badge')){ el('h1_var_badge').textContent=(h1var>=0?'+':'')+fPct(h1var,h1target); el('h1_var_badge').className='hero-badge '+(h1var>=0?'hb-green':'hb-red'); }
 
   // Category breakdown bars
+  // 1. Targets from Staging s26 (col U=sF, AA=dcF, AB=haivoF, AD=gF)
+  const h1SalesTarget  = h1all.reduce((s,r)=>s+(r.sF||0),0);
+  const h1DCTarget     = h1all.reduce((s,r)=>s+(r.dcF||0),0);
+  const h1HaivoTarget  = h1all.reduce((s,r)=>s+(r.haivoF||0),0);
+  const h1GrantTarget  = h1all.reduce((s,r)=>s+(r.gF||0),0);
+
   const barsEl = el('h1_breakdown_bars');
   if(barsEl){
-    const totFcstSales = h1all.reduce((s,r)=>s+(r.sF_nopipe||r.sF_pipe||0),0) || (h1target - h1grants);
-    const totFcstDC    = h1all.reduce((s,r)=>s+(r.dcF||0),0)    || h1dc*1.15;
-    const totFcstHaivo = h1all.reduce((s,r)=>s+(r.haivoF||0),0) || h1haivo*1.15;
-    barsEl.innerHTML =
-      catBar('Total Sales',     h1sales,  totFcstSales, 'var(--teal)') +
-      catBar('Data Collection', h1dc,     totFcstDC,    'var(--teal)') +
-      catBar('HAIVO',           h1haivo,  totFcstHaivo, 'var(--teal)') +
-      (h1grants > 0 ? catBar('Grants', h1grants, h1grants, 'var(--amber)') : '');
+    const hdr = `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;gap:14px;padding:6px 0 8px;border-bottom:2px solid var(--border2);">
+      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Category</span>
+      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Progress</span>
+      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;">Actual</span>
+      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Target</span>
+      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Variance</span>
+    </div>`;
+    barsEl.innerHTML = hdr +
+      catBar('Total Sales',     h1sales,  h1SalesTarget,  'var(--teal)') +
+      catBar('Data Collection', h1dc,     h1DCTarget,     'var(--teal)') +
+      catBar('HAIVO',           h1haivo,  h1HaivoTarget,  'var(--teal)') +
+      (h1grants > 0 ? catBar('Grants', h1grants, h1GrantTarget || h1grants, 'var(--amber)') : '');
   }
 
-  // Mirror chart: revenue above x, expenses below x
+  // Fix 3: grouped — actual pair (rev+exp stacked) | forecast pair (rev+exp stacked) per month
   destroyChart('h1chart');
   const h1cEl = el('h1chart'); if(!h1cEl) return;
   const labels = ["Jan","Feb","Mar","Apr","May","Jun"];
   charts['h1chart'] = new Chart(h1cEl, {type:'bar',
     data:{labels, datasets:[
-      {label:'Revenue Actual',  data:h1all.map(r=>r.done?r.rA:null),  backgroundColor:'rgba(15,184,184,0.7)', borderColor:teal,  borderWidth:1, borderRadius:3, order:2},
-      {label:'Revenue Target',  data:h1all.map(r=>r.rF||null),         backgroundColor:'rgba(15,184,184,0.2)', borderColor:teal,  borderWidth:1.5, borderRadius:3, order:3},
-      {label:'Expenses Actual', data:h1all.map(r=>r.done&&r.eA?r.eA:null), backgroundColor:'rgba(255,107,107,0.65)', borderColor:coral, borderWidth:1, borderRadius:3, order:2},
-      {label:'Expenses Target', data:h1all.map(r=>r.eF||null),         backgroundColor:'rgba(255,107,107,0.2)', borderColor:coral, borderWidth:1.5, borderRadius:3, order:3},
-      {label:'Op Profit', type:'line', data:h1all.map(r=>r.done?r.pA:null),
+      {label:'Revenue (Actual)',   data:h1all.map(r=>r.done?r.rA:null),      backgroundColor:'rgba(15,184,184,0.85)', borderColor:teal,  borderWidth:1, borderRadius:3, stack:'actual',   order:2},
+      {label:'Expenses (Actual)',  data:h1all.map(r=>r.done&&r.eA?r.eA:null), backgroundColor:'rgba(255,107,107,0.75)', borderColor:coral, borderWidth:1, borderRadius:3, stack:'actual',   order:2},
+      {label:'Revenue (Forecast)', data:h1all.map(r=>r.rF||null),              backgroundColor:'rgba(15,184,184,0.28)', borderColor:teal,  borderWidth:1.5, borderRadius:3, stack:'forecast', order:3},
+      {label:'Expenses (Forecast)',data:h1all.map(r=>r.eF||null),              backgroundColor:'rgba(255,107,107,0.25)', borderColor:coral, borderWidth:1.5, borderRadius:3, stack:'forecast', order:3},
+      {label:'Op Profit (Actual)', type:'line', data:h1all.map(r=>r.done?r.pA:null),
        borderColor:green, borderWidth:2.5, pointRadius:h1all.map(r=>r.done?6:0),
        pointBackgroundColor:h1all.map(r=>r.pA>=0?green:coral), fill:false, tension:0.3, order:1},
     ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+    options:{responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}
+      },
       scales:{
-        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#94a3b8'}},
-        y:{grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.25)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?2:1},ticks:{callback:v=>fN(v),color:'#94a3b8'}}
-      }}});
+        x:{stacked:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#94a3b8'}},
+        y:{stacked:true,
+           grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?2:1},
+           ticks:{callback:v=>fN(v),color:'#94a3b8'}
+        }
+      }
+    }});
 }
 
 
