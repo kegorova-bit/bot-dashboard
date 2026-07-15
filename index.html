@@ -396,12 +396,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div id="h1_rev_prog" style="margin-top:10px;"></div>
       <div class="hero-badge" id="h1_rev_badge"></div>
     </div>
-    <div class="hero-card hc-green">
-      <div class="hero-label">H1 Operating Profit</div>
-      <div class="hero-val green" id="h1_profit">—</div>
-      <div class="hero-sub" id="h1_margin_sub">Operating margin</div>
-      <div id="h1_profit_prog" style="margin-top:10px;"></div>
-      <div class="hero-badge hb-teal" id="h1_margin_badge"></div>
+    <div class="hero-card hc-teal">
+      <div class="hero-label">Revenue vs H1 Target</div>
+      <div class="hero-val" id="h1_var" style="font-size:28px;">—</div>
+      <div class="hero-sub" id="h1_var_sub">Variance</div>
+      <div class="hero-badge" id="h1_var_badge"></div>
     </div>
     <div class="hero-card hc-amber">
       <div class="hero-label">H1 Total Expenses</div>
@@ -409,11 +408,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="hero-sub">Jan–Jun confirmed</div>
       <div id="h1_exp_prog" style="margin-top:10px;"></div>
     </div>
-    <div class="hero-card hc-teal">
-      <div class="hero-label">Revenue vs H1 Target</div>
-      <div class="hero-val" id="h1_var" style="font-size:28px;">—</div>
-      <div class="hero-sub" id="h1_var_sub">Variance</div>
-      <div class="hero-badge" id="h1_var_badge"></div>
+    <div class="hero-card hc-green">
+      <div class="hero-label">H1 Operating Profit</div>
+      <div class="hero-val green" id="h1_profit">—</div>
+      <div class="hero-sub" id="h1_margin_sub">Operating margin</div>
+      <div id="h1_profit_prog" style="margin-top:10px;"></div>
+      <div class="hero-badge hb-teal" id="h1_margin_badge"></div>
     </div>
   </div>
 
@@ -932,30 +932,35 @@ function findRowByMultiLabel(rows, match) {
 // Each schema maps a semantic field name to an array of possible header strings.
 // First match wins. Fallback indices (3rd arg to mapHeaders) are used if nothing matches.
 
+// Remapped for the Jul 7 2026 Staging layout — matched by exact column TITLE, not letter.
+// Reference: 2026_-_Company_Financial_Health_-_Jul_7__2026_-_Mapping.csv
+// Total Revenue = Sales (Data Collection + Haivo) + Pipeline + Grants
 const stagingSchema = {
-  date:       ['Date', 'Month', 'Period'],
-  year:       ['Year'],
-  rA:         ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'],
-  rF:         ['Total Revenue (F)', 'Revenue (F)', 'Revenue Forecast'],
-  eF:         ['Total Expenses (F)', 'Expenses (F)', 'Total Expenses Forecast'],
-  eAcol:      ['Total Expenses (A)', 'Expenses (A)', 'Total Expenses Actual'],   // col N
-  eFonly:     ['Expenses (F) only', 'Expenses only (F)', 'Operating Expenses (F)'], // col O fallback
-  pFn:        ['Op Profit (F) no pipeline', 'Operating Profit (F) no pipe', 'Op Profit (F)'],
-  pFp:        ['Op Profit (F) incl pipeline', 'Operating Profit (F) pipeline', 'Op Profit (F) pipeline'],
-  pA:         ['Op Profit (A)', 'Operating Profit (A)', 'Operating Profit Actual'],
-  pl:         ['Pipeline', 'Pipeline (F)', 'Pipeline revenue'],
-  sA:         ['Sales (A)', 'Sales Actual', 'Total Sales (A)'],
-  sF:         ['Sales (F)', 'Sales Forecast'],
-  sF_pipe:    ['Sales (F) incl pipeline', 'Sales (F) pipeline', 'Sales Forecast pipeline'],
-  sF_nopipe:  ['Sales (F) no pipeline', 'Sales Forecast no pipeline'],
-  gA:         ['Grants (A)', 'Grants Actual', 'Total Grants (A)'],
-  gF:         ['Grants (F)', 'Grants Forecast'],
-  done:       ['Revenue Invoiced (A)', 'Total Revenue Invoiced (A)', 'Revenue (A)'], // same as rA — row is 'done' when rA != 0
+  date:        ['Date'],
+  year:        ['Year'],
+  sA:          ['Sales (A)'],                     // = Data Collection (A) + Haivo (A), already rolled up in sheet
+  dcA:         ['Data Collection (A)'],
+  haivoA:      ['Haivo (A)'],
+  gA:          ['Grants (A)'],
+  eA:          ['Expenses (A)'],
+  plBase:      ['Pipeline (F) base'],
+  plDyn:       ['Pipeline (F) dynamic'],
+  sFbase:      ['Sales (F) base'],
+  sFdyn:       ['Sales (F) dynamic'],
+  dcFbase:     ['Data Collection (F) base'],
+  dcFdyn:      ['Data Collection (F) dynamic'],
+  haivoFbase:  ['Haivo (F) base'],
+  haivoFdyn:   ['HAIVO (F) dynamic'],
+  gFbase:      ['Grants (F) base'],
+  gFdyn:       ['Grants (F) dynamic'],
+  eFbase:      ['Expenses (F) base'],
+  eFdyn:       ['Expenses (F) dynamic'],
 };
 
 const stagingFallbacks = {
-  date:0, year:2, rA:3, rF:7, eF:12, eAcol:13, eFonly:14,
-  pFn:16, pFp:17, pA:18, pl:5, sA:19, sF:20, sF_pipe:21, sF_nopipe:22, gA:25, gF:29, done:3
+  date:0, year:2, sA:6, dcA:7, haivoA:8, gA:9, plBase:10, plDyn:11,
+  sFbase:17, sFdyn:19, dcFbase:20, dcFdyn:21, haivoFbase:22, haivoFdyn:23,
+  gFbase:24, gFdyn:25, eA:26, eFbase:27, eFdyn:28
 };
 
 const invoiceSchema = {
@@ -1060,7 +1065,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v51Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v52Jul-remap · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1097,32 +1102,70 @@ function processStaging(rows){
     if(!r[C.date]||!r[C.date].trim())continue;
     const yr=parseInt(r[C.year]);if(!yr)continue;
 
-    const rAval   = pv(r[C.rA]);
-    const eAraw   = pv(r[C.eAcol]);
-    const eFonly  = pv(r[C.eFonly]);
+    // ── Actuals ──
+    const sA      = pv(r[C.sA]);        // Sales (A) = Data Collection (A) + Haivo (A) (already summed in sheet)
+    const dcA     = pv(r[C.dcA]);
+    const haivoA  = pv(r[C.haivoA]);
+    const gA      = pv(r[C.gA]);
+    const eAraw   = pv(r[C.eA]);
+
+    // ── Forecast — base (Jan-Jun plan) & dynamic (Jul-Dec updated forecast) ──
+    const sFbase     = pv(r[C.sFbase]);
+    const sFdyn      = pv(r[C.sFdyn]);
+    const dcFbase    = pv(r[C.dcFbase]);
+    const dcFdyn     = pv(r[C.dcFdyn]);
+    const haivoFbase = pv(r[C.haivoFbase]);
+    const haivoFdyn  = pv(r[C.haivoFdyn]);
+    const gFbase     = pv(r[C.gFbase]);
+    const gFdyn      = pv(r[C.gFdyn]);
+    const plBase     = pv(r[C.plBase]);
+    const plDyn      = pv(r[C.plDyn]);
+    const eFbase     = pv(r[C.eFbase]);
+    const eFdyn      = pv(r[C.eFdyn]);
+
+    // Expenses Actual — fall back to nearest expense forecast if actual not yet posted
+    const eA = eAraw !== 0 ? eAraw : (eFdyn || eFbase || 0);
+
+    // Total Revenue = Sales (Data Collection + Haivo) + Pipeline + Grants
+    const rA             = sA + gA;                    // actual revenue (no pipeline concept for actuals)
+    const rFbaseNoPipe    = sFbase + gFbase;
+    const rFbasePipe      = sFbase + plBase + gFbase;   // "the" base forecast revenue (incl pipeline)
+    const rFdynNoPipe     = sFdyn + gFdyn;
+    const rFdynPipe       = sFdyn + plDyn + gFdyn;
+
+    // Operating Profit = Revenue + Expenses (expenses stored as negative values)
+    const pA        = rA + eA;
+    const pFn        = rFbaseNoPipe + eFbase;
+    const pFp        = rFbasePipe   + eFbase;
+    const pDynNoPipe = rFdynNoPipe  + eFdyn;
+    const pDynPipe   = rFdynPipe    + eFdyn;
 
     const d={
       date:     r[C.date].trim(),
       yr,
-      rA:       rAval,                              // Revenue Actual
-      rF:       pv(r[C.rF]),                        // Revenue Forecast incl pipeline
-      eA:       eAraw!==0 ? eAraw : eFonly,         // Expenses Actual (col N if filled, else col O)
-      eF:       pv(r[C.eF]),                        // Expenses Forecast
-      eFonly:   eFonly,                              // Expenses Forecast only
-      eA_raw:   eAraw,                              // Expenses Actual raw (col N)
-      pFn:      pv(r[C.pFn]),                       // Op Profit Forecast no pipeline
-      pFp:      pv(r[C.pFp]),                       // Op Profit Forecast incl pipeline
-      pA:       pv(r[C.pA]),                        // Op Profit Actual
-      pl:       pv(r[C.pl]),                        // Pipeline flag
-      sA:       pv(r[C.sA]),                        // Sales Actual
-      sF:       pv(r[C.sF]),                        // Sales Forecast static
-      sF_pipe:  pv(r[C.sF_pipe]),                   // Sales Forecast incl pipeline
-      sF_nopipe:pv(r[C.sF_nopipe]),                 // Sales Forecast no pipeline
-      sFpipe:   pv(r[C.sF_pipe]),                   // alias
-      sFnopipe: pv(r[C.sF_nopipe]),                 // alias
-      gA:       pv(r[C.gA]),                        // Grants Actual
-      gF:       r.length>30 ? pv(r[C.gF]) : 0,     // Grants Forecast
-      done:     rAval !== 0
+      rA,                                              // Revenue Actual
+      rF:       rFbasePipe,                            // Revenue Forecast (base, incl pipeline) — default target
+      eA,                                               // Expenses Actual (falls back to forecast if not posted)
+      eF:       eFbase,                                 // Expenses Forecast (base)
+      eA_raw:   eAraw,                                  // Expenses Actual raw
+      pFn,                                               // Op Profit Forecast, base, no pipeline
+      pFp,                                               // Op Profit Forecast, base, incl pipeline
+      pA,                                                // Op Profit Actual (calculated: Revenue + Expenses)
+      pl:       plBase,                                  // Pipeline (base)
+      sA,                                                 // Sales Actual
+      dcA, haivoA,                                        // Data Collection / Haivo Actual
+      sF:       sFbase,                                   // Sales Forecast (base)
+      sF_pipe:  sFbase + plBase,                          // Sales Forecast incl pipeline (base)
+      sF_nopipe:sFbase,                                   // Sales Forecast, no pipeline (base)
+      sFpipe:   sFbase + plBase,                          // alias
+      sFnopipe: sFbase,                                   // alias
+      gA,                                                  // Grants Actual
+      gF:       gFbase,                                    // Grants Forecast (base)
+      dcF:      dcFbase, haivoF: haivoFbase,                // DC / Haivo Forecast (base)
+      // Dynamic forecast track (Jul-Dec updated forecast) — kept for future use
+      sF_dyn: sFdyn, dcF_dyn: dcFdyn, haivoF_dyn: haivoFdyn, gF_dyn: gFdyn, plF_dyn: plDyn, eF_dyn: eFdyn,
+      rF_dyn: rFdynPipe, pF_dyn_nopipe: pDynNoPipe, pF_dyn_pipe: pDynPipe,
+      done:     rA !== 0
     };
     if(yr===2026)s26.push(d);else if(yr===2025)s25.push(d);
   }
