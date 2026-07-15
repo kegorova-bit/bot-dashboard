@@ -18,7 +18,7 @@
   --green:#2ECC8F;--gDim:rgba(46,204,143,0.14);
   --amber:#f5a623;--aDim:rgba(245,166,35,0.14);
   --cyan:rgba(103,232,249,0.75);
-  --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+  --text:#f1f5f9;--text2:#cbd5e1;--text3:#94a3b8;
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --radius:14px;
 }
@@ -386,28 +386,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- H1 Results sub-view -->
   <div id="sv-h1" class="sub-view" style="display:none;">
   <div class="slabel"><span>H1 Results</span> — January · February · March · April · May · June 2026</div>
-  <style>
-    .q1-month.jan{border-top:3px solid var(--teal);}
-    .q1-month.feb{border-top:3px solid var(--green);}
-    .q1-month.mar{border-top:3px solid var(--amber);}
-  </style>
+
+  <!-- Hero KPIs with progress bars -->
   <div class="q1-hero">
     <div class="hero-card hc-teal">
       <div class="hero-label">H1 Revenue</div>
       <div class="hero-val teal" id="h1_rev">—</div>
       <div class="hero-sub" id="h1_rev_sub">vs target</div>
+      <div id="h1_rev_prog" style="margin-top:10px;"></div>
       <div class="hero-badge" id="h1_rev_badge"></div>
     </div>
     <div class="hero-card hc-green">
       <div class="hero-label">H1 Operating Profit</div>
       <div class="hero-val green" id="h1_profit">—</div>
       <div class="hero-sub" id="h1_margin_sub">Operating margin</div>
+      <div id="h1_profit_prog" style="margin-top:10px;"></div>
       <div class="hero-badge hb-teal" id="h1_margin_badge"></div>
     </div>
     <div class="hero-card hc-amber">
       <div class="hero-label">H1 Total Expenses</div>
       <div class="hero-val amber" id="h1_exp">—</div>
       <div class="hero-sub">Jan–Jun confirmed</div>
+      <div id="h1_exp_prog" style="margin-top:10px;"></div>
     </div>
     <div class="hero-card hc-teal">
       <div class="hero-label">Revenue vs H1 Target</div>
@@ -416,20 +416,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="hero-badge" id="h1_var_badge"></div>
     </div>
   </div>
-  <div class="q1-month-grid" id="h1_months"></div>
-  <div class="card accent mb">
-    <div class="ch"><div><div class="ctitle">H1 Revenue vs Expenses vs Operating Profit</div><div class="csub">Month by month · Jan–Jun 2026</div></div></div>
-    <div class="cw"><canvas id="h1chart"></canvas></div>
+
+  <!-- Sales breakdown progress bars -->
+  <div class="card mb" id="h1_breakdown_card">
+    <div class="ch"><div><div class="ctitle">Revenue by Category — Actual vs Target</div><div class="csub">H1 2026 · Jan–Jun confirmed months</div></div></div>
+    <div id="h1_breakdown_bars" style="padding:4px 0;"></div>
   </div>
-  <div class="two">
-    <div class="card">
-      <div class="ch"><div><div class="ctitle">Revenue by Type — H1 2026</div></div></div>
-      <div class="cw short"><canvas id="h1bytype"></canvas></div>
-    </div>
-    <div class="card">
-      <div class="ch"><div><div class="ctitle">H1 vs Full Year Target Progress</div></div></div>
-      <div class="cw short"><canvas id="h1pace"></canvas></div>
-    </div>
+
+  <!-- Mirror chart: revenue above x, expenses below x -->
+  <div class="card accent mb">
+    <div class="ch"><div>
+      <div class="ctitle">Revenue & Expenses — Actual vs Target · H1 2026</div>
+      <div class="csub">Revenue actual/target above axis · Expenses actual/target below axis</div>
+    </div></div>
+    <div class="cw tall"><canvas id="h1chart"></canvas></div>
   </div>
 </div>
 
@@ -1016,7 +1016,7 @@ const fPct=(n,d)=>d?(n/Math.abs(d)*100).toFixed(1)+'%':'—';
 
 const parseCSV=text=>{const rows=[];let row=[],cur='',inQ=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){row.push(cur);cur='';}else if((c==='\n'||c==='\r')&&!inQ){if(cur||row.length){row.push(cur);rows.push(row);}row=[];cur='';}else cur+=c;}if(cur||row.length){row.push(cur);rows.push(row);}return rows;};
 
-Chart.defaults.font.family="'DM Sans',sans-serif";Chart.defaults.font.size=11;Chart.defaults.color='#64748b';
+Chart.defaults.font.family="'DM Sans',sans-serif";Chart.defaults.font.size=11;Chart.defaults.color='#94a3b8';
 const teal='#0fb8b8',tA='rgba(15,184,184,0.65)',coral='#ff6b6b',cA='rgba(255,107,107,0.65)',
       cDim='rgba(255,107,107,0.18)',green='#2ECC8F',cyan='rgba(103,232,249,0.7)',
       amber='#f5a623',aDim='rgba(245,166,35,0.22)',tDim='rgba(15,184,184,0.18)';
@@ -1029,10 +1029,10 @@ let charts={};
 const destroyChart=id=>{if(charts[id]){charts[id].destroy();delete charts[id];}};
 const bO=(st=false)=>({
   responsive:true,maintainAspectRatio:false,
-  plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+  plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
     tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fN(c.parsed.y)}}},
-  scales:{x:{stacked:st,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-    y:{stacked:st,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}
+  scales:{x:{stacked:st,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
+    y:{stacked:st,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#cbd5e1'}}}
 });
 
 async function fetchCSV(url){const r=await fetch(url);if(!r.ok)throw new Error('fetch failed: '+url+' status '+r.status);return parseCSV(await r.text());}
@@ -1060,7 +1060,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v48Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v49Jul-h1 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1421,14 +1421,14 @@ function buildQ1(s26,s25){
        segment:{borderColor:ctx=>q1[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
         tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
       scales:{
-        x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+        x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
         y:{grid:{
             color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.04)',
             lineWidth:ctx=>ctx.tick.value===0?1.5:1
-          },ticks:{callback:v=>fN(v),color:'#64748b'}}
+          },ticks:{callback:v=>fN(v),color:'#cbd5e1'}}
       }
     }});
 
@@ -1436,7 +1436,7 @@ function buildQ1(s26,s25){
   destroyChart('q1bytype');
   charts['q1bytype']=new Chart(document.getElementById('q1bytype'),{type:'doughnut',
     data:{labels:['Sales','Grants'],datasets:[{data:[q1sales,q1grants],backgroundColor:[teal,'rgba(103,232,249,0.8)'],borderWidth:3,borderColor:'#161b27',hoverOffset:6}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fC(c.parsed)}}}}});
+    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fC(c.parsed)}}}}});
 
   // Pacing chart — Q1 vs Full Year
   const totRF26=(window._s26||[]).reduce((s,r)=>s+r.rF,0);
@@ -1534,14 +1534,14 @@ function buildQ2(s26arg,s25arg){
        segment:{borderColor:ctx=>chartMonths[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
         tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
       scales:{
-        x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+        x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
         y:{grid:{
             color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.2)':'rgba(255,255,255,0.04)',
             lineWidth:ctx=>ctx.tick.value===0?1.5:1
-          },ticks:{callback:v=>fN(v),color:'#64748b'}}
+          },ticks:{callback:v=>fN(v),color:'#cbd5e1'}}
       }
     }});
 
@@ -1551,7 +1551,7 @@ function buildQ2(s26arg,s25arg){
   if(q2btEl){
     charts['q2bytype']=new Chart(q2btEl,{type:'doughnut',
       data:{labels:['Sales','Grants'],datasets:[{data:[q2sales,q2grants],backgroundColor:[teal,'rgba(103,232,249,0.8)'],borderWidth:3,borderColor:'#161b27',hoverOffset:6}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fC(c.parsed)}}}}});
+      options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fC(c.parsed)}}}}});
   }
 
   // Pacing chart — Q2 vs Full Year
@@ -1680,12 +1680,12 @@ function processCash(rows){
        segment:{borderColor:ctx=>balAData[ctx.p1DataIndex]<0?coral:green}}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
         tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
       scales:{
-        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'},
-           title:{display:true,text:'Cash Flow ($)',color:'#64748b',font:{size:10}}},
+        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#cbd5e1'},
+           title:{display:true,text:'Cash Flow ($)',color:'#cbd5e1',font:{size:10}}},
         y2:{position:'right',grid:{drawOnChartArea:false},
             ticks:{callback:v=>fN(v),color:'#2ECC8F'},
             title:{display:true,text:'Balance ($)',color:'#2ECC8F',font:{size:10}}}
@@ -1721,9 +1721,9 @@ function processCash(rows){
       }]},
       options:{...bO(),
         plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' Runway: '+c.parsed.y.toFixed(1)+' months'}}},
-        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
           y:{grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?1.5:1},
-             ticks:{callback:v=>v.toFixed(1)+'m',color:'#64748b'}}}
+             ticks:{callback:v=>v.toFixed(1)+'m',color:'#cbd5e1'}}}
       }
     });
   }
@@ -1982,7 +1982,7 @@ function buildScenChart(){
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+        legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
         tooltip:{enabled:false, external:(context)=>{
           const {chart,tooltip}=context;
           const sTip=document.getElementById('scen-tooltip');if(!sTip)return;
@@ -2078,10 +2078,10 @@ function buildScenChart(){
         }}
       },
       scales:{
-        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
+        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
         y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},
-           ticks:{callback:v=>fN(v),color:'#64748b'},
-           title:{display:true,text:'Cash Flow ($)',color:'#64748b',font:{size:10}}},
+           ticks:{callback:v=>fN(v),color:'#cbd5e1'},
+           title:{display:true,text:'Cash Flow ($)',color:'#cbd5e1',font:{size:10}}},
         y2:{position:'right',grid:{drawOnChartArea:false,
               color:ctx=>ctx.tick.value===0?'rgba(46,204,143,0.3)':'transparent',
               lineWidth:ctx=>ctx.tick.value===0?1:0},
@@ -2193,8 +2193,8 @@ function buildDSO(){
     ]},
     options:{...bO(),plugins:{...bO().plugins,
       tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.parsed.y+(c.dataset.label==='DSO (days)'?' days':'')}}}
-    ,scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b',maxRotation:45}},
-      y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>v+'d',color:'#64748b'}}}}});
+    ,scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1',maxRotation:45}},
+      y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>v+'d',color:'#cbd5e1'}}}}});
 
   // Invoiced vs Collected
   const s26=window._s26||[];
@@ -2273,8 +2273,8 @@ function buildDSO(){
     }]},
     options:{...bO(),plugins:{legend:{display:false},
       tooltip:{callbacks:{label:c=>' Gap: '+fC(c.parsed.y)+(c.parsed.y>0?' (more invoiced than collected)':' (more collected than invoiced)')}}},
-      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{grid:{color:c=>c.tick.value===0?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.04)',lineWidth:c=>c.tick.value===0?1:0.5},ticks:{callback:v=>fN(v),color:'#64748b'}}}}});
+      scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
+        y:{grid:{color:c=>c.tick.value===0?'rgba(255,255,255,0.15)':'rgba(255,255,255,0.04)',lineWidth:c=>c.tick.value===0?1:0.5},ticks:{callback:v=>fN(v),color:'#cbd5e1'}}}}});
 
   // Outstanding table now built by processInvoices() from live sheet
 }
@@ -2396,115 +2396,107 @@ function buildH1(){
   const s26 = window._s26 || [];
   if(!s26.length) return;
 
-  // Use Staging actuals (s26) for H1 — same as Q1/Q2 pattern
-  const h1all = s26.slice(0,6);              // Jan-Jun
+  const h1all  = s26.slice(0,6);
   const h1done = h1all.filter(r=>r.done);
-
-  const h1rev  = h1done.reduce((s,r)=>s+r.rA,0);
-  const h1exp  = h1done.reduce((s,r)=>s+r.eA,0);
+  const h1rev    = h1done.reduce((s,r)=>s+r.rA,0);
+  const h1exp    = h1done.reduce((s,r)=>s+r.eA,0);
   const h1profit = h1done.reduce((s,r)=>s+r.pA,0);
   const h1sales  = h1done.reduce((s,r)=>s+r.sA,0);
   const h1grants = h1done.reduce((s,r)=>s+r.gA,0);
   const h1dc     = h1done.reduce((s,r)=>s+(r.dcA||0),0);
   const h1haivo  = h1done.reduce((s,r)=>s+(r.haivoA||0),0);
-
-  // Full year target for variance
-  const totRF26 = s26.reduce((s,r)=>s+r.rF,0);
+  const totRF26  = s26.reduce((s,r)=>s+r.rF,0);
   const h1target = totRF26 / 2;
-  const h1var  = h1rev - h1target;
+  const h1var    = h1rev - h1target;
   const h1margin = h1rev > 0 ? h1profit/h1rev*100 : 0;
+  const h1expTarget = h1all.reduce((s,r)=>s+(r.eF||0),0);
+  const h1profitTarget = h1target + h1expTarget;
 
-  // Hero cards
+  // Progress bar helper
+  const progBar = (actual, target, color, id) => {
+    const e2 = document.getElementById(id); if(!e2) return;
+    const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
+    const over = actual > Math.abs(target);
+    e2.innerHTML = `<div style="height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-bottom:4px;"><div style="height:100%;width:${pct.toFixed(1)}%;background:${over?'var(--green)':color};border-radius:3px;"></div></div><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);"><span>${pct.toFixed(0)}% of target</span><span>${fC(Math.abs(target))}</span></div>`;
+  };
+
+  // Category bar helper
+  const catBar = (label, actual, target, color) => {
+    const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
+    const over = actual >= Math.abs(target); const vc = over?'var(--green)':'var(--coral)';
+    const barColor = over ? 'var(--green)' : color;
+    return `<div style="margin-bottom:20px;padding:0 4px;">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:600;color:var(--text)">${label}</span>
+        <div style="display:flex;gap:16px;align-items:baseline;">
+          <span style="font-size:16px;font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</span>
+          <span style="font-size:11px;color:var(--text3)">Target: ${fC(Math.abs(target))}</span>
+          <span style="font-size:11px;font-weight:700;color:${vc}">${actual>=Math.abs(target)?'+':''}${fC(actual-Math.abs(target))}</span>
+        </div>
+      </div>
+      <div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;position:relative;">
+        <div style="height:100%;width:${Math.min(100,pct).toFixed(1)}%;background:${barColor};border-radius:4px;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:3px;font-size:9px;color:var(--text3);">
+        <span>${pct.toFixed(1)}% achieved</span><span>${over?'✓ Target met':fC(Math.abs(target)-actual)+' remaining'}</span>
+      </div>
+    </div>`;
+  };
+
   const el = id => document.getElementById(id);
-  if(el('h1_rev')) el('h1_rev').textContent = h1done.length ? fC(h1rev) : 'In progress';
-  if(el('h1_rev_sub')) el('h1_rev_sub').textContent = h1done.length ? fPct(h1rev,h1target)+' of '+fC(h1target)+' H1 target' : 'Jan–Jun not yet complete';
-  if(el('h1_rev_badge')){
-    el('h1_rev_badge').textContent = h1done.length ? (h1rev>=h1target?'✓ Above target':'Below target') : 'Pending';
-    el('h1_rev_badge').className = 'hero-badge '+(h1done.length?(h1rev>=h1target?'hb-green':'hb-red'):'hb-teal');
-  }
-  if(el('h1_profit')){
-    el('h1_profit').textContent = h1done.length ? fC(h1profit) : '—';
-    el('h1_profit').style.color = h1profit>=0 ? 'var(--green)' : 'var(--coral)';
-  }
-  if(el('h1_margin_sub')) el('h1_margin_sub').textContent = h1done.length ? 'Operating margin: '+h1margin.toFixed(1)+'%' : 'Awaiting confirmed months';
-  if(el('h1_margin_badge')) el('h1_margin_badge').textContent = h1done.length ? h1margin.toFixed(1)+'% margin' : '';
-  if(el('h1_exp')) el('h1_exp').textContent = h1done.length ? fC(Math.abs(h1exp)) : '—';
-  if(el('h1_var')){
-    el('h1_var').textContent = h1done.length ? fmt(h1var) : '—';
-    el('h1_var').style.color = h1var>=0 ? 'var(--green)' : 'var(--coral)';
-  }
-  if(el('h1_var_sub')) el('h1_var_sub').textContent = h1done.length ? 'vs H1 target of '+fC(h1target) : 'H1 target: '+fC(h1target);
-  if(el('h1_var_badge')){
-    el('h1_var_badge').textContent = h1done.length ? (h1var>=0?'+':'')+fPct(h1var,h1target) : '';
-    el('h1_var_badge').className = 'hero-badge '+(h1done.length?(h1var>=0?'hb-green':'hb-red'):'hb-teal');
+  if(el('h1_rev')){ el('h1_rev').textContent=fC(h1rev); }
+  if(el('h1_rev_sub')) el('h1_rev_sub').textContent=fPct(h1rev,h1target)+' of '+fC(h1target)+' H1 target';
+  if(el('h1_rev_badge')){ el('h1_rev_badge').textContent=h1rev>=h1target?'✓ Above target':'Below target'; el('h1_rev_badge').className='hero-badge '+(h1rev>=h1target?'hb-green':'hb-red'); }
+  progBar(h1rev, h1target, 'var(--teal)', 'h1_rev_prog');
+
+  if(el('h1_profit')){ el('h1_profit').textContent=fC(h1profit); el('h1_profit').style.color=h1profit>=0?'var(--green)':'var(--coral)'; }
+  if(el('h1_margin_sub')) el('h1_margin_sub').textContent='Margin: '+h1margin.toFixed(1)+'%  ·  Target: '+fC(h1profitTarget);
+  if(el('h1_margin_badge')) el('h1_margin_badge').textContent=h1margin.toFixed(1)+'% margin';
+  progBar(Math.abs(h1profit), Math.abs(h1profitTarget), 'var(--green)', 'h1_profit_prog');
+
+  if(el('h1_exp')) el('h1_exp').textContent=fC(Math.abs(h1exp));
+  progBar(Math.abs(h1exp), Math.abs(h1expTarget), 'var(--amber)', 'h1_exp_prog');
+
+  if(el('h1_var')){ el('h1_var').textContent=fmt(h1var); el('h1_var').style.color=h1var>=0?'var(--green)':'var(--coral)'; }
+  if(el('h1_var_sub')) el('h1_var_sub').textContent='vs H1 target of '+fC(h1target);
+  if(el('h1_var_badge')){ el('h1_var_badge').textContent=(h1var>=0?'+':'')+fPct(h1var,h1target); el('h1_var_badge').className='hero-badge '+(h1var>=0?'hb-green':'hb-red'); }
+
+  // Category breakdown bars
+  const barsEl = el('h1_breakdown_bars');
+  if(barsEl){
+    const totFcstSales = h1all.reduce((s,r)=>s+(r.sF_nopipe||r.sF_pipe||0),0) || (h1target - h1grants);
+    const totFcstDC    = h1all.reduce((s,r)=>s+(r.dcF||0),0)    || h1dc*1.15;
+    const totFcstHaivo = h1all.reduce((s,r)=>s+(r.haivoF||0),0) || h1haivo*1.15;
+    barsEl.innerHTML =
+      catBar('Total Sales',     h1sales,  totFcstSales, 'var(--teal)') +
+      catBar('Data Collection', h1dc,     totFcstDC,    'var(--teal)') +
+      catBar('HAIVO',           h1haivo,  totFcstHaivo, 'var(--teal)') +
+      (h1grants > 0 ? catBar('Grants', h1grants, h1grants, 'var(--amber)') : '');
   }
 
-  // Monthly cards — Jan through Jun
-  const monthLabels = ["January '26","February '26","March '26","April '26","May '26","June '26"];
-  const colorClasses = ['jan','feb','mar','apr','may','jun'];
-  const grid = el('h1_months');
-  if(grid){ grid.innerHTML='';
-    h1all.forEach((r,i)=>{
-      const m = document.createElement('div');
-      m.className = `q1-month ${colorClasses[i]}`;
-      if(!r.done){
-        m.innerHTML = `<div class="q1-month-title">${monthLabels[i]}</div><div style="font-size:11px;color:var(--text3);margin-top:8px;">Not yet confirmed</div>`;
-      } else {
-        const varV = r.rA-r.rF, varP = r.rF?(varV/Math.abs(r.rF)*100).toFixed(1):0;
-        m.innerHTML = `
-          <div class="q1-month-title">${monthLabels[i]}</div>
-          <div class="q1-stat"><div class="q1-stat-label">Revenue (A)</div><div class="q1-stat-val" style="color:var(--teal)">${fC(r.rA)}</div></div>
-          <div class="q1-stat"><div class="q1-stat-label">vs Forecast</div><div class="q1-stat-val" style="color:${varV>=0?'var(--green)':'var(--coral)'};font-size:14px">${(varV>=0?'+':'')+fC(varV)} (${(varV>=0?'+':'')+varP}%)</div></div>
-          <div class="q1-stat"><div class="q1-stat-label">Expenses (A)</div><div class="q1-stat-val" style="color:var(--coral);font-size:16px">${r.eA?fC(Math.abs(r.eA)):'—'}</div></div>
-          <div class="q1-stat"><div class="q1-stat-label">Op Profit (A)</div><div class="q1-stat-val" style="color:${r.pA>=0?'var(--green)':'var(--coral)'};font-size:16px">${r.pA!=null?fC(r.pA):'—'}</div></div>
-          <div class="q1-stat"><div class="q1-stat-label">Sales</div><div class="q1-stat-val" style="font-size:14px;color:var(--text2)">${fC(r.sA)}${r.gA?' + '+fC(r.gA)+' grants':''}</div></div>`;
-      }
-      grid.appendChild(m);
-    });
-  }
-
-  // Main bar+line chart
+  // Mirror chart: revenue above x, expenses below x
   destroyChart('h1chart');
-  const h1cEl = document.getElementById('h1chart'); if(!h1cEl) return;
-  const shortLabels = ["Jan","Feb","Mar","Apr","May","Jun"];
+  const h1cEl = el('h1chart'); if(!h1cEl) return;
+  const labels = ["Jan","Feb","Mar","Apr","May","Jun"];
   charts['h1chart'] = new Chart(h1cEl, {type:'bar',
-    data:{labels:shortLabels, datasets:[
-      {label:'Sales (A)',    data:h1all.map(r=>r.done?(r.sA||null):null),  backgroundColor:tA, stack:'rev', borderRadius:2, order:2},
-      {label:'Grants (A)',  data:h1all.map(r=>r.done?(r.gA||null):null),  backgroundColor:cyan, stack:'rev', borderRadius:2, order:2},
-      {label:'Expenses (A)',data:h1all.map(r=>r.done?(r.eA||null):null),  backgroundColor:cA, stack:'exp', borderRadius:2, order:2},
-      {label:'Rev Target',  data:h1all.map(r=>r.rF||null), type:'line', borderColor:amber, borderWidth:1.5, borderDash:[5,4], pointRadius:4, pointBackgroundColor:amber, fill:false, tension:0.1, order:1},
-      {label:'Op Profit (A)',data:h1all.map(r=>r.done?r.pA:null), type:'line',
-       borderColor:green, borderWidth:2.5, pointRadius:7,
-       pointBackgroundColor:h1all.map(r=>r.done?(r.pA>=0?green:coral):green),
-       fill:false, tension:0.1, order:1},
+    data:{labels, datasets:[
+      {label:'Revenue Actual',  data:h1all.map(r=>r.done?r.rA:null),  backgroundColor:'rgba(15,184,184,0.7)', borderColor:teal,  borderWidth:1, borderRadius:3, order:2},
+      {label:'Revenue Target',  data:h1all.map(r=>r.rF||null),         backgroundColor:'rgba(15,184,184,0.2)', borderColor:teal,  borderWidth:1.5, borderRadius:3, order:3},
+      {label:'Expenses Actual', data:h1all.map(r=>r.done&&r.eA?r.eA:null), backgroundColor:'rgba(255,107,107,0.65)', borderColor:coral, borderWidth:1, borderRadius:3, order:2},
+      {label:'Expenses Target', data:h1all.map(r=>r.eF||null),         backgroundColor:'rgba(255,107,107,0.2)', borderColor:coral, borderWidth:1.5, borderRadius:3, order:3},
+      {label:'Op Profit', type:'line', data:h1all.map(r=>r.done?r.pA:null),
+       borderColor:green, borderWidth:2.5, pointRadius:h1all.map(r=>r.done?6:0),
+       pointBackgroundColor:h1all.map(r=>r.pA>=0?green:coral), fill:false, tension:0.3, order:1},
     ]},
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#94a3b8',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
         tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
       scales:{
-        x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#94a3b8'}},
+        y:{grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.25)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?2:1},ticks:{callback:v=>fN(v),color:'#94a3b8'}}
       }}});
-
-  // Revenue by type donut
-  destroyChart('h1bytype');
-  const h1btEl = document.getElementById('h1bytype');
-  if(h1btEl) charts['h1bytype'] = new Chart(h1btEl,{type:'doughnut',
-    data:{labels:['Sales','Grants'],datasets:[{data:[h1sales,h1grants],backgroundColor:[teal,'rgba(103,232,249,0.8)'],borderWidth:3,borderColor:'#161b27',hoverOffset:6}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fC(c.parsed)}}}}});
-
-  // Pacing vs full year
-  destroyChart('h1pace');
-  const h1pEl = document.getElementById('h1pace');
-  if(h1pEl) charts['h1pace'] = new Chart(h1pEl,{type:'bar',
-    data:{labels:['H1 Actual','H1 Target','Full Year Target'],datasets:[{
-      label:'Revenue', data:[h1rev,h1target,totRF26],
-      backgroundColor:[tA,aDim,'rgba(148,163,184,0.2)'],
-      borderColor:[teal,amber,'rgba(148,163,184,0.5)'],
-      borderWidth:1.5,borderRadius:6
-    }]},
-    options:{...{responsive:true,maintainAspectRatio:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+fC(c.parsed.y)}}}}});
 }
+
 
 // ── 6M FORECAST VARIANCE ──────────────────────────────────────────────────────
 function build6MFcst(){
@@ -2608,10 +2600,10 @@ function build6MFcst(){
         {label:'Dynamic Forecast',  data:fcstData, backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:3},
       ]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
           tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
-        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}}}});
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#cbd5e1'}}}}});
   };
   makeChart('fcst_rev_chart', incBase_mo, incFcst_mo, teal);
   makeChart('fcst_op_chart',  opBase_mo,  opFcst_mo,  green);
@@ -2887,7 +2879,7 @@ function processInvoices(rows){
         data:{labels:['Low','Medium','High'],datasets:[{data:[_pL2,_pM2,_pH2],
           backgroundColor:[teal,amber,coral],borderWidth:3,borderColor:'#161b27',hoverOffset:6}]},
         options:{responsive:true,maintainAspectRatio:true,cutout:'58%',
-          plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:14,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+          plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
             tooltip:{callbacks:{label:c=>' '+c.label+': $'+c.parsed.toLocaleString()}}}}});
     }
 
@@ -3178,12 +3170,12 @@ function buildColChart(){
     data:{labels:colL26_c,datasets},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#94a3b8',font:{size:11},usePointStyle:true}},
+        legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
         tooltip:{enabled:false, external:externalTooltip}
       },
       scales:{
-        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#64748b'}},
-        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#64748b'}}
+        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
+        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#cbd5e1'}}
       }
     }});
 }
