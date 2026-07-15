@@ -1065,7 +1065,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v52Jul-remap · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v53Jul-h1fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1402,8 +1402,7 @@ function buildQ1(s26,s25){
   const q1rev=q1.reduce((s,r)=>s+r.rA,0);
   const q1exp=q1.reduce((s,r)=>s+r.eA,0);
   const q1profit=q1.reduce((s,r)=>s+r.pA,0);
-  const totRF26full=(window._s26||[]).reduce((s,r)=>s+r.rF,0);
-  const q1target=totRF26full/4;
+  const q1target=s26.slice(0,3).reduce((s,r)=>s+r.rF,0);   // Q1 target = actual sum of Jan-Mar base forecast (not full-year/4)
   const q1sales=q1.reduce((s,r)=>s+r.sA,0);
   const q1grants=q1.reduce((s,r)=>s+r.gA,0);
   const q1var=q1rev-q1target;
@@ -1505,8 +1504,7 @@ function buildQ2(s26arg,s25arg){
   const q2profit =q2.reduce((s,r)=>s+r.pA,0);
   const q2sales  =q2.reduce((s,r)=>s+r.sA,0);
   const q2grants =q2.reduce((s,r)=>s+r.gA,0);
-  const totRF26full=s26.reduce((s,r)=>s+r.rF,0);
-  const q2target =totRF26full/4;
+  const q2target =q2all.reduce((s,r)=>s+r.rF,0);   // Q2 target = actual sum of Apr-Jun base forecast (not full-year/4)
   const q2var    =q2rev-q2target;
   const q2margin =q2rev>0?q2profit/q2rev*100:0;
 
@@ -2448,8 +2446,7 @@ function buildH1(){
   const h1grants = h1done.reduce((s,r)=>s+r.gA,0);
   const h1dc     = h1done.reduce((s,r)=>s+(r.dcA||0),0);
   const h1haivo  = h1done.reduce((s,r)=>s+(r.haivoA||0),0);
-  const totRF26  = s26.reduce((s,r)=>s+r.rF,0);
-  const h1target = totRF26 / 2;
+  const h1target = h1all.reduce((s,r)=>s+r.rF,0);   // H1 target = actual sum of Jan-Jun base forecast (not full-year/2)
   const h1var    = h1rev - h1target;
   const h1margin = h1rev > 0 ? h1profit/h1rev*100 : 0;
   const h1expTarget = h1all.reduce((s,r)=>s+(r.eF||0),0);
