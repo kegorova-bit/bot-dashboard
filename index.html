@@ -435,35 +435,43 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- 6M Forecast Variance sub-view -->
   <div id="sv-6mfcst" class="sub-view" style="display:none;">
-  <div class="slabel"><span>6M Forecast Variance</span> — Base Budget vs Dynamic Forecast · Jul–Dec 2026</div>
+  <div class="slabel" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div><span id="fcst_title">Forecast Variance</span> — <span id="fcst_subtitle">Base Budget vs Updated Forecast (Staging, dynamic) · Jul–Dec 2026</span></div>
+    <select class="ts" id="fcstRangeTog" onchange="build6MFcst()">
+      <option value="h2">6-Month (Jul–Dec)</option>
+      <option value="fy">Full Year (Jan–Dec)</option>
+    </select>
+  </div>
   <div class="q1-hero">
     <div class="hero-card hc-teal">
-      <div class="hero-label">Revenue Change H2</div>
+      <div class="hero-label" id="fcst_rev_label">Revenue Change</div>
       <div class="hero-val" id="fcst_rev_var" style="font-size:26px;">—</div>
-      <div class="hero-sub" id="fcst_rev_sub">Dynamic vs Base</div>
+      <div class="hero-sub" id="fcst_rev_sub">Updated vs Base</div>
       <div class="hero-badge" id="fcst_rev_badge"></div>
     </div>
-    <div class="hero-card hc-green">
-      <div class="hero-label">Op Profit Change H2</div>
-      <div class="hero-val" id="fcst_op_var" style="font-size:26px;">—</div>
-      <div class="hero-sub" id="fcst_op_sub">Dynamic vs Base</div>
-      <div class="hero-badge" id="fcst_op_badge"></div>
-    </div>
     <div class="hero-card hc-amber">
-      <div class="hero-label">Expense Change H2</div>
-      <div class="hero-val amber" id="fcst_exp_var" style="font-size:26px;">—</div>
-      <div class="hero-sub">Dynamic vs Base</div>
+      <div class="hero-label" id="fcst_sales_label">Sales Forecast Change</div>
+      <div class="hero-val amber" id="fcst_sales_var" style="font-size:26px;">—</div>
+      <div class="hero-sub" id="fcst_sales_sub">Data Collection + HAIVO · Updated vs Base</div>
+      <div class="hero-badge" id="fcst_sales_badge"></div>
     </div>
     <div class="hero-card hc-teal">
-      <div class="hero-label">Key Driver</div>
-      <div class="hero-val" id="fcst_driver_val" style="font-size:20px;line-height:1.2;">—</div>
-      <div class="hero-sub" id="fcst_driver_sub"></div>
+      <div class="hero-label" id="fcst_driver_label">Pipeline Change</div>
+      <div class="hero-val" id="fcst_driver_val" style="font-size:26px;">—</div>
+      <div class="hero-sub" id="fcst_driver_sub">Updated vs Base · main driver</div>
+      <div class="hero-badge" id="fcst_driver_badge"></div>
+    </div>
+    <div class="hero-card hc-green">
+      <div class="hero-label" id="fcst_op_label">Op Profit Change</div>
+      <div class="hero-val" id="fcst_op_var" style="font-size:26px;">—</div>
+      <div class="hero-sub" id="fcst_op_sub">Updated vs Base</div>
+      <div class="hero-badge" id="fcst_op_badge"></div>
     </div>
   </div>
 
   <!-- Income variance table -->
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Income Variance — Jul–Dec 2026</div><div class="csub">Base Budget vs Dynamic Forecast · monthly breakdown</div></div></div>
+    <div class="ch"><div><div class="ctitle" id="fcst_inc_title">Income Variance</div><div class="csub" id="fcst_inc_sub">Base Budget vs Updated Forecast · by category</div></div></div>
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead id="fcst_inc_thead"></thead>
@@ -474,7 +482,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- Expense variance table -->
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Expense Variance — Jul–Dec 2026</div><div class="csub">Base Budget vs Dynamic Forecast · by category</div></div></div>
+    <div class="ch"><div><div class="ctitle" id="fcst_exp_title">Expense Variance</div><div class="csub" id="fcst_exp_sub">Base Budget vs Updated Forecast</div></div></div>
     <div style="overflow-x:auto;">
       <table style="width:100%;border-collapse:collapse;font-size:12px;">
         <thead id="fcst_exp_thead"></thead>
@@ -486,11 +494,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Trend charts -->
   <div class="two">
     <div class="card">
-      <div class="ch"><div><div class="ctitle">Revenue: Base vs Dynamic Forecast</div><div class="csub">Jul–Dec 2026 · grey = base · teal = dynamic</div></div></div>
+      <div class="ch"><div><div class="ctitle">Revenue: Base vs Updated Forecast</div><div class="csub" id="fcst_rev_chart_sub">grey = base · teal = updated (actual + dynamic)</div></div></div>
       <div class="cw"><canvas id="fcst_rev_chart"></canvas></div>
     </div>
     <div class="card">
-      <div class="ch"><div><div class="ctitle">Operating Profit: Base vs Dynamic</div><div class="csub">Jul–Dec 2026</div></div></div>
+      <div class="ch"><div><div class="ctitle">Operating Profit: Base vs Updated Forecast</div><div class="csub" id="fcst_op_chart_sub"></div></div></div>
       <div class="cw"><canvas id="fcst_op_chart"></canvas></div>
     </div>
   </div>
@@ -1065,7 +1073,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v53Jul-h1fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v54Jul-6mfcst · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2564,77 +2572,99 @@ function buildH1(){
 function build6MFcst(){
   const sv = document.getElementById('sv-6mfcst');
   if(!sv || sv.style.display==='none') return;
-  const base = window._budBase;
-  const fcst = window._budFcst;
-  if(!base || !fcst){ return; }
+  const s26 = window._s26 || [];
+  if(!s26.length) return;
 
-  const H2 = [39,40,41,42,43,44];
-  const MONTHS = ["Jul","Aug","Sep","Oct","Nov","Dec"];
-  const g = (rows,ri,ci) => { try{ return pv(rows[ri][ci])||0; }catch(e){return 0;} };
-  const h2sum = (rows,ri) => H2.reduce((s,c)=>s+g(rows,ri,c),0);
-  const monthly = (rows,ri) => H2.map(c=>g(rows,ri,c));
+  const mode  = document.getElementById('fcstRangeTog')?.value || 'h2';
+  const isFY  = mode === 'fy';
+  const range = isFY ? s26 : s26.slice(6,12);
+  const MONTHS = isFY ? ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"] : ["Jul","Aug","Sep","Oct","Nov","Dec"];
+  const rangeLabel = isFY ? 'Jan–Dec 2026' : 'Jul–Dec 2026';
 
-  // Income metrics
+  const elT = id => document.getElementById(id);
+  if(elT('fcst_title'))    elT('fcst_title').textContent    = isFY ? 'Full Year Forecast Variance' : '6-Month Forecast Variance';
+  if(elT('fcst_subtitle')) elT('fcst_subtitle').textContent = 'Base Budget vs Updated Forecast (Staging, dynamic) · '+rangeLabel;
+  if(elT('fcst_inc_title'))elT('fcst_inc_title').textContent= 'Income Variance — '+rangeLabel;
+  if(elT('fcst_inc_sub'))  elT('fcst_inc_sub').textContent  = (isFY?'Confirmed months use Actuals, remaining months use Dynamic Forecast':'Base Budget vs Dynamic Forecast')+' · by category';
+  if(elT('fcst_exp_title'))elT('fcst_exp_title').textContent= 'Expense Variance — '+rangeLabel;
+  if(elT('fcst_rev_chart_sub')) elT('fcst_rev_chart_sub').textContent = rangeLabel+' · grey = base · teal = updated (actual + dynamic)';
+  if(elT('fcst_op_chart_sub'))  elT('fcst_op_chart_sub').textContent  = rangeLabel;
+
+  // Per-row: base (budget) vs "updated" (actual where confirmed, dynamic forecast where not)
+  const rows = range.map(r=>{
+    const updSales  = r.done ? r.sA     : r.sF_dyn;
+    const updDC     = r.done ? r.dcA    : r.dcF_dyn;
+    const updHaivo  = r.done ? r.haivoA : r.haivoF_dyn;
+    const updPipe   = r.done ? 0        : r.plF_dyn;
+    const updGrants = r.done ? r.gA     : r.gF_dyn;
+    const updExp    = r.done ? r.eA     : r.eF_dyn;
+    const baseRev   = r.sF + r.pl + r.gF;
+    const updRev    = updSales + updPipe + updGrants;
+    return {
+      date:r.date, done:r.done,
+      baseSales:r.sF, updSales, baseDC:r.dcF, updDC, baseHaivo:r.haivoF, updHaivo,
+      basePipe:r.pl, updPipe, baseGrants:r.gF, updGrants,
+      baseRev, updRev, baseExp:r.eF, updExp,
+      baseOp: baseRev + r.eF, updOp: updRev + updExp
+    };
+  });
+
+  const sum = k => rows.reduce((s,r)=>s+r[k],0);
+  const revBase=sum('baseRev'), revUpd=sum('updRev');
+  const salesBase=sum('baseSales'), salesUpd=sum('updSales');
+  const pipeBase=sum('basePipe'), pipeUpd=sum('updPipe');
+  const opBase=sum('baseOp'), opUpd=sum('updOp');
+  const expBase=sum('baseExp'), expUpd=sum('updExp');
+
+  const vc = (v,isCost) => v===0?'var(--text3)':((isCost?v<=0:v>=0)?'var(--green)':'var(--coral)');
+  const bCls = (v,isCost) => v===0?'':((isCost?v<=0:v>=0)?'hb-green':'hb-red');
+  const setHero = (valId,subId,badgeId,base,upd,isCost,upLbl,dnLbl) => {
+    const v=upd-base, e2=elT(valId), s2=elT(subId), b2=elT(badgeId);
+    if(e2){ e2.textContent=(v>=0?'+':'')+fC(v); e2.style.color=vc(v,isCost); }
+    if(s2) s2.textContent='Updated '+fC(upd)+' vs Base '+fC(base);
+    if(b2){ b2.textContent = upd>=base ? '▲ '+upLbl : '▼ '+dnLbl; b2.className='hero-badge '+bCls(v,isCost); }
+  };
+  setHero('fcst_rev_var','fcst_rev_sub','fcst_rev_badge', revBase, revUpd, false, 'Revenue up','Revenue down');
+  setHero('fcst_sales_var','fcst_sales_sub','fcst_sales_badge', salesBase, salesUpd, false, 'Sales up','Sales down');
+  if(elT('fcst_sales_sub')) elT('fcst_sales_sub').textContent = 'DC+HAIVO: Updated '+fC(salesUpd)+' vs Base '+fC(salesBase);
+  setHero('fcst_driver_val','fcst_driver_sub','fcst_driver_badge', pipeBase, pipeUpd, false, 'Pipeline up','Pipeline down');
+  if(elT('fcst_driver_sub')) elT('fcst_driver_sub').textContent = 'Updated '+fC(pipeUpd)+' vs Base '+fC(pipeBase)+' · main driver';
+  setHero('fcst_op_var','fcst_op_sub','fcst_op_badge', opBase, opUpd, false, 'Profit up','Profit down');
+
+  // ── Income variance table — by category ──
   const incMetrics = [
-    {label:'Data Collection LB', ri:2},
-    {label:'Data Collection JO', ri:3},
-    {label:'HAIVO',              ri:4},
-    {label:'Pipeline H/M',       ri:5},
-    {label:'Grants',             ri:6},
-    {label:'Total Income',       ri:8, bold:true},
+    {label:'Sales (Data Collection + HAIVO)', baseKey:'baseSales', updKey:'updSales'},
+    {label:'Data Collection',  baseKey:'baseDC',     updKey:'updDC'},
+    {label:'HAIVO',            baseKey:'baseHaivo',  updKey:'updHaivo'},
+    {label:'Pipeline',         baseKey:'basePipe',   updKey:'updPipe'},
+    {label:'Grants',           baseKey:'baseGrants', updKey:'updGrants'},
+    {label:'Total Revenue',    baseKey:'baseRev',    updKey:'updRev', bold:true},
   ];
   const expMetrics = [
-    {label:'Direct Cost',       ri:137},
-    {label:'Payroll',           ri:138},
-    {label:'R&D',               ri:139},
-    {label:'BD & Marketing',    ri:140},
-    {label:'Office & Services', ri:141},
-    {label:'Total Expenses',    ri:146, bold:true},
+    {label:'Total Expenses',   baseKey:'baseExp',    updKey:'updExp', bold:true},
   ];
 
-  // Hero cards
-  const h2revBase = h2sum(base,8), h2revFcst = h2sum(fcst,8);
-  const h2opBase  = h2sum(base,20),h2opFcst  = h2sum(fcst,20);
-  const h2expBase = h2sum(base,146),h2expFcst = h2sum(fcst,146);
-  const pipeVar   = h2sum(fcst,5) - h2sum(base,5);
-  const el = id => document.getElementById(id);
-  const vc = (v,isCost) => v===0?'var(--text3)':((isCost?v<=0:v>=0)?'var(--green)':'var(--coral)');
-  const badge = (v,isCost) => v===0?'':((isCost?v<=0:v>=0)?'hb-green':'hb-red');
-
-  [[el('fcst_rev_var'),  h2revFcst-h2revBase, false],
-   [el('fcst_op_var'),   h2opFcst-h2opBase,   false],
-   [el('fcst_exp_var'),  h2expFcst-h2expBase,  true],
-  ].forEach(([e,v,ic])=>{ if(e){ e.textContent=(v>=0?'+':'')+fC(v); e.style.color=vc(v,ic); }});
-  if(el('fcst_rev_sub')) el('fcst_rev_sub').textContent = 'Dynamic $'+Math.round(h2revFcst).toLocaleString()+' vs Base $'+Math.round(h2revBase).toLocaleString();
-  if(el('fcst_op_sub'))  el('fcst_op_sub').textContent  = 'Dynamic $'+Math.round(h2opFcst).toLocaleString()+' vs Base $'+Math.round(h2opBase).toLocaleString();
-  if(el('fcst_rev_badge')){ el('fcst_rev_badge').textContent=(h2revFcst>=h2revBase?'▲ Revenue up':'▼ Revenue down'); el('fcst_rev_badge').className='hero-badge '+badge(h2revFcst-h2revBase,false); }
-  if(el('fcst_op_badge')){ el('fcst_op_badge').textContent=(h2opFcst>=h2opBase?'▲ Profit up':'▼ Profit down'); el('fcst_op_badge').className='hero-badge '+badge(h2opFcst-h2opBase,false); }
-  if(el('fcst_driver_val')) el('fcst_driver_val').textContent = fC(pipeVar);
-  if(el('fcst_driver_sub')) el('fcst_driver_sub').textContent = 'Pipeline H/M change (main driver)';
-
-  // Table renderer
   const renderVarTable = (theadId, tbodyId, metrics, isCost) => {
-    const thead = document.getElementById(theadId);
-    const tbody = document.getElementById(tbodyId);
+    const thead = document.getElementById(theadId), tbody = document.getElementById(tbodyId);
     if(!thead||!tbody) return;
     const thStyle = 'padding:8px 10px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;';
-    thead.innerHTML = '<tr><th style="'+thStyle+';text-align:left;min-width:140px;">Line Item</th>'+
-      MONTHS.map(m=>'<th style="'+thStyle+'">'+m+'<br><span style="font-size:8px;color:var(--text3)">Base</span></th><th style="'+thStyle+';color:var(--teal)">'+m+'<br><span style="font-size:8px">Dynamic</span></th><th style="'+thStyle+'">'+m+'<br><span style="font-size:8px">Var</span></th>').join('')+
-      '<th style="'+thStyle+'">H2 Total<br><span style="font-size:8px">Var</span></th></tr>';
+    thead.innerHTML = '<tr><th style="'+thStyle+';text-align:left;min-width:190px;">Line Item</th>'+
+      MONTHS.map(m=>'<th style="'+thStyle+'">'+m+'<br><span style="font-size:8px;color:var(--text3)">Base</span></th><th style="'+thStyle+';color:var(--teal)">'+m+'<br><span style="font-size:8px">Updated</span></th><th style="'+thStyle+'">'+m+'<br><span style="font-size:8px">Var</span></th>').join('')+
+      '<th style="'+thStyle+'">'+(isFY?'FY':'H2')+' Total<br><span style="font-size:8px">Var</span></th></tr>';
     tbody.innerHTML = '';
     metrics.forEach(m=>{
-      const bVals = monthly(base,m.ri);
-      const fVals = monthly(fcst,m.ri);
-      const vars  = bVals.map((b,i)=>fVals[i]-b);
+      const bVals = rows.map(r=>r[m.baseKey]);
+      const uVals = rows.map(r=>r[m.updKey]);
+      const vars  = bVals.map((b,i)=>uVals[i]-b);
       const totVar = vars.reduce((s,v)=>s+v,0);
       const bg = m.bold ? 'background:rgba(255,255,255,.04);' : '';
       const fw = m.bold ? 'font-weight:700;' : '';
       let html = `<td style="padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);${bg}${fw}text-align:left;">${m.label}</td>`;
-      for(let i=0;i<6;i++){
+      for(let i=0;i<rows.length;i++){
         const v = vars[i], fav = isCost ? v<=0 : v>=0;
         const vc2 = v===0?'var(--text3)':(fav?'var(--green)':'var(--coral)');
         html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:var(--text2);font-size:11px;${bg}">${fC(bVals[i])}</td>`;
-        html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:var(--teal);font-size:11px;${bg}">${fC(fVals[i])}</td>`;
+        html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:var(--teal);font-size:11px;${bg}">${fC(uVals[i])}</td>`;
         html += `<td style="padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);color:${vc2};font-size:11px;${bg}">${v>=0?'+':''}${fC(v)}</td>`;
       }
       const fav = isCost ? totVar<=0 : totVar>=0;
@@ -2645,21 +2675,17 @@ function build6MFcst(){
       tbody.appendChild(tr);
     });
   };
-
   renderVarTable('fcst_inc_thead','fcst_inc_tbody', incMetrics, false);
   renderVarTable('fcst_exp_thead','fcst_exp_tbody', expMetrics, true);
 
-  // Charts
-  const incBase_mo = monthly(base,8), incFcst_mo = monthly(fcst,8);
-  const opBase_mo  = monthly(base,20),opFcst_mo  = monthly(fcst,20);
-
-  const makeChart = (id, baseData, fcstData, color) => {
+  // ── Charts ──
+  const makeChart = (id, baseData, updData, color) => {
     destroyChart(id);
     const el2 = document.getElementById(id); if(!el2) return;
     charts[id] = new Chart(el2,{type:'bar',
       data:{labels:MONTHS, datasets:[
-        {label:'Base Budget',       data:baseData, backgroundColor:'rgba(148,163,184,0.35)', borderColor:'#94a3b8', borderWidth:1, borderRadius:3},
-        {label:'Dynamic Forecast',  data:fcstData, backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:3},
+        {label:'Base Budget',      data:baseData, backgroundColor:'rgba(148,163,184,0.35)', borderColor:'#94a3b8', borderWidth:1, borderRadius:3},
+        {label:'Updated Forecast', data:updData,  backgroundColor:color+'99', borderColor:color, borderWidth:1, borderRadius:3},
       ]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
@@ -2667,8 +2693,8 @@ function build6MFcst(){
         scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
                 y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#cbd5e1'}}}}});
   };
-  makeChart('fcst_rev_chart', incBase_mo, incFcst_mo, teal);
-  makeChart('fcst_op_chart',  opBase_mo,  opFcst_mo,  green);
+  makeChart('fcst_rev_chart', rows.map(r=>r.baseRev), rows.map(r=>r.updRev), teal);
+  makeChart('fcst_op_chart',  rows.map(r=>r.baseOp),  rows.map(r=>r.updOp),  green);
 }
 
 
