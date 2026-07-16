@@ -1072,7 +1072,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v61Jul-scenario-current-month · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v62Jul-actualcount-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1674,7 +1674,7 @@ function processCash(rows){
   }
   if(!cash.length)return;
 
-  const actualMonths=cash.filter(c=>c.cIA!==0);
+  const actualMonths=cash.filter(c=>c.cIA!==0 || c.cOA_op!==0);
   const actualCount=actualMonths.length;
   const latestActual=actualMonths.length?actualMonths[actualMonths.length-1]:cash[0];
 
