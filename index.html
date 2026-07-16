@@ -423,10 +423,44 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div id="h1_breakdown_bars" style="padding:4px 0;"></div>
   </div>
 
-  <!-- Expenses breakdown progress bars -->
-  <div class="card mb" id="h1_exp_breakdown_card">
-    <div class="ch"><div><div class="ctitle">Expenses by Category — Actual vs Target</div><div class="csub">H1 2026 · Jan–Jun · Source: Budget 2026A / Budget 2026F_v0, as of Jul 7 2026 (static snapshot, not yet live-linked)</div></div></div>
-    <div id="h1_exp_breakdown_bars" style="padding:4px 0;"></div>
+  <!-- Expenses by Category — variance-focused redesign -->
+  <div class="mb">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+      <div><div class="ctitle" style="font-size:15px;">Expenses by Category — Actual vs Budget</div>
+      <div class="csub">H1 2026 · Jan–Jun · Source: Budget 2026A / Budget 2026F_v0, as of Jul 7 2026 (static snapshot, not yet live-linked)</div></div>
+    </div>
+
+    <!-- Summary KPI cards -->
+    <div class="q1-hero" id="h1_exp_kpi_grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;"></div>
+
+    <!-- Diverging variance bars -->
+    <div class="card mb">
+      <div class="ch"><div><div class="ctitle">Budget Variance by Category</div><div class="csub">Green = favorable (cost control) · Red = over budget · Blue = underspend, informational only (execution pace, not cost control)</div></div></div>
+      <div id="h1_exp_diverge_bars" style="padding:8px 0;"></div>
+    </div>
+
+    <!-- Comparison table -->
+    <div class="card mb">
+      <div class="ch"><div><div class="ctitle">Category Comparison</div><div class="csub">Sorted by absolute variance, largest first</div></div></div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead id="h1_exp_table_thead"></thead>
+          <tbody id="h1_exp_table_tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Waterfall -->
+    <div class="card accent mb">
+      <div class="ch"><div><div class="ctitle">Expense Waterfall — Budget to Actual</div><div class="csub">How each category contributed to the total variance</div></div></div>
+      <div class="cw tall"><canvas id="h1_exp_waterfall"></canvas></div>
+    </div>
+
+    <!-- Insights panel -->
+    <div class="card accent mb">
+      <div class="ch"><div><div class="ctitle">Insights</div><div class="csub">Auto-generated from current variance data</div></div></div>
+      <div id="h1_exp_insights" style="font-size:14px;line-height:1.8;color:var(--text2);padding:6px 2px;"></div>
+    </div>
   </div>
 
   <!-- Mirror chart: revenue above x, expenses below x -->
@@ -1078,7 +1112,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v64Jul-h1-expenses · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v66Jul-variance-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2535,48 +2569,6 @@ function buildH1(){
       </div>`;
   };
 
-  // Category bar helper — compact, thick, readable
-  const catBar = (label, actual, target, color) => {
-    const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
-    const over = actual >= Math.abs(target);
-    const barColor = over ? 'var(--green)' : color;
-    const vc = over ? 'var(--green)' : 'var(--coral)';
-    const varV = actual - Math.abs(target);
-    return `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);">
-      <span style="font-size:12px;font-weight:600;color:var(--text2)">${label}</span>
-      <div style="display:flex;flex-direction:column;gap:3px;">
-        <div style="height:14px;background:rgba(255,255,255,.07);border-radius:7px;overflow:hidden;">
-          <div style="height:100%;width:${Math.min(100,pct).toFixed(1)}%;background:${barColor};border-radius:7px;transition:width .6s;"></div>
-        </div>
-        <div style="font-size:9px;color:var(--text3)">${pct.toFixed(0)}% of target</div>
-      </div>
-      <div style="text-align:right;font-size:15px;font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
-      <div style="text-align:right;font-size:11px;color:var(--text3)">${fC(Math.abs(target))}</div>
-      <div style="text-align:right;font-size:12px;font-weight:700;color:${vc}">${varV>=0?'+':''}${fC(varV)}</div>
-    </div>`;
-  };
-
-  // Cost-aware variant: LOWER actual vs target is favorable (green), higher is unfavorable (coral) — inverted from catBar
-  const catBarCost = (label, actual, target, color) => {
-    const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
-    const under = actual <= Math.abs(target);
-    const barColor = under ? 'var(--green)' : color;
-    const vc = under ? 'var(--green)' : 'var(--coral)';
-    const varV = actual - Math.abs(target);
-    return `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);">
-      <span style="font-size:12px;font-weight:600;color:var(--text2)">${label}</span>
-      <div style="display:flex;flex-direction:column;gap:3px;">
-        <div style="height:14px;background:rgba(255,255,255,.07);border-radius:7px;overflow:hidden;">
-          <div style="height:100%;width:${Math.min(100,pct).toFixed(1)}%;background:${barColor};border-radius:7px;transition:width .6s;"></div>
-        </div>
-        <div style="font-size:9px;color:var(--text3)">${pct.toFixed(0)}% of target</div>
-      </div>
-      <div style="text-align:right;font-size:15px;font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
-      <div style="text-align:right;font-size:11px;color:var(--text3)">${fC(Math.abs(target))}</div>
-      <div style="text-align:right;font-size:12px;font-weight:700;color:${vc}">${varV>=0?'+':''}${fC(varV)}</div>
-    </div>`;
-  };
-
   const el = id => document.getElementById(id);
   if(el('h1_rev')){ el('h1_rev').textContent=fC(h1rev); }
   if(el('h1_rev_sub')) el('h1_rev_sub').textContent=fPct(h1rev,h1target)+' of '+fC(h1target)+' H1 target';
@@ -2595,6 +2587,33 @@ function buildH1(){
   if(el('h1_var_sub')) el('h1_var_sub').textContent='vs H1 target of '+fC(h1target);
   if(el('h1_var_badge')){ el('h1_var_badge').textContent=(h1var>=0?'+':'')+fPct(h1var,h1target); el('h1_var_badge').className='hero-badge '+(h1var>=0?'hb-green':'hb-red'); }
 
+  // Proportionally-scaled hierarchical bar — length reflects actual $ amount relative to a SHARED
+  // scale (not each row's own target), so categories can be visually compared by true magnitude.
+  // Target is shown as a marker line on the same scale. Supports indentation for parent/child rows.
+  const hierBar = (label, actual, target, color, scale, indent, isTotal) => {
+    const pctActual = scale ? Math.min(100, actual/scale*100) : 0;
+    const pctTarget = scale ? Math.min(100, Math.abs(target)/scale*100) : 0;
+    const favorable = actual >= Math.abs(target);
+    const barColor = favorable ? 'var(--green)' : color;
+    const vc = favorable ? 'var(--green)' : 'var(--coral)';
+    const varV = actual - Math.abs(target);
+    const barH = isTotal ? 28 : 22;
+    const fw = isTotal ? '700' : '600';
+    const fs = isTotal ? '13px' : '12px';
+    return `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:${isTotal?'12px 0':'9px 0'};${isTotal?'':'border-bottom:1px solid var(--border);'}">
+      <span style="font-size:${fs};font-weight:${fw};color:${isTotal?'var(--text)':'var(--text2)'};padding-left:${indent||0}px;white-space:nowrap;">${indent?'↳ ':''}${label}</span>
+      <div style="position:relative;height:${barH}px;background:rgba(255,255,255,.06);border-radius:6px;">
+        <div style="position:absolute;top:0;left:0;height:100%;width:${pctActual.toFixed(1)}%;background:${barColor};border-radius:6px;transition:width .6s;"></div>
+        <div title="Target: ${fC(Math.abs(target))}" style="position:absolute;top:-3px;left:${pctTarget.toFixed(1)}%;width:2px;height:${barH+6}px;background:rgba(255,255,255,.75);"></div>
+      </div>
+      <div style="text-align:right;font-size:${isTotal?'16px':'15px'};font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
+      <div style="text-align:right;font-size:11px;color:var(--text3)">${fC(Math.abs(target))}</div>
+      <div style="text-align:right;font-size:12px;font-weight:700;color:${vc}">${varV>=0?'+':''}${fC(varV)}</div>
+    </div>`;
+  };
+
+
+
   // Category breakdown bars
   // 1. Targets from Staging s26 (col U=sF, AA=dcF, AB=haivoF, AD=gF)
   const h1SalesTarget  = h1all.reduce((s,r)=>s+(r.sF||0),0);
@@ -2604,46 +2623,190 @@ function buildH1(){
 
   const barsEl = el('h1_breakdown_bars');
   if(barsEl){
-    const hdr = `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;gap:14px;padding:6px 0 8px;border-bottom:2px solid var(--border2);">
+    const hdr = `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;gap:14px;padding:6px 0 8px;border-bottom:2px solid var(--border2);">
       <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Category</span>
-      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Progress</span>
+      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Progress · | = target</span>
       <span style="text-align:right;font-size:9px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;">Actual</span>
       <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Target</span>
       <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Variance</span>
     </div>`;
+    const revScale = Math.max(h1rev, h1target) || 1;
     barsEl.innerHTML = hdr +
-      catBar('Total Sales',     h1sales,  h1SalesTarget,  'var(--teal)') +
-      catBar('Data Collection', h1dc,     h1DCTarget,     'var(--teal)') +
-      catBar('HAIVO',           h1haivo,  h1HaivoTarget,  'var(--teal)') +
-      (h1grants > 0 ? catBar('Grants', h1grants, h1GrantTarget || h1grants, 'var(--amber)') : '');
+      hierBar('Revenue',         h1rev,    h1target,       'var(--teal)', revScale, 0,  true) +
+      hierBar('Sales',           h1sales,  h1SalesTarget,  'var(--teal)', revScale, 16, false) +
+      (h1grants > 0 ? hierBar('Grants', h1grants, h1GrantTarget || h1grants, 'var(--amber)', revScale, 16, false) : '') +
+      hierBar('Data Collection', h1dc,     h1DCTarget,     'var(--teal)', revScale, 34, false) +
+      hierBar('HAIVO',           h1haivo,  h1HaivoTarget,  'var(--teal)', revScale, 34, false);
   }
 
   // Expenses by Category — H1 2026, from Budget 2026A (actual) / Budget 2026F_v0 (base forecast)
   // Static snapshot as of Jul 7 2026 — reconciles exactly with the Staging-derived H1 Total Expenses
   // card above ($220,207 actual / $294,281 base forecast). Excludes Incentives per profitability convention;
   // Non-Opex was $0 for H1 actual and not part of the base-forecast subtotal either, so no adjustment needed.
+  // "neutral" categories: underspend here is informational (may reflect delayed execution), not
+  // automatically favorable — so they get a neutral blue instead of green/red regardless of direction.
   const h1ExpCategories = [
-    {label:'Direct Cost',          actual:64191,  target:125885},
-    {label:'Payroll',              actual:131231, target:129830},
-    {label:'R&D',                  actual:7230,   target:14787},
-    {label:'BD&M',                 actual:1155,   target:5280},
-    {label:'Office and services',  actual:16400,  target:18500},
+    {label:'Direct Cost',          actual:64191,  target:125885, neutral:false},
+    {label:'Payroll',              actual:131231, target:129830, neutral:false},
+    {label:'R&D',                  actual:7230,   target:14787,  neutral:true},
+    {label:'BD&M',                 actual:1155,   target:5280,   neutral:true},
+    {label:'Office and services',  actual:16400,  target:18500,  neutral:false},
   ];
-  const expBarsEl = el('h1_exp_breakdown_bars');
-  if(expBarsEl){
-    const expHdr = `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;gap:14px;padding:6px 0 8px;border-bottom:2px solid var(--border2);">
-      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Category</span>
-      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Progress</span>
-      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;">Actual</span>
-      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Target</span>
-      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Variance</span>
+  const NEUTRAL_COLOR = '#7c9cc4';
+
+  h1ExpCategories.forEach(c=>{
+    c.variance = c.actual - c.target;
+    c.pctVar   = c.target ? c.variance/c.target*100 : 0;
+    c.color    = c.neutral ? NEUTRAL_COLOR : (c.variance<=0 ? 'var(--green)' : 'var(--coral)');
+  });
+  const expSorted = h1ExpCategories.slice().sort((a,b)=>Math.abs(b.variance)-Math.abs(a.variance));
+
+  const expTotalActual = h1ExpCategories.reduce((s,c)=>s+c.actual,0);
+  const expTotalTarget = h1ExpCategories.reduce((s,c)=>s+c.target,0);
+  const expTotalVar    = expTotalActual - expTotalTarget;
+  const expTotalPct    = expTotalTarget ? expTotalVar/expTotalTarget*100 : 0;
+  const expUtilization = expTotalTarget ? expTotalActual/expTotalTarget*100 : 0;
+
+  // ── 1. Summary KPI cards ──
+  const expKpiGrid = el('h1_exp_kpi_grid');
+  if(expKpiGrid){
+    const kpiCard2 = (label, val, color, sub) => `<div class="hero-card hc-teal">
+      <div class="hero-label" style="font-size:13px;">${label}</div>
+      <div style="font-family:var(--mono);font-size:26px;font-weight:800;color:${color};margin-top:8px;">${val}</div>
+      ${sub?`<div class="hero-sub">${sub}</div>`:''}
     </div>`;
-    const expTotalActual = h1ExpCategories.reduce((s,c)=>s+c.actual,0);
-    const expTotalTarget = h1ExpCategories.reduce((s,c)=>s+c.target,0);
-    expBarsEl.innerHTML = expHdr +
-      h1ExpCategories.map(c=>catBarCost(c.label, c.actual, c.target, 'var(--amber)')).join('') +
-      catBarCost('Total Expenses', expTotalActual, expTotalTarget, 'var(--amber)');
+    expKpiGrid.innerHTML =
+      kpiCard2('Total Budget', fmt(expTotalTarget), 'var(--text)') +
+      kpiCard2('Total Actual Spend', fmt(expTotalActual), 'var(--amber)') +
+      kpiCard2('Total Variance', (expTotalVar>=0?'+':'')+fmt(expTotalVar), expTotalVar<=0?'var(--green)':'var(--coral)', (expTotalPct>=0?'+':'')+expTotalPct.toFixed(1)+'%') +
+      kpiCard2('Budget Utilization', expUtilization.toFixed(0)+'%', expUtilization<=100?'var(--green)':'var(--coral)');
   }
+
+  // ── 2. Diverging variance bars, centered at zero ──
+  const divergeEl = el('h1_exp_diverge_bars');
+  if(divergeEl){
+    const maxAbsVar = Math.max(...expSorted.map(c=>Math.abs(c.variance)), 1);
+    divergeEl.innerHTML = expSorted.map(c=>{
+      const halfPct = Math.min(48, Math.abs(c.variance)/maxAbsVar*48);
+      const isOver  = c.variance > 0;
+      const barLeft = isOver ? 50 : 50-halfPct;
+      const barSide = `left:${barLeft}%;width:${halfPct}%;`;
+      const sign = c.variance>=0?'+':'−';
+      const label = c.neutral ? (isOver?'Above plan':'Below plan') : (isOver?'Over':'Under');
+      return `<div style="display:grid;grid-template-columns:160px 1fr 200px;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);">
+        <span style="font-size:12px;font-weight:600;color:var(--text2);">${c.label}</span>
+        <div style="position:relative;height:22px;">
+          <div style="position:absolute;top:0;left:0;right:0;height:100%;background:rgba(255,255,255,.04);border-radius:5px;"></div>
+          <div style="position:absolute;top:0;bottom:0;left:50%;width:2px;background:rgba(255,255,255,.35);"></div>
+          <div style="position:absolute;top:2px;height:18px;border-radius:4px;background:${c.color};${barSide}"></div>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-family:var(--mono);font-weight:800;font-size:14px;color:${c.color};">${sign}${fmt(Math.abs(c.variance))}</span>
+          <span style="font-size:12px;color:${c.color};font-weight:600;"> (${c.pctVar>=0?'+':''}${c.pctVar.toFixed(0)}%)</span>
+          <span style="font-size:10px;color:var(--text3);margin-left:4px;">${label}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── 3. Comparison table ──
+  const theadEl = el('h1_exp_table_thead'), tbodyEl = el('h1_exp_table_tbody');
+  if(theadEl && tbodyEl){
+    const th='padding:9px 12px;background:var(--bg3);color:var(--text3);font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap;';
+    theadEl.innerHTML=`<tr><th style="${th}text-align:left;">Category</th><th style="${th}">Budget</th><th style="${th}">Actual</th><th style="${th}">Variance</th><th style="${th}">% Variance</th><th style="${th}">Status</th></tr>`;
+    tbodyEl.innerHTML = expSorted.map(c=>{
+      const isOver = c.variance>0;
+      const statusIcon = c.neutral ? '🔵' : (isOver ? '🔴' : '🟢');
+      const statusText = c.neutral ? (isOver?'Above plan':'Below plan') : (isOver?'Over':'Under');
+      const td='padding:10px 12px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);font-size:12px;';
+      return `<tr>
+        <td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;color:var(--text);font-weight:600;">${c.label}</td>
+        <td style="${td}color:var(--text2);">${fmt(c.target)}</td>
+        <td style="${td}color:var(--text);font-weight:700;">${fmt(c.actual)}</td>
+        <td style="${td}color:${c.color};font-weight:800;">${c.variance>=0?'+':''}${fmt(c.variance)}</td>
+        <td style="${td}color:${c.color};font-weight:700;">${c.pctVar>=0?'+':''}${c.pctVar.toFixed(0)}%</td>
+        <td style="${td}text-align:left;color:${c.color};font-weight:600;">${statusIcon} ${statusText}</td>
+      </tr>`;
+    }).join('') + `<tr style="background:rgba(255,255,255,.04);">
+        <td style="padding:10px 12px;text-align:left;color:var(--text);font-weight:800;">Total Expenses</td>
+        <td style="padding:10px 12px;text-align:right;font-family:var(--mono);color:var(--text2);font-weight:700;">${fmt(expTotalTarget)}</td>
+        <td style="padding:10px 12px;text-align:right;font-family:var(--mono);color:var(--text);font-weight:800;">${fmt(expTotalActual)}</td>
+        <td style="padding:10px 12px;text-align:right;font-family:var(--mono);color:${expTotalVar<=0?'var(--green)':'var(--coral)'};font-weight:800;">${expTotalVar>=0?'+':''}${fmt(expTotalVar)}</td>
+        <td style="padding:10px 12px;text-align:right;font-family:var(--mono);color:${expTotalVar<=0?'var(--green)':'var(--coral)'};font-weight:800;">${expTotalPct>=0?'+':''}${expTotalPct.toFixed(0)}%</td>
+        <td style="padding:10px 12px;"></td>
+      </tr>`;
+  }
+
+  // ── 4. Waterfall: Budget -> each category delta -> Actual ──
+  (function(){
+    destroyChart('h1_exp_waterfall');
+    const wfEl = el('h1_exp_waterfall'); if(!wfEl) return;
+    let running = expTotalTarget;
+    const labels = ['Budget'];
+    const data = [[0, expTotalTarget]];
+    const bg = ['rgba(148,163,184,0.7)'];
+    expSorted.forEach(c=>{
+      const from = running, to = running + c.variance;
+      labels.push(c.label);
+      data.push([Math.min(from,to), Math.max(from,to)]);
+      bg.push(c.neutral ? NEUTRAL_COLOR : (c.variance<=0 ? 'rgba(46,204,143,0.85)' : 'rgba(255,107,107,0.85)'));
+      running = to;
+    });
+    labels.push('Actual');
+    data.push([0, running]);
+    bg.push('rgba(245,166,35,0.85)');
+    charts['h1_exp_waterfall'] = new Chart(wfEl, {type:'bar',
+      data:{labels, datasets:[{data, backgroundColor:bg, borderRadius:3, borderWidth:0}]},
+      options:{responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false},
+          tooltip:{callbacks:{label:c2=>{
+            const idx=c2.dataIndex;
+            if(idx===0) return ' Budget: '+fC(expTotalTarget);
+            if(idx===labels.length-1) return ' Actual: '+fC(running);
+            const cat=expSorted[idx-1];
+            return ' '+cat.label+': '+(cat.variance>=0?'+':'')+fC(cat.variance);
+          }}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#b3c1d1'}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
+  })();
+
+  // ── 5. Insights panel ──
+  (function(){
+    const insEl = el('h1_exp_insights'); if(!insEl) return;
+    const overCats  = h1ExpCategories.filter(c=>c.variance>0 && !c.neutral);
+    const underCats = h1ExpCategories.filter(c=>c.variance<0 && !c.neutral).sort((a,b)=>a.variance-b.variance);
+    const neutralCats = h1ExpCategories.filter(c=>c.neutral);
+
+    const pts = [];
+    pts.push(`Total expenses are <b style="color:${expTotalVar<=0?'var(--green)':'var(--coral)'}">${fmt(Math.abs(expTotalVar))} (${Math.abs(expTotalPct).toFixed(0)}%) ${expTotalVar<=0?'below':'above'} budget</b> for H1 2026.`);
+
+    if(overCats.length===1){
+      const c=overCats[0];
+      pts.push(`<b>${c.label}</b> is the only category currently over budget (${c.variance>=0?'+':''}${fmt(c.variance)}, ${c.pctVar>=0?'+':''}${c.pctVar.toFixed(0)}%).`);
+    } else if(overCats.length>1){
+      pts.push(`${overCats.map(c=>`<b>${c.label}</b> (+${fmt(c.variance)})`).join(', ')} are currently over budget.`);
+    } else {
+      pts.push(`No expense category is over budget this period.`);
+    }
+
+    if(underCats.length){
+      const list = underCats.slice(0,3).map(c=>`<b>${c.label}</b> (${fmt(c.variance)})`);
+      pts.push(`Most of the underspend comes from ${list.join(', followed by ')}.`);
+    }
+
+    if(neutralCats.length){
+      const list = neutralCats.map(c=>`<b>${c.label}</b> (${c.pctVar.toFixed(0)}%)`).join(' and ');
+      pts.push(`${list} ${neutralCats.length>1?'are':'is'} significantly under budget — shown in blue rather than green, since this likely reflects delayed execution or pacing rather than deliberate cost control, and is worth a status check rather than being read as pure savings.`);
+    }
+
+    const inLine = h1ExpCategories.filter(c=>Math.abs(c.pctVar)<12 && !c.neutral);
+    if(inLine.length){
+      pts.push(`${inLine.map(c=>c.label).join(', ')} ${inLine.length>1?'are':'is'} broadly in line with budget.`);
+    }
+
+    insEl.innerHTML = pts.map(p=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);">• ${p}</div>`).join('');
+  })();
+
 
   // Fix 3: grouped — actual pair (rev+exp stacked) | forecast pair (rev+exp stacked) per month
   destroyChart('h1chart');
