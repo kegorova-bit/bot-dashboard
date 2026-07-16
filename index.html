@@ -18,7 +18,7 @@
   --green:#2ECC8F;--gDim:rgba(46,204,143,0.14);
   --amber:#f5a623;--aDim:rgba(245,166,35,0.14);
   --cyan:rgba(103,232,249,0.75);
-  --text:#f1f5f9;--text2:#cbd5e1;--text3:#94a3b8;
+  --text:#f1f5f9;--text2:#cbd5e1;--text3:#b3c1d1;
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --radius:14px;
 }
@@ -51,7 +51,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .cw{position:relative;height:268px;}.cw.tall{height:320px;}.cw.short{height:210px;}
 .ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap;}
 .ctitle{font-size:13px;font-weight:700;color:var(--text);}
-.csub{font-size:11px;color:var(--text3);margin-top:3px;}
+.csub{font-size:13px;color:var(--text3);margin-top:3px;}
 .scr{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .sc{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;text-align:center;min-width:110px;}
 .sc.g{border-color:rgba(46,204,143,.5);background:var(--gDim);}
@@ -86,10 +86,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .hero-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
 .hc-teal::before{background:var(--teal);}.hc-red::before{background:var(--coral);}.hc-amber::before{background:var(--amber);}.hc-green::before{background:var(--green);}
-.hero-label{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.hero-label{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
 .hero-val{font-size:34px;font-weight:700;font-family:var(--mono);letter-spacing:-1px;line-height:1;}
 .hero-val.teal{color:var(--teal);}.hero-val.red{color:var(--coral);}.hero-val.amber{color:var(--amber);}.hero-val.green{color:var(--green);}
-.hero-sub{font-size:11px;color:var(--text3);margin-top:8px;}
+.hero-sub{font-size:13px;color:var(--text3);margin-top:8px;}
 .hero-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;margin-top:8px;}
 .hb-red{background:var(--cDim);color:var(--coral);}.hb-amber{background:var(--aDim);color:var(--amber);}.hb-green{background:var(--gDim);color:var(--green);}.hb-teal{background:var(--tDim);color:var(--teal);}
 .alert-bar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:10px;margin-bottom:20px;font-size:12px;font-weight:600;}
@@ -1031,7 +1031,7 @@ const fPct=(n,d)=>d?(n/Math.abs(d)*100).toFixed(1)+'%':'—';
 
 const parseCSV=text=>{const rows=[];let row=[],cur='',inQ=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){inQ=!inQ;}else if(c===','&&!inQ){row.push(cur);cur='';}else if((c==='\n'||c==='\r')&&!inQ){if(cur||row.length){row.push(cur);rows.push(row);}row=[];cur='';}else cur+=c;}if(cur||row.length){row.push(cur);rows.push(row);}return rows;};
 
-Chart.defaults.font.family="'DM Sans',sans-serif";Chart.defaults.font.size=11;Chart.defaults.color='#94a3b8';
+Chart.defaults.font.family="'DM Sans',sans-serif";Chart.defaults.font.size=11;Chart.defaults.color='#b3c1d1';
 const teal='#0fb8b8',tA='rgba(15,184,184,0.65)',coral='#ff6b6b',cA='rgba(255,107,107,0.65)',
       cDim='rgba(255,107,107,0.18)',green='#2ECC8F',cyan='rgba(103,232,249,0.7)',
       amber='#f5a623',aDim='rgba(245,166,35,0.22)',tDim='rgba(15,184,184,0.18)';
@@ -1075,7 +1075,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v56Jul-exec-variance · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v57Jul-dumbbell · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2560,10 +2560,10 @@ function buildH1(){
         tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}
       },
       scales:{
-        x:{stacked:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#94a3b8'}},
+        x:{stacked:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#b3c1d1'}},
         y:{stacked:true,
            grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?2:1},
-           ticks:{callback:v=>fN(v),color:'#94a3b8'}
+           ticks:{callback:v=>fN(v),color:'#b3c1d1'}
         }
       }
     }});
@@ -2645,23 +2645,43 @@ function build6MFcst(){
     'Revenue forecast '+fC(revUpd)+' vs original budget '+fC(revBase)+' ('+rangeLabel+')';
 
   // ── KPI comparison cards ──
-  const kpiCard = (label, budget, forecast, isCost, fmtFn) => {
+  const kpiCard = (label, budget, forecast, isCost, compactFn) => {
+    if(budget==null){
+      return `<div class="hero-card hc-teal">
+        <div class="hero-label" style="font-size:13px;">${label}</div>
+        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:20px;">${compactFn(forecast)}</div>
+        <div class="hero-sub">Budget N/A — company cash-flow positive under base plan</div>
+      </div>`;
+    }
     const diff = forecast - budget;
     const pct = budget ? diff/Math.abs(budget)*100 : 0;
     const good = isCost ? diff<=0 : diff>=0;
     const vColor = diff===0 ? 'var(--text3)' : (good?'var(--green)':'var(--coral)');
+    const lineColor = diff===0 ? '#b3c1d1' : (good?'var(--green)':'var(--coral)');
+    const bP=17, uP=83; // fixed dumbbell endpoint positions (%)
     return `<div class="hero-card hc-teal">
-      <div class="hero-label">${label}</div>
-      <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text3);">Budget</span><span style="font-family:var(--mono);color:var(--text2);">${fmtFn(budget)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--text3);">Forecast</span><span style="font-family:var(--mono);font-weight:700;color:var(--teal);">${fmtFn(forecast)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;padding-top:8px;border-top:1px solid var(--border);margin-top:2px;"><span style="color:var(--text3);">Variance</span><span style="font-family:var(--mono);font-weight:700;color:${vColor}">${diff>=0?'+':''}${fmtFn(diff)} (${pct>=0?'+':''}${pct.toFixed(1)}%)</span></div>
+      <div class="hero-label" style="font-size:13px;">${label}</div>
+      <div style="position:relative;height:32px;margin:18px 0 2px;">
+        <div style="position:absolute;top:14px;left:${bP}%;right:${100-uP}%;height:3px;background:${lineColor};border-radius:2px;"></div>
+        <div style="position:absolute;top:8px;left:${bP}%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:var(--bg2);border:3px solid #b3c1d1;"></div>
+        <div style="position:absolute;top:8px;left:${uP}%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:var(--teal);border:3px solid var(--teal);"></div>
+      </div>
+      <div style="position:relative;height:16px;">
+        <div style="position:absolute;left:${bP}%;transform:translateX(-50%);font-size:11px;color:var(--text3);white-space:nowrap;font-weight:600;">Budget</div>
+        <div style="position:absolute;left:${uP}%;transform:translateX(-50%);font-size:11px;color:var(--teal);white-space:nowrap;font-weight:600;">Updated</div>
+      </div>
+      <div style="position:relative;height:24px;margin-top:2px;">
+        <div style="position:absolute;left:${bP}%;transform:translateX(-50%);font-size:15px;font-weight:700;font-family:var(--mono);color:var(--text2);white-space:nowrap;">${compactFn(budget)}</div>
+        <div style="position:absolute;left:${uP}%;transform:translateX(-50%);font-size:15px;font-weight:700;font-family:var(--mono);color:var(--teal);white-space:nowrap;">${compactFn(forecast)}</div>
+      </div>
+      <div style="text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid var(--border);font-family:var(--mono);font-weight:700;font-size:16px;color:${vColor}">
+        ${diff===0?'—':(diff>0?'▲ +':'▼ -')+compactFn(Math.abs(diff))+' ('+(pct>=0?'+':'')+pct.toFixed(1)+'%)'}
       </div>
     </div>`;
   };
-  const dollarFmt = v => fC(v);
+  const dollarFmt = v => fmt(v);
   const pctFmt    = v => v.toFixed(1)+'%';
-  const moFmt     = v => v==null ? 'N/A' : v.toFixed(1)+' mo';
+  const moFmt     = v => v==null ? 'N/A' : v.toFixed(1)+'mo';
 
   const kpiGrid = elT('fcst_kpi_grid');
   if(kpiGrid){
@@ -2671,7 +2691,7 @@ function build6MFcst(){
       kpiCard('Gross Margin', gmBase, gmUpd, false, pctFmt) +
       kpiCard('Operating Profit', opBase, opUpd, false, dollarFmt) +
       kpiCard('Ending Cash (Dec \'26)', cashBudget, cashUpdated, false, dollarFmt) +
-      kpiCard('Cash Runway', budgetRunway ?? 999, updatedRunway, true, moFmt);
+      kpiCard('Cash Runway', budgetRunway, updatedRunway, true, moFmt);
   }
 
   // ── Revenue Waterfall: Budget → category deltas → Updated Forecast ──
