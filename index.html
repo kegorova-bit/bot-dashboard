@@ -1072,7 +1072,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v62Jul-actualcount-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v63Jul-tooltip-2col · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2079,78 +2079,99 @@ function buildScenChart(){
             return ms[i]?ms[i]:null;
           }) : [];
 
-          let html=`<div class="ctt-month">${label} · ${isCurrentM&&mo.fcst?'Actual-to-date + Forecast':isActM?'Actual':'Forecast'}</div>`;
+          let html=`<div class="ctt-month">${label} · ${isCurrentM&&mo.fcst?'Actual (left) vs Forecast (right)':isActM?'Actual':'Forecast'}</div>`;
 
-          // ── Cash In block ──
-          html+=`<div class="ctt-section">💰 Cash In</div>`;
-          if(isActM){
-            // Actual month — show collected invoices
-            if(collected.length){
-              collected.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt">${fC(e.amt)}</span></div>`;});
-            } else if(mo.baseIn){
-              html+=`<div class="ctt-row"><span class="ctt-name">Collected</span><span class="ctt-amt">${fC(mo.baseIn)}</span></div>`;
-            }
-          } else {
-            // Forecast month — show outstanding + won-not-yet-invoiced + pipeline
-            if(outstanding.length){
-              html+=`<div class="ctt-row" style="margin-top:2px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">⏳ OUTSTANDING</span></div>`;
-              outstanding.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt out">${fC(e.amt)}</span></div>`;});
-              const tot=outstanding.reduce((s,e)=>s+e.amt,0);
-              if(tot>0)html+=`<div class="ctt-row" style="padding:1px 0"><span class="ctt-name" style="color:var(--text3)">Subtotal</span><span class="ctt-amt out" style="font-size:12px">${fC(tot)}</span></div>`;
-            }
-            if(drafts.length){
-              html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">📝 WON — NOT YET INVOICED</span></div>`;
-              drafts.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;html+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;});
-              const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
-              if(tot>0)html+=`<div class="ctt-row" style="padding:1px 0"><span class="ctt-name" style="color:var(--text3)">Subtotal</span><span class="ctt-amt" style="font-size:12px">${fC(tot)}</span></div>`;
-            }
-            if(mo.pipeHighIn>0){
-              html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
-              html+=`<div class="ctt-row"><span class="ctt-name">High probability</span><span class="ctt-amt" style="color:#63b3ed">${fC(mo.pipeHighIn)}</span></div>`;
-              if(mo.pipeMedIn>0) html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:#3f83f8">${fC(mo.pipeMedIn)}</span></div>`;
-            } else if(mo.pipeMedIn>0){
-              html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
-              html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:#3f83f8">${fC(mo.pipeMedIn)}</span></div>`;
-            }
-            if(!outstanding.length&&!drafts.length&&!mo.pipeHighIn&&!mo.pipeMedIn&&mo.baseIn){
-              html+=`<div class="ctt-row"><span class="ctt-name">Base forecast</span><span class="ctt-amt">${fC(mo.baseIn)}</span></div>`;
-            }
-          }
-          html+=`<div class="ctt-total"><span>Total Cash In</span><span style="color:var(--teal)">${fC(totalIn)}</span></div>`;
+          // Reusable row/total builders
+          const rowH   = (name,amt,color)=>`<div class="ctt-row"><span class="ctt-name">${name}</span><span class="ctt-amt"${color?` style="color:${color}"`:''}>${amt}</span></div>`;
+          const totalH = (name,amt,color)=>`<div class="ctt-total"><span>${name}</span><span style="color:${color}">${amt}</span></div>`;
 
-          // ── Cash Out block ──
-          html+=`<div class="ctt-section" style="margin-top:8px">💸 Cash Out</div>`;
-          if(mo.baseOut) html+=`<div class="ctt-row"><span class="ctt-name">Base ops</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.baseOut)}</span></div>`;
-          if(mo.loanExtra<0) html+=`<div class="ctt-row"><span class="ctt-name">Loan repayment</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.loanExtra)}</span></div>`;
-          if(mo.taxThisMonth<0) html+=`<div class="ctt-row"><span class="ctt-name">Tax</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.taxThisMonth)}</span></div>`;
-          if(mo.workforceExtra<0){
-            html+=`<div class="ctt-row"><span class="ctt-name">Workforce (pipeline + drafts)</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.workforceExtra)}</span></div>`;
-          }
-          if(mo.payrollSave>0) html+=`<div class="ctt-row"><span class="ctt-name">Payroll saving</span><span class="ctt-amt" style="color:var(--green)">+${fC(mo.payrollSave)}</span></div>`;
-          html+=`<div class="ctt-total"><span>Total Cash Out</span><span style="color:var(--coral)">${fC(totalOut)}</span></div>`;
+          // Cash In builder — actual side shows collected invoices, forecast side shows outstanding/drafts/pipeline
+          const cashInH = (side, data) => {
+            let h=`<div class="ctt-section">💰 Cash In</div>`;
+            if(side==='actual'){
+              if(collected.length){
+                collected.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;h+=rowH(nm,fC(e.amt));});
+              } else if(data.baseIn){
+                h+=rowH('Collected',fC(data.baseIn));
+              } else {
+                h+=`<div class="ctt-row"><span class="ctt-name" style="color:var(--text3)">Nothing collected yet</span></div>`;
+              }
+            } else {
+              if(outstanding.length){
+                h+=`<div class="ctt-row" style="margin-top:2px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">⏳ OUTSTANDING</span></div>`;
+                outstanding.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;h+=rowH(nm,fC(e.amt),null).replace('ctt-amt','ctt-amt out');});
+                const tot=outstanding.reduce((s,e)=>s+e.amt,0);
+                if(tot>0)h+=`<div class="ctt-row" style="padding:1px 0"><span class="ctt-name" style="color:var(--text3)">Subtotal</span><span class="ctt-amt out" style="font-size:12px">${fC(tot)}</span></div>`;
+              }
+              if(drafts.length){
+                h+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">📝 WON — NOT YET INVOICED</span></div>`;
+                drafts.forEach(e=>{const nm=e.proj&&e.proj!==e.cust?`${e.cust} · ${e.proj}`:e.cust;h+=`<div class="ctt-row"><span class="ctt-name">${nm}</span><span class="ctt-amt draft">${e.amt>0?fC(e.amt):'TBD'}</span></div>`;});
+                const tot=drafts.filter(e=>e.amt>0).reduce((s,e)=>s+e.amt,0);
+                if(tot>0)h+=`<div class="ctt-row" style="padding:1px 0"><span class="ctt-name" style="color:var(--text3)">Subtotal</span><span class="ctt-amt" style="font-size:12px">${fC(tot)}</span></div>`;
+              }
+              if(data.pipeHighIn>0){
+                h+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
+                h+=rowH('High probability',fC(data.pipeHighIn),'#63b3ed');
+                if(data.pipeMedIn>0) h+=rowH('Medium probability',fC(data.pipeMedIn),'#3f83f8');
+              } else if(data.pipeMedIn>0){
+                h+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
+                h+=rowH('Medium probability',fC(data.pipeMedIn),'#3f83f8');
+              }
+              if(!outstanding.length&&!drafts.length&&!data.pipeHighIn&&!data.pipeMedIn&&data.baseIn){
+                h+=rowH('Base forecast',fC(data.baseIn));
+              }
+            }
+            h+=totalH('Total Cash In',fC(data.totalIn),'var(--teal)');
+            return h;
+          };
 
-          // ── Net Flow + Balance ──
-          const nfCol = netFlow>=0?'var(--green)':'var(--coral)';
-          html+=`<div style="display:flex;gap:6px;margin-top:8px;">`;
-          html+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Net Flow</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${nfCol}">${fC(netFlow)}</div></div>`;
-          const scenBal=(window._scenMonthly||[])[mIdx]?null:null; // balance from chart data
+          // Cash Out builder — same shape for both sides, values differ
+          const cashOutH = (data) => {
+            let h=`<div class="ctt-section" style="margin-top:8px">💸 Cash Out</div>`;
+            if(data.baseOut) h+=rowH('Base ops',fC(data.baseOut),'var(--coral)');
+            if(data.loanExtra<0) h+=rowH('Loan repayment',fC(data.loanExtra),'var(--coral)');
+            if(data.taxThisMonth<0) h+=rowH('Tax',fC(data.taxThisMonth),'var(--coral)');
+            if(data.workforceExtra<0) h+=rowH('Workforce (pipeline + drafts)',fC(data.workforceExtra),'var(--coral)');
+            if(data.payrollSave>0) h+=rowH('Payroll saving','+'+fC(data.payrollSave),'var(--green)');
+            h+=totalH('Total Cash Out',fC(data.cashOut),'var(--coral)');
+            return h;
+          };
+
+          const netBalRow = (data, balVal) => {
+            const nfCol = data.netFlow>=0?'var(--green)':'var(--coral)';
+            let h=`<div style="display:flex;gap:6px;margin-top:8px;">`;
+            h+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Net Flow</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${nfCol}">${fC(data.netFlow)}</div></div>`;
+            if(balVal!=null){const bCol=balVal>=0?'var(--teal)':'var(--coral)';h+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Balance</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${bCol}">${fC(balVal)}</div></div>`;}
+            h+=`</div>`;
+            return h;
+          };
+
           const balVal=(tooltip.dataPoints||[]).find(d=>d.dataset.label?.includes('Balance'))?.parsed?.y;
-          if(balVal!=null){const bCol=balVal>=0?'var(--teal)':'var(--coral)';html+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Balance</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${bCol}">${fC(balVal)}</div></div>`;}
-          html+=`</div>`;
 
-          // ── Current month: actual-to-date vs full-month forecast, side by side ──
           if(isCurrentM && mo.fcst){
-            const f = mo.fcst;
-            const fNfCol = f.netFlow>=0?'var(--green)':'var(--coral)';
-            html+=`<div class="ctt-section" style="margin-top:10px;border-top:1px dashed rgba(255,255,255,.15);padding-top:8px;">🔮 Full-Month Forecast (for comparison)</div>`;
-            html+=`<div style="display:flex;gap:6px;margin-top:4px;">`;
-            html+=`<div style="flex:1;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.2);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Cash In (F)</div><div style="font-family:var(--mono);font-weight:700;font-size:13px;color:var(--teal)">${fC(f.totalIn)}</div></div>`;
-            html+=`<div style="flex:1;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.2);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Cash Out (F)</div><div style="font-family:var(--mono);font-weight:700;font-size:13px;color:var(--coral)">${fC(f.cashOut)}</div></div>`;
-            html+=`<div style="flex:1;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.2);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Net Flow (F)</div><div style="font-family:var(--mono);font-weight:700;font-size:13px;color:${fNfCol}">${fC(f.netFlow)}</div></div>`;
+            // ── Two genuine side-by-side columns: Actual (left) vs Forecast (right) ──
+            html+=`<div style="display:flex;gap:10px;">`;
+            html+=`<div style="flex:1;min-width:0;">`;
+            html+=`<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;border-bottom:1px solid var(--border);padding-bottom:4px;">Actual (to date)</div>`;
+            html+=cashInH('actual', mo);
+            html+=cashOutH(mo);
             html+=`</div>`;
-            html+=`<div style="font-size:9px;color:var(--text3);margin-top:5px;line-height:1.4;">Actual-to-date above is what's posted so far this month · Forecast above is the full-month estimate incl. remaining pipeline, tax, loan and payroll scenario adjustments.</div>`;
+            html+=`<div style="flex:1;min-width:0;border-left:1px dashed rgba(255,255,255,.15);padding-left:10px;">`;
+            html+=`<div style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;border-bottom:1px solid var(--border);padding-bottom:4px;">🔮 Forecast (full month)</div>`;
+            html+=cashInH('forecast', mo.fcst);
+            html+=cashOutH(mo.fcst);
+            html+=`</div>`;
+            html+=`</div>`;
+            html+=netBalRow(mo, balVal);
+            html+=`<div style="font-size:9px;color:var(--text3);margin-top:6px;line-height:1.4;">Left: what's actually posted this month so far · Right: full-month estimate incl. remaining pipeline, tax, loan and payroll scenario adjustments.</div>`;
+          } else {
+            // ── Single column, as before ──
+            html+=cashInH(isActM?'actual':'forecast', mo);
+            html+=cashOutH(mo);
+            html+=netBalRow(mo, balVal);
           }
 
+          sTip.style.maxWidth = (isCurrentM && mo.fcst) ? '480px' : '340px';
           sTip.innerHTML=html;sTip.style.display='block';sTip.style.opacity='1';
           const {offsetLeft:pX,offsetTop:pY}=chart.canvas;
           const tp=tooltip.caretX+pX,cW=chart.canvas.offsetWidth,tW=sTip.offsetWidth||300;
