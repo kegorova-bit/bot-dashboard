@@ -680,8 +680,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <thead>
           <tr>
             <th style="text-align:left">Month</th><th>Type</th>
-            <th>Cash In</th><th style="color:var(--coral)">Pipeline High</th>
-            <th style="color:var(--amber)">Pipeline Med</th><th>Total In</th>
+            <th>Cash In</th><th style="color:#63b3ed">Pipeline High</th>
+            <th style="color:#3f83f8">Pipeline Med</th><th>Total In</th>
             <th>Base Out</th><th style="color:var(--coral)">Loans</th>
             <th style="color:var(--coral)">Tax</th><th style="color:var(--amber)">Payroll Save</th>
             <th style="color:var(--coral)">Workforce</th>
@@ -693,7 +693,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </table>
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;">
-      * Table reflects scenario controls above · Pipeline High (blue) · Pipeline Medium (amber) · 2-month CCC applied
+      * Table reflects scenario controls above · Pipeline High (light blue) · Pipeline Medium (dark blue) · 2-month CCC applied
     </div>
 
     <!-- ── Runway summary ── -->
@@ -1072,7 +1072,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v59Jul-fixes · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v61Jul-scenario-current-month · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1870,10 +1870,29 @@ function buildScenChart(){
       scenHighIn.push(null);
       scenMedIn.push(null);
       scenCashOut.push(c.cOA_op||null);
-      scenMonthly.push({baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true});
+      const entry = {baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true};
+      // Current (latest) month is only partially actual — also compute the full-month forecast estimate
+      // so the tooltip can show actual-to-date and forecast side by side, instead of losing the forecast view entirely.
+      if(i === actualCount - 1){
+        const fBaseIn      = c.cIF || 0;
+        const fPipelineIn  = (pipePM_base[i]||0) * pipeRate;
+        const fPipeHighIn  = (highPM_base[i]||0) * pipeRate;
+        const fPipeMedIn   = (medPM_base[i]||0)  * pipeRate;
+        const fBaseOut     = c.cOutF2||0;
+        const fLoanExtra   = -(loanMonthly * oblRate_sel);
+        const fMonthPayroll= PAYROLL_MONTHLY[i] || 17595;
+        const fPayrollSave = fMonthPayroll * payrollCut;
+        const fNextPipeIn  = (pipePM_base[i+1]||0) * pipeRate;
+        const fDraftMonth  = (draftByIdx[i]||0);
+        const fWorkforce   = -((fNextPipeIn + fDraftMonth) * workRate);
+        const fTax         = (taxLiability * taxRate / taxMonths);
+        const fCashOut     = fBaseOut + fLoanExtra + fPayrollSave - fTax + fWorkforce;
+        entry.fcst = {baseIn:fBaseIn, pipeHighIn:fPipeHighIn, pipeMedIn:fPipeMedIn, baseOut:fBaseOut, loanExtra:fLoanExtra, taxThisMonth:-fTax, payrollSave:fPayrollSave, workforceExtra:fWorkforce, cashOut:fCashOut, totalIn:fBaseIn+fPipelineIn, netFlow:fBaseIn+fPipelineIn+fCashOut};
+      }
+      scenMonthly.push(entry);
       runBal = c.balA || c.balF2 || runBal;
     } else {
-      const isJunePlus   = i >= 5; // June (index 5) onwards = scenarios active
+      const isJunePlus   = true; // scenario adjustments apply to every forecast month (branch already guarantees i>=actualCount)
       const baseIn       = c.cIF || 0;
       const pipelineIn   = isJunePlus ? (pipePM_base[i]||0) * pipeRate : 0;
       const pipeHighIn   = isJunePlus ? (highPM_base[i]||0) * pipeRate : 0;
@@ -2040,6 +2059,7 @@ function buildScenChart(){
           const L26T=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
           const label=L26T[mIdx]||'';
           const isActM=mIdx<(window._actualCount||0);
+          const isCurrentM=mIdx===(window._actualCount||0)-1;
           const mo=((window._scenMonthly||[])[mIdx])||{};
           const byColl=window._invByCollMonth||{};
           const byExp =window._invByExpMonth||{};
@@ -2059,7 +2079,7 @@ function buildScenChart(){
             return ms[i]?ms[i]:null;
           }) : [];
 
-          let html=`<div class="ctt-month">${label} · ${isActM?'Actual':'Forecast'}</div>`;
+          let html=`<div class="ctt-month">${label} · ${isCurrentM&&mo.fcst?'Actual-to-date + Forecast':isActM?'Actual':'Forecast'}</div>`;
 
           // ── Cash In block ──
           html+=`<div class="ctt-section">💰 Cash In</div>`;
@@ -2086,11 +2106,11 @@ function buildScenChart(){
             }
             if(mo.pipeHighIn>0){
               html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
-              html+=`<div class="ctt-row"><span class="ctt-name">High probability</span><span class="ctt-amt" style="color:var(--coral)">${fC(mo.pipeHighIn)}</span></div>`;
-              if(mo.pipeMedIn>0) html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:var(--amber)">${fC(mo.pipeMedIn)}</span></div>`;
+              html+=`<div class="ctt-row"><span class="ctt-name">High probability</span><span class="ctt-amt" style="color:#63b3ed">${fC(mo.pipeHighIn)}</span></div>`;
+              if(mo.pipeMedIn>0) html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:#3f83f8">${fC(mo.pipeMedIn)}</span></div>`;
             } else if(mo.pipeMedIn>0){
               html+=`<div class="ctt-row" style="margin-top:4px"><span class="ctt-name" style="color:var(--text3);font-size:10px;letter-spacing:.4px">🔮 PIPELINE</span></div>`;
-              html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:var(--amber)">${fC(mo.pipeMedIn)}</span></div>`;
+              html+=`<div class="ctt-row"><span class="ctt-name">Medium probability</span><span class="ctt-amt" style="color:#3f83f8">${fC(mo.pipeMedIn)}</span></div>`;
             }
             if(!outstanding.length&&!drafts.length&&!mo.pipeHighIn&&!mo.pipeMedIn&&mo.baseIn){
               html+=`<div class="ctt-row"><span class="ctt-name">Base forecast</span><span class="ctt-amt">${fC(mo.baseIn)}</span></div>`;
@@ -2117,6 +2137,19 @@ function buildScenChart(){
           const balVal=(tooltip.dataPoints||[]).find(d=>d.dataset.label?.includes('Balance'))?.parsed?.y;
           if(balVal!=null){const bCol=balVal>=0?'var(--teal)':'var(--coral)';html+=`<div style="flex:1;background:rgba(255,255,255,.06);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Balance</div><div style="font-family:var(--mono);font-weight:700;font-size:14px;color:${bCol}">${fC(balVal)}</div></div>`;}
           html+=`</div>`;
+
+          // ── Current month: actual-to-date vs full-month forecast, side by side ──
+          if(isCurrentM && mo.fcst){
+            const f = mo.fcst;
+            const fNfCol = f.netFlow>=0?'var(--green)':'var(--coral)';
+            html+=`<div class="ctt-section" style="margin-top:10px;border-top:1px dashed rgba(255,255,255,.15);padding-top:8px;">🔮 Full-Month Forecast (for comparison)</div>`;
+            html+=`<div style="display:flex;gap:6px;margin-top:4px;">`;
+            html+=`<div style="flex:1;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.2);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Cash In (F)</div><div style="font-family:var(--mono);font-weight:700;font-size:13px;color:var(--teal)">${fC(f.totalIn)}</div></div>`;
+            html+=`<div style="flex:1;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.2);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Cash Out (F)</div><div style="font-family:var(--mono);font-weight:700;font-size:13px;color:var(--coral)">${fC(f.cashOut)}</div></div>`;
+            html+=`<div style="flex:1;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.2);border-radius:7px;padding:7px 10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Net Flow (F)</div><div style="font-family:var(--mono);font-weight:700;font-size:13px;color:${fNfCol}">${fC(f.netFlow)}</div></div>`;
+            html+=`</div>`;
+            html+=`<div style="font-size:9px;color:var(--text3);margin-top:5px;line-height:1.4;">Actual-to-date above is what's posted so far this month · Forecast above is the full-month estimate incl. remaining pipeline, tax, loan and payroll scenario adjustments.</div>`;
+          }
 
           sTip.innerHTML=html;sTip.style.display='block';sTip.style.opacity='1';
           const {offsetLeft:pX,offsetTop:pY}=chart.canvas;
@@ -2151,7 +2184,7 @@ function buildScenChart(){
       var ti=ri+hi+mi,co=scenCashOut[i]||0,nt=ti+co;
       // Break out cash out components for table display
       var c_cash=cash[i]||{};
-      var isJune   = i >= 5; // June+ for scenario adjustments
+      var isJune   = true; // scenario adjustments apply to every forecast month (already gated by !ia below)
       var baseOutV = ia ? (c_cash.cOA_op||0) : -(c_cash.cOutF2||0);
       var loanV    = ia ? 0 : -(isJune ? loanMonthly * oblRate_sel : 0);
       var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
@@ -2168,8 +2201,8 @@ function buildScenChart(){
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
         +td(ia?'ACTUAL':'FORECAST','','font-size:10px;color:'+(ia?'var(--teal)':'var(--amber)'))
         +td(fC(ri))
-        +td(hi?fC(hi):'—','','color:var(--coral)')
-        +td(mi?fC(mi):'—','','color:var(--amber)')
+        +td(hi?fC(hi):'—','','color:#63b3ed')
+        +td(mi?fC(mi):'—','','color:#3f83f8')
         +td(fC(ti),'','font-weight:600')
         +td(ia?fC(c_cash.cOA_op||0):fC(-baseOutV),'neg')
         +td(loanV?'-'+fC(Math.abs(loanV)):'—','','color:var(--coral)')
@@ -2186,8 +2219,8 @@ function buildScenChart(){
       var tNet=tRI+tH+tM+tO;
       t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total</strong></td><td></td>'
         +'<td>'+fC(tRI)+'</td>'
-        +'<td style="color:var(--coral)">'+fC(tH)+'</td>'
-        +'<td style="color:var(--amber)">'+fC(tM)+'</td>'
+        +'<td style="color:#63b3ed">'+fC(tH)+'</td>'
+        +'<td style="color:#3f83f8">'+fC(tM)+'</td>'
         +'<td><strong>'+fC(tRI+tH+tM)+'</strong></td>'
         +'<td class="neg">'+fC(tBaseOut)+'</td>'
         +'<td style="color:var(--coral)">'+(tLoan?'-'+fC(Math.abs(tLoan)):'—')+'</td>'
