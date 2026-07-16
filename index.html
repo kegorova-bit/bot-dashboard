@@ -1112,7 +1112,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v66Jul-variance-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v67Jul-revenue-legend · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2590,20 +2590,24 @@ function buildH1(){
   // Proportionally-scaled hierarchical bar — length reflects actual $ amount relative to a SHARED
   // scale (not each row's own target), so categories can be visually compared by true magnitude.
   // Target is shown as a marker line on the same scale. Supports indentation for parent/child rows.
-  const hierBar = (label, actual, target, color, scale, indent, isTotal) => {
+  // Bar keeps its assigned hue (barColor) regardless of over/under — variance color only affects the $ variance text.
+  const hierBar = (label, actual, target, barColor, scale, indent, isTotal) => {
     const pctActual = scale ? Math.min(100, actual/scale*100) : 0;
     const pctTarget = scale ? Math.min(100, Math.abs(target)/scale*100) : 0;
     const favorable = actual >= Math.abs(target);
-    const barColor = favorable ? 'var(--green)' : color;
     const vc = favorable ? 'var(--green)' : 'var(--coral)';
     const varV = actual - Math.abs(target);
     const barH = isTotal ? 28 : 22;
     const fw = isTotal ? '700' : '600';
     const fs = isTotal ? '13px' : '12px';
+    const labelInside = pctActual > 22; // enough room to fit the value text inside the fill
     return `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:${isTotal?'12px 0':'9px 0'};${isTotal?'':'border-bottom:1px solid var(--border);'}">
       <span style="font-size:${fs};font-weight:${fw};color:${isTotal?'var(--text)':'var(--text2)'};padding-left:${indent||0}px;white-space:nowrap;">${indent?'↳ ':''}${label}</span>
       <div style="position:relative;height:${barH}px;background:rgba(255,255,255,.06);border-radius:6px;">
-        <div style="position:absolute;top:0;left:0;height:100%;width:${pctActual.toFixed(1)}%;background:${barColor};border-radius:6px;transition:width .6s;"></div>
+        <div style="position:absolute;top:0;left:0;height:100%;width:${pctActual.toFixed(1)}%;background:${barColor};border-radius:6px;transition:width .6s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;">
+          ${labelInside?`<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#0b0d12;white-space:nowrap;">${fC(actual)}</span>`:''}
+        </div>
+        ${!labelInside?`<span style="position:absolute;top:50%;left:calc(${pctActual.toFixed(1)}% + 8px);transform:translateY(-50%);font-family:var(--mono);font-size:11px;font-weight:700;color:${barColor};white-space:nowrap;">${fC(actual)}</span>`:''}
         <div title="Target: ${fC(Math.abs(target))}" style="position:absolute;top:-3px;left:${pctTarget.toFixed(1)}%;width:2px;height:${barH+6}px;background:rgba(255,255,255,.75);"></div>
       </div>
       <div style="text-align:right;font-size:${isTotal?'16px':'15px'};font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
@@ -2621,6 +2625,13 @@ function buildH1(){
   const h1HaivoTarget  = h1all.reduce((s,r)=>s+(r.haivoF||0),0);
   const h1GrantTarget  = h1all.reduce((s,r)=>s+(r.gF||0),0);
 
+  // Distinct hues per hierarchy level so Revenue/Sales/children read as visually separate tiers
+  const HUE_REVENUE = '#0fb8b8';  // teal
+  const HUE_SALES    = '#3b82f6'; // blue
+  const HUE_GRANTS   = 'var(--amber)';
+  const HUE_DC       = '#60a5fa'; // lighter blue (child of Sales)
+  const HUE_HAIVO    = '#22d3ee'; // cyan (child of Sales)
+
   const barsEl = el('h1_breakdown_bars');
   if(barsEl){
     const hdr = `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;gap:14px;padding:6px 0 8px;border-bottom:2px solid var(--border2);">
@@ -2630,13 +2641,26 @@ function buildH1(){
       <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Target</span>
       <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Variance</span>
     </div>`;
+    // Legend — swatch + label + $ value for every tier
+    const legendItem = (color,label,val) => `<div style="display:flex;align-items:center;gap:6px;">
+      <span style="width:10px;height:10px;border-radius:3px;background:${color};display:inline-block;"></span>
+      <span style="font-size:11px;color:var(--text2);">${label}</span>
+      <span style="font-size:11px;font-family:var(--mono);font-weight:700;color:${color};">${fC(val)}</span>
+    </div>`;
+    const legend = `<div style="display:flex;flex-wrap:wrap;gap:18px;padding:2px 0 14px;">
+      ${legendItem(HUE_REVENUE,'Revenue',h1rev)}
+      ${legendItem(HUE_SALES,'Sales',h1sales)}
+      ${h1grants>0?legendItem(HUE_GRANTS,'Grants',h1grants):''}
+      ${legendItem(HUE_DC,'Data Collection',h1dc)}
+      ${legendItem(HUE_HAIVO,'HAIVO',h1haivo)}
+    </div>`;
     const revScale = Math.max(h1rev, h1target) || 1;
-    barsEl.innerHTML = hdr +
-      hierBar('Revenue',         h1rev,    h1target,       'var(--teal)', revScale, 0,  true) +
-      hierBar('Sales',           h1sales,  h1SalesTarget,  'var(--teal)', revScale, 16, false) +
-      (h1grants > 0 ? hierBar('Grants', h1grants, h1GrantTarget || h1grants, 'var(--amber)', revScale, 16, false) : '') +
-      hierBar('Data Collection', h1dc,     h1DCTarget,     'var(--teal)', revScale, 34, false) +
-      hierBar('HAIVO',           h1haivo,  h1HaivoTarget,  'var(--teal)', revScale, 34, false);
+    barsEl.innerHTML = legend + hdr +
+      hierBar('Revenue',         h1rev,    h1target,       HUE_REVENUE, revScale, 0,  true) +
+      (h1grants > 0 ? hierBar('Grants', h1grants, h1GrantTarget || h1grants, HUE_GRANTS, revScale, 16, false) : '') +
+      hierBar('Sales',           h1sales,  h1SalesTarget,  HUE_SALES,   revScale, 16, false) +
+      hierBar('Data Collection', h1dc,     h1DCTarget,     HUE_DC,      revScale, 34, false) +
+      hierBar('HAIVO',           h1haivo,  h1HaivoTarget,  HUE_HAIVO,   revScale, 34, false);
   }
 
   // Expenses by Category — H1 2026, from Budget 2026A (actual) / Budget 2026F_v0 (base forecast)
