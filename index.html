@@ -423,6 +423,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div id="h1_breakdown_bars" style="padding:4px 0;"></div>
   </div>
 
+  <!-- Expenses breakdown progress bars -->
+  <div class="card mb" id="h1_exp_breakdown_card">
+    <div class="ch"><div><div class="ctitle">Expenses by Category — Actual vs Target</div><div class="csub">H1 2026 · Jan–Jun · Source: Budget 2026A / Budget 2026F_v0, as of Jul 7 2026 (static snapshot, not yet live-linked)</div></div></div>
+    <div id="h1_exp_breakdown_bars" style="padding:4px 0;"></div>
+  </div>
+
   <!-- Mirror chart: revenue above x, expenses below x -->
   <div class="card accent mb">
     <div class="ch"><div>
@@ -1072,7 +1078,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v63Jul-tooltip-2col · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v64Jul-h1-expenses · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2550,6 +2556,27 @@ function buildH1(){
     </div>`;
   };
 
+  // Cost-aware variant: LOWER actual vs target is favorable (green), higher is unfavorable (coral) — inverted from catBar
+  const catBarCost = (label, actual, target, color) => {
+    const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
+    const under = actual <= Math.abs(target);
+    const barColor = under ? 'var(--green)' : color;
+    const vc = under ? 'var(--green)' : 'var(--coral)';
+    const varV = actual - Math.abs(target);
+    return `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:12px;font-weight:600;color:var(--text2)">${label}</span>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <div style="height:14px;background:rgba(255,255,255,.07);border-radius:7px;overflow:hidden;">
+          <div style="height:100%;width:${Math.min(100,pct).toFixed(1)}%;background:${barColor};border-radius:7px;transition:width .6s;"></div>
+        </div>
+        <div style="font-size:9px;color:var(--text3)">${pct.toFixed(0)}% of target</div>
+      </div>
+      <div style="text-align:right;font-size:15px;font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
+      <div style="text-align:right;font-size:11px;color:var(--text3)">${fC(Math.abs(target))}</div>
+      <div style="text-align:right;font-size:12px;font-weight:700;color:${vc}">${varV>=0?'+':''}${fC(varV)}</div>
+    </div>`;
+  };
+
   const el = id => document.getElementById(id);
   if(el('h1_rev')){ el('h1_rev').textContent=fC(h1rev); }
   if(el('h1_rev_sub')) el('h1_rev_sub').textContent=fPct(h1rev,h1target)+' of '+fC(h1target)+' H1 target';
@@ -2589,6 +2616,33 @@ function buildH1(){
       catBar('Data Collection', h1dc,     h1DCTarget,     'var(--teal)') +
       catBar('HAIVO',           h1haivo,  h1HaivoTarget,  'var(--teal)') +
       (h1grants > 0 ? catBar('Grants', h1grants, h1GrantTarget || h1grants, 'var(--amber)') : '');
+  }
+
+  // Expenses by Category — H1 2026, from Budget 2026A (actual) / Budget 2026F_v0 (base forecast)
+  // Static snapshot as of Jul 7 2026 — reconciles exactly with the Staging-derived H1 Total Expenses
+  // card above ($220,207 actual / $294,281 base forecast). Excludes Incentives per profitability convention;
+  // Non-Opex was $0 for H1 actual and not part of the base-forecast subtotal either, so no adjustment needed.
+  const h1ExpCategories = [
+    {label:'Direct Cost',          actual:64191,  target:125885},
+    {label:'Payroll',              actual:131231, target:129830},
+    {label:'R&D',                  actual:7230,   target:14787},
+    {label:'BD&M',                 actual:1155,   target:5280},
+    {label:'Office and services',  actual:16400,  target:18500},
+  ];
+  const expBarsEl = el('h1_exp_breakdown_bars');
+  if(expBarsEl){
+    const expHdr = `<div style="display:grid;grid-template-columns:140px 1fr 110px 90px 80px;gap:14px;padding:6px 0 8px;border-bottom:2px solid var(--border2);">
+      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Category</span>
+      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Progress</span>
+      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.5px;">Actual</span>
+      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Target</span>
+      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Variance</span>
+    </div>`;
+    const expTotalActual = h1ExpCategories.reduce((s,c)=>s+c.actual,0);
+    const expTotalTarget = h1ExpCategories.reduce((s,c)=>s+c.target,0);
+    expBarsEl.innerHTML = expHdr +
+      h1ExpCategories.map(c=>catBarCost(c.label, c.actual, c.target, 'var(--amber)')).join('') +
+      catBarCost('Total Expenses', expTotalActual, expTotalTarget, 'var(--amber)');
   }
 
   // Fix 3: grouped — actual pair (rev+exp stacked) | forecast pair (rev+exp stacked) per month
