@@ -605,7 +605,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div class="tl" style="margin-bottom:4px;">Loan repayment</div>
         <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_loan_amt">—</div>
         <select class="ts" id="scen_obligations" onchange="buildScenChart()">
-          <option value="0">0% — No tax repayment</option>
+          <option value="0">0% — No loan repayment</option>
           <option value="0.25">25% of liability</option>
           <option value="0.5">50% of liability</option>
           <option value="0.75">75% of liability</option>
@@ -825,18 +825,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="out-table-wrap mb">
     <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
     <table>
-      <thead><tr><th>#</th><th>Customer</th><th>Project</th><th>Amount Outstanding</th><th>% of Total</th></tr></thead>
+      <thead><tr><th>#</th><th>Customer</th><th>Project</th><th>Expected Collection Month</th><th>Amount Outstanding</th><th>% of Total</th></tr></thead>
       <tbody id="out_tbody"></tbody>
-      <tfoot><tr><td></td><td colspan="2"><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
+      <tfoot><tr><td></td><td colspan="3"><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
     </table>
   </div>
   <!-- To be invoiced by customer -->
   <div class="out-table-wrap">
     <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
     <table>
-      <thead><tr><th>#</th><th>Customer</th><th>Project</th><th>Amount to be invoiced (no VAT)</th><th>% of Total</th></tr></thead>
+      <thead><tr><th>#</th><th>Customer</th><th>Project</th><th>Expected Invoice Month</th><th>Amount to be invoiced (no VAT)</th><th>% of Total</th></tr></thead>
       <tbody id="not_inv_tbody"></tbody>
-      <tfoot><tr><td></td><td colspan="2"><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
+      <tfoot><tr><td></td><td colspan="3"><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
     </table>
   </div>
 </div>
@@ -984,12 +984,13 @@ const invoiceSchema = {
   amountDso:     ['Actual_Payment', 'Actual Payment', 'Amount (DSO)'],
   outstanding:   ['Amount_Outstanding', 'Amount Outstanding', 'Outstanding', 'Balance Due'],
   notInvoicedAmt:['Amount_noVAT', 'Amount (no VAT)', 'Amount no VAT', 'Net Amount'],
+  expectedMonth: ['Expected_Collection_Month', 'Expected Collection Month'],
 };
 
 const invoiceFallbacks = {
   invoiceDate:1, paymentStatus:3, status:4, customer:7, amountNoVat:11,
   collectionDate:16, monthLabel:17, amountDso:18, outstanding:20,
-  notInvoicedAmt:11, project:8, company:10, amountGross:12
+  notInvoicedAmt:11, project:8, company:10, amountGross:12, expectedMonth:14
 };
 
 const cffSchema = {
@@ -1071,7 +1072,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v58Jul-contrast · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v59Jul-fixes · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2626,9 +2627,12 @@ function build6MFcst(){
     elT('fcst_headline_val').textContent = (revPctChange>=0?'▲ +':'▼ ')+Math.abs(revPctChange).toFixed(1)+'%';
     elT('fcst_headline_val').style.color = revPctChange>=0 ? 'var(--green)' : 'var(--coral)';
   }
-  if(elT('fcst_headline_sub')) elT('fcst_headline_sub').innerHTML =
-    'Revenue forecast <b style="font-size:22px;font-family:var(--mono);color:var(--teal);">'+fC(revUpd)+'</b> vs original budget '+
-    '<b style="font-size:22px;font-family:var(--mono);color:var(--text);">'+fC(revBase)+'</b> <span style="color:var(--text3);font-size:13px;">('+rangeLabel+')</span>';
+  if(elT('fcst_headline_sub')){
+    const revColor = revUpd===revBase ? 'var(--text)' : (revUpd>=revBase ? 'var(--green)' : 'var(--coral)');
+    elT('fcst_headline_sub').innerHTML =
+      'Revenue forecast <b style="font-size:22px;font-family:var(--mono);color:'+revColor+';">'+fC(revUpd)+'</b> vs original budget '+
+      '<b style="font-size:22px;font-family:var(--mono);color:var(--text);">'+fC(revBase)+'</b> <span style="color:var(--text3);font-size:13px;">('+rangeLabel+')</span>';
+  }
 
   // ── KPI comparison cards ──
   const kpiCard = (label, budget, forecast, isCost, compactFn) => {
@@ -2734,7 +2738,7 @@ function build6MFcst(){
     tbody.innerHTML='';
     catMetrics.forEach(m=>{
       const diff=m.upd-m.base, pct=m.base?diff/Math.abs(m.base)*100:0;
-      const good=m.isCost?diff<=0:diff>=0;
+      const good=diff>=0;  // values are signed as stored (expenses negative), so diff>=0 is always favorable here
       const vc=diff===0?'var(--text3)':(good?'var(--green)':'var(--coral)');
       const bg=m.bold?'background:rgba(255,255,255,.04);':'', fw=m.bold?'font-weight:700;':'';
       const td='padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;font-family:var(--mono);font-size:12px;'+bg;
@@ -2763,7 +2767,7 @@ function build6MFcst(){
       if(!el) return;
       if(!list.length){ el.innerHTML='<div style="padding:16px 4px;color:var(--text3);font-size:12px;">No material changes</div>'; return; }
       el.innerHTML=list.map(m=>{
-        const goodColor = (m.isCost ? m.diff<=0 : m.diff>=0) ? 'var(--green)' : 'var(--coral)';
+        const goodColor = (m.diff>=0) ? 'var(--green)' : 'var(--coral)';
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-bottom:1px solid var(--border);">
           <span style="font-size:12px;color:var(--text2);">${m.label}</span>
           <span style="font-family:var(--mono);font-weight:700;font-size:12px;color:${goodColor}">${m.diff>=0?'+':''}${fC(m.diff)}</span>
@@ -2806,7 +2810,7 @@ function build6MFcst(){
     const primary = catDeltas[0], secondary = catDeltas[1];
     const primaryPct = primary.base ? (primary.d/Math.abs(primary.base)*100) : 0;
     const secondaryPct = secondary.base ? (secondary.d/Math.abs(secondary.base)*100) : 0;
-    const expDir = expUpd<=expBase ? 'below' : 'above';
+    const expDir = expUpd>=expBase ? 'below' : 'above';
 
     const p1 = `Revenue is forecast at <b style="color:var(--text)">${fC(revUpd)}</b> for ${rangeLabel}, `+
       `${revUpd>=revBase?'above':'below'} the original budget of ${fC(revBase)} by `+
@@ -2815,7 +2819,7 @@ function build6MFcst(){
       `(${primaryPct>=0?'+':''}${primaryPct.toFixed(1)}%) versus budget`+
       (Math.abs(secondary.d)>0 ? `, with <b>${secondary.label}</b> moving ${dir(secondary.d)} ${fC(Math.abs(secondary.d))} (${secondaryPct>=0?'+':''}${secondaryPct.toFixed(1)}%) as a secondary factor.` : '.');
     const p3 = `Expenses are tracking at ${fC(Math.abs(expUpd))}, ${expDir} the ${fC(Math.abs(expBase))} budget `+
-      `(${expUpd<=expBase?'−':'+'}${fC(Math.abs(expUpd-expBase))}), resulting in Operating Profit of `+
+      `(${expUpd>=expBase?'−':'+'}${fC(Math.abs(expUpd-expBase))}), resulting in Operating Profit of `+
       `<b style="color:${opUpd>=0?'var(--green)':'var(--coral)'}">${fC(opUpd)}</b> versus a budgeted ${fC(opBase)} `+
       `— a variance of ${opUpd>=opBase?'+':''}${fC(opUpd-opBase)}.`;
 
@@ -2831,6 +2835,15 @@ function processInvoices(rows){
   // Resolve columns from header row using invoiceSchema — resilient to column shifts
   window._invoiceColMap = mapHeaders(rows[0], invoiceSchema, invoiceFallbacks);
   const C = window._invoiceColMap;
+  const ym2label = ym => {
+    if(!ym) return null;
+    const clean = ym.trim().replace(/\s/g,'');
+    const p = clean.split('-');
+    if(p.length<2) return null;
+    const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const mo = parseInt(p[1])-1;
+    return (mn[mo]||'') + " '" + p[0].slice(2);
+  };
   // Log live headers and col map for debugging
   console.log('Invoice tracker live headers:', rows[0] ? rows[0].slice(0,25).join(' | ') : 'NO HEADER ROW');
   console.log('Invoice COL map:', JSON.stringify(C));
@@ -2858,10 +2871,13 @@ function processInvoices(rows){
       const outstanding = Math.abs(pv(r[C.outstanding]));
       if(outstanding <= 0) continue;
       const project = (r[C.project]||'').trim();
+      const expMo = (r[C.expectedMonth]||'').trim();
       const key = customer + '||' + project;
       const existing = byCustomerProject.find(x=>x.key===key);
-      if(existing){ existing.amount += outstanding; }
-      else { byCustomerProject.push({key, customer, project, amount: outstanding}); }
+      if(existing){
+        existing.amount += outstanding;
+        if(expMo && (!existing.expMonth || expMo < existing.expMonth)) existing.expMonth = expMo;
+      } else { byCustomerProject.push({key, customer, project, amount: outstanding, expMonth: expMo||null}); }
       grandTotal += outstanding;
       outstandingInvoiceCount++;
     }
@@ -2880,19 +2896,22 @@ function processInvoices(rows){
       const amt=pv(r[C.notInvoicedAmt]);
       if(!cust||amt<=0)continue;
       const key=cust+'||'+proj;
+      const expMo=(r[C.expectedMonth]||'').trim();
       const existing=notInvRows.find(x=>x.key===key);
-      if(existing){ existing.amount+=amt; }
-      else { notInvRows.push({key,customer:cust,project:proj,amount:amt}); }
+      if(existing){
+        existing.amount+=amt;
+        if(expMo && (!existing.expMonth || expMo < existing.expMonth)) existing.expMonth = expMo;
+      } else { notInvRows.push({key,customer:cust,project:proj,amount:amt,expMonth:expMo||null}); }
     }
     const niSorted=notInvRows.sort((a,b)=>b.amount-a.amount);
     const niTbody=document.getElementById('not_inv_tbody');
     const niTotEl=document.getElementById('not_inv_total');
     if(niTbody){
       niTbody.innerHTML='';
-      niSorted.forEach(({customer:cust,project:proj,amount:amt},i)=>{
+      niSorted.forEach(({customer:cust,project:proj,amount:amt,expMonth},i)=>{
         const pct=notInvoicedTotal>0?(amt/notInvoicedTotal*100).toFixed(1):0;
         const tr=document.createElement('tr');
-        tr.innerHTML='<td class="rn">'+(i+1)+'.</td><td>'+cust+'</td><td style="color:var(--text2)">'+(proj||'—')+'</td><td>'+fC(amt)+'</td>'
+        tr.innerHTML='<td class="rn">'+(i+1)+'.</td><td>'+cust+'</td><td style="color:var(--text2)">'+(proj||'—')+'</td><td style="color:var(--text2)">'+(ym2label(expMonth)||'—')+'</td><td>'+fC(amt)+'</td>'
           +'<td><div style="display:flex;align-items:center;gap:8px;">'
           +'<div style="height:6px;width:'+Math.max(2,pct*1.8)+'px;background:rgba(245,166,35,0.6);border-radius:3px"></div>'
           +'<span style="font-family:var(--mono);font-size:11px">'+pct+'%</span></div></td>';
@@ -2955,7 +2974,7 @@ function processInvoices(rows){
     const tbody = document.getElementById('out_tbody');
     if(!tbody) return;
     tbody.innerHTML = '';
-    sorted.forEach(({customer, project, amount}, i)=>{
+    sorted.forEach(({customer, project, amount, expMonth}, i)=>{
       const pct = grandTotal > 0 ? (amount/grandTotal*100).toFixed(1) : 0;
       const barW = Math.max(2, Math.min(180, pct*1.8));
       const tr = document.createElement('tr');
@@ -2963,6 +2982,7 @@ function processInvoices(rows){
         '<td class="rn">'+(i+1)+'.</td>'+
         '<td>'+customer+'</td>'+
         '<td style="color:var(--text2)">'+(project||'—')+'</td>'+
+        '<td style="color:var(--text2)">'+(ym2label(expMonth)||'—')+'</td>'+
         '<td>'+fC(amount)+'</td>'+
         '<td><div style="display:flex;align-items:center;gap:8px;">'+
           '<div style="height:6px;width:'+barW+'px;background:rgba(15,184,184,0.6);border-radius:3px;min-width:2px"></div>'+
@@ -2982,15 +3002,6 @@ function processInvoices(rows){
     const invMonthlyPaid        = {};   // actual collected by Actual_Collection_month
     const invMonthlyOutstanding = {};   // outstanding by Expected_Collection_Month
     const invMonthlyDraft       = {};   // draft/to-invoice by Expected_Collection_Month
-    const ym2label = ym => {
-      if(!ym) return null;
-      const clean = ym.trim().replace(/\s/g,'');
-      const p = clean.split('-');
-      if(p.length<2) return null;
-      const mn=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      const mo = parseInt(p[1])-1;
-      return (mn[mo]||'') + " '" + p[0].slice(2);
-    };
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
       if(!r[C.paymentStatus]) continue;
