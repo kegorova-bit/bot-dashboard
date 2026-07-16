@@ -18,7 +18,7 @@
   --green:#2ECC8F;--gDim:rgba(46,204,143,0.14);
   --amber:#f5a623;--aDim:rgba(245,166,35,0.14);
   --cyan:rgba(103,232,249,0.75);
-  --text:#f1f5f9;--text2:#cbd5e1;--text3:#b3c1d1;
+  --text:#f1f5f9;--text2:#cbd5e1;--text3:#d3dce6;
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --radius:14px;
 }
@@ -31,7 +31,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .header-sub{font-size:13px;font-weight:500;color:var(--text3);}
 .refresh-btn{font-family:var(--font);font-size:11px;font-weight:600;color:var(--teal);background:var(--tDim);border:1px solid rgba(15,184,184,.4);border-radius:20px;padding:5px 14px;cursor:pointer;transition:all .2s;}
 .refresh-btn:hover{background:rgba(15,184,184,.25);}.refresh-btn.loading{opacity:.5;pointer-events:none;}
-.hdate{font-size:11px;color:var(--text3);background:var(--bg3);padding:5px 13px;border-radius:20px;border:1px solid var(--border);}
+.hdate{font-size:12px;color:var(--text3);background:var(--bg3);padding:5px 13px;border-radius:20px;border:1px solid var(--border);}
 .tabs{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 36px;display:flex;gap:4px;position:sticky;top:62px;z-index:100;}
 .tab{padding:14px 20px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;user-select:none;}
 .tab:hover{color:var(--teal);}.tab.active{color:var(--teal);border-bottom-color:var(--teal);}
@@ -44,37 +44,37 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:14px;font-weight:600;color:var(--text2);}
 .error-bar{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.4);border-radius:10px;padding:14px 20px;font-size:12px;color:var(--coral);margin:16px 36px;display:none;line-height:1.7;}
-.slabel{font-size:10px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:22px;}
+.slabel{font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--text3);padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:22px;}
 .slabel span{color:var(--teal);}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;}
 .card.accent{border-color:rgba(15,184,184,.28);}
 .cw{position:relative;height:268px;}.cw.tall{height:320px;}.cw.short{height:210px;}
 .ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap;}
 .ctitle{font-size:13px;font-weight:700;color:var(--text);}
-.csub{font-size:13px;color:var(--text3);margin-top:3px;}
+.csub{font-size:15px;color:var(--text3);margin-top:3px;}
 .scr{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .sc{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;text-align:center;min-width:110px;}
 .sc.g{border-color:rgba(46,204,143,.5);background:var(--gDim);}
 .sc.r{border-color:rgba(255,107,107,.5);background:var(--cDim);}
 .sc.t{border-color:rgba(15,184,184,.5);background:var(--tDim);}
 .sc.a{border-color:rgba(245,166,35,.5);background:var(--aDim);}
-.slb{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.slb{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
 .sv{font-size:20px;font-weight:700;font-family:var(--mono);}
 .sv.g{color:var(--green);}.sv.r{color:var(--coral);}.sv.t{color:var(--teal);}.sv.a{color:var(--amber);}.sv.w{color:var(--text);}
 .ts{font-family:var(--font);font-size:12px;font-weight:600;color:var(--teal);background:var(--bg3);border:1.5px solid rgba(15,184,184,.5);border-radius:8px;padding:6px 26px 6px 11px;appearance:none;cursor:pointer;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%230fb8b8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;}
-.tl{font-size:11px;color:var(--text3);font-weight:600;}
+.tl{font-size:12px;color:var(--text3);font-weight:600;}
 .yc{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
-.yyy{font-size:10px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.yyy{font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--text3);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
 .yyy span{color:var(--teal);}
 .ycg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.ycl{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:3px;}
+.ycl{font-size:12px;color:var(--text3);font-weight:600;margin-bottom:3px;}
 .ycv{font-size:17px;font-weight:700;font-family:var(--mono);}
-.ycs{font-size:10px;color:var(--text3);margin-top:1px;}
+.ycs{font-size:12px;color:var(--text3);margin-top:1px;}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
 .mb{margin-bottom:20px;}
 .vt{width:100%;border-collapse:collapse;font-size:12px;}
-.vt th{background:var(--bg3);color:var(--text3);padding:9px 13px;text-align:right;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.vt th{background:var(--bg3);color:var(--text3);padding:9px 13px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);}
 .vt th:first-child{text-align:left;}
 .vt td{padding:8px 13px;border-bottom:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:12px;text-align:right;}
 .vt td:first-child{font-family:var(--font);color:var(--text2);text-align:left;}
@@ -86,16 +86,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .hero-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;position:relative;overflow:hidden;}
 .hero-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
 .hc-teal::before{background:var(--teal);}.hc-red::before{background:var(--coral);}.hc-amber::before{background:var(--amber);}.hc-green::before{background:var(--green);}
-.hero-label{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.hero-label{font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
 .hero-val{font-size:34px;font-weight:700;font-family:var(--mono);letter-spacing:-1px;line-height:1;}
 .hero-val.teal{color:var(--teal);}.hero-val.red{color:var(--coral);}.hero-val.amber{color:var(--amber);}.hero-val.green{color:var(--green);}
-.hero-sub{font-size:13px;color:var(--text3);margin-top:8px;}
-.hero-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;margin-top:8px;}
+.hero-sub{font-size:15px;color:var(--text3);margin-top:8px;}
+.hero-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700;margin-top:8px;}
 .hb-red{background:var(--cDim);color:var(--coral);}.hb-amber{background:var(--aDim);color:var(--amber);}.hb-green{background:var(--gDim);color:var(--green);}.hb-teal{background:var(--tDim);color:var(--teal);}
 .alert-bar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:10px;margin-bottom:20px;font-size:12px;font-weight:600;}
 .alert-bar.critical{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.4);color:var(--coral);}
 .alert-bar.good{background:rgba(46,204,143,.1);border:1px solid rgba(46,204,143,.4);color:var(--green);}
-.section-divider{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin:24px 0 14px;display:flex;align-items:center;gap:10px;}
+.section-divider{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin:24px 0 14px;display:flex;align-items:center;gap:10px;}
 .section-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 /* CASH METRICS GRID */
 .cash-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
@@ -105,30 +105,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .cm.r{border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06);}
 .cm.g{border-color:rgba(46,204,143,.4);background:rgba(46,204,143,.06);}
 .cm.a{border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.06);}
-.cml{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+.cml{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
 .cmv{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
 .cmv.t{color:var(--teal);}.cmv.r{color:var(--coral);}.cmv.g{color:var(--green);}.cmv.a{color:var(--amber);}.cmv.w{color:var(--text);}
-.cms{font-size:10px;color:var(--text3);margin-top:5px;}
+.cms{font-size:12px;color:var(--text3);margin-top:5px;}
 /* PIPELINE */
 .ps-row{display:flex;gap:12px;margin-bottom:20px;}
 .ps{flex:1;background:var(--bg2);border-radius:var(--radius);padding:14px 18px;border:1px solid var(--border);}
 .ps.h{border-color:rgba(255,107,107,.4);background:var(--cDim);}
 .ps.m{border-color:rgba(245,166,35,.4);background:var(--aDim);}
 .ps.l{border-color:rgba(15,184,184,.4);background:var(--tDim);}
-.psl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.psl{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
 .psv{font-size:20px;font-weight:700;font-family:var(--mono);}
 .ps.h .psv{color:var(--coral);}.ps.m .psv{color:var(--amber);}.ps.l .psv{color:var(--teal);}
 .pl{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;}
 .ptc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .pt{width:100%;border-collapse:collapse;font-size:12px;}
-.pt th{background:var(--bg3);color:var(--text3);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.pt th{background:var(--bg3);color:var(--text3);padding:9px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);}
 .pt th:last-child{text-align:right;}
 .pt td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);}
 .pt td:last-child{text-align:right;font-family:var(--mono);}
 .pt tr:hover td{background:rgba(255,255,255,.02);}
 .pt .tr td{font-weight:700;color:var(--teal);background:var(--bg3);border-top:1px solid var(--border2);}
-.rn{color:var(--text3);font-size:11px;}
-.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.rn{color:var(--text3);font-size:12px;}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:700;}
 .bh{background:var(--cDim);color:var(--coral);}.bm{background:var(--aDim);color:var(--amber);}.bl{background:var(--tDim);color:var(--teal);}
 .dc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;}
 .dw{flex:1;display:flex;align-items:center;justify-content:center;min-height:240px;}
@@ -445,13 +445,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- Headline KPI -->
   <div class="card accent mb" style="text-align:center;padding:26px 20px;">
-    <div style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Forecast Revenue Change vs Original Budget</div>
+    <div style="font-size:13px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:700;">Forecast Revenue Change vs Original Budget</div>
     <div id="fcst_headline_val" style="font-size:56px;font-weight:800;font-family:var(--mono);line-height:1.1;margin-top:6px;">—</div>
-    <div id="fcst_headline_sub" style="font-size:13px;color:var(--text3);margin-top:6px;">—</div>
+    <div id="fcst_headline_sub" style="font-size:16px;color:var(--text2);margin-top:10px;">—</div>
   </div>
 
   <!-- KPI comparison cards: Budget / Forecast / Variance -->
-  <div class="q1-hero" id="fcst_kpi_grid" style="grid-template-columns:repeat(3,1fr);"></div>
+  <div class="q1-hero" id="fcst_kpi_grid" style="grid-template-columns:repeat(4,1fr);"></div>
 
   <!-- Revenue Waterfall -->
   <div class="card accent mb">
@@ -470,10 +470,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="ch"><div><div class="ctitle">Operating Profit (EBITDA proxy)</div><div class="csub" id="fcst_op_chart_sub"></div></div></div>
       <div class="cw"><canvas id="fcst_op_chart"></canvas></div>
     </div>
-  </div>
-  <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Cash Balance</div><div class="csub">Full year Jan–Dec 2026 · grey = budget-modeled · teal = updated forecast</div></div></div>
-    <div class="cw"><canvas id="fcst_cash_chart"></canvas></div>
   </div>
 
   <!-- Variance by Category table -->
@@ -1075,7 +1071,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v57Jul-dumbbell · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v58Jul-contrast · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2625,31 +2621,21 @@ function build6MFcst(){
   // ── Cash & Runway — modeled forward from latest actual balance ──
   // (Staging_cash tracks a single live forecast track, not a separate budget track,
   //  so Budget Cash/Runway are modeled as: latest actual balance + cumulative BASE operating profit.)
-  const cashArr = window._cash || [];
-  const latestActualCash = window._latestActual?.balA || (cashArr.length ? cashArr[0].balA : 0);
-  const undoneAll = s26.filter(r=>!r.done);
-  const baseOpRemain = undoneAll.reduce((s,r)=>s+((r.sF+r.pl+r.gF)+r.eF),0);
-  const updOpRemain  = undoneAll.reduce((s,r)=>s+((r.sF_dyn+r.plF_dyn+r.gF_dyn)+r.eF_dyn),0);
-  const cashBudget = latestActualCash + baseOpRemain;
-  const cashUpdated = latestActualCash + updOpRemain;
-  const updatedRunway = window._runwayT || (cashArr.length ? cashArr[cashArr.length-1].runwayT : 0) || 0;
-  const avgMonthlyBaseBurn = undoneAll.length ? baseOpRemain/undoneAll.length : 0;
-  const budgetRunway = avgMonthlyBaseBurn < 0 ? Math.abs(latestActualCash/avgMonthlyBaseBurn) : null;
-
   // ── Headline KPI ──
   if(elT('fcst_headline_val')){
     elT('fcst_headline_val').textContent = (revPctChange>=0?'▲ +':'▼ ')+Math.abs(revPctChange).toFixed(1)+'%';
     elT('fcst_headline_val').style.color = revPctChange>=0 ? 'var(--green)' : 'var(--coral)';
   }
-  if(elT('fcst_headline_sub')) elT('fcst_headline_sub').textContent =
-    'Revenue forecast '+fC(revUpd)+' vs original budget '+fC(revBase)+' ('+rangeLabel+')';
+  if(elT('fcst_headline_sub')) elT('fcst_headline_sub').innerHTML =
+    'Revenue forecast <b style="font-size:22px;font-family:var(--mono);color:var(--teal);">'+fC(revUpd)+'</b> vs original budget '+
+    '<b style="font-size:22px;font-family:var(--mono);color:var(--text);">'+fC(revBase)+'</b> <span style="color:var(--text3);font-size:13px;">('+rangeLabel+')</span>';
 
   // ── KPI comparison cards ──
   const kpiCard = (label, budget, forecast, isCost, compactFn) => {
     if(budget==null){
       return `<div class="hero-card hc-teal">
-        <div class="hero-label" style="font-size:13px;">${label}</div>
-        <div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:20px;">${compactFn(forecast)}</div>
+        <div class="hero-label" style="font-size:14px;">${label}</div>
+        <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--teal);margin-top:20px;">${compactFn(forecast)}</div>
         <div class="hero-sub">Budget N/A — company cash-flow positive under base plan</div>
       </div>`;
     }
@@ -2660,21 +2646,21 @@ function build6MFcst(){
     const lineColor = diff===0 ? '#b3c1d1' : (good?'var(--green)':'var(--coral)');
     const bP=17, uP=83; // fixed dumbbell endpoint positions (%)
     return `<div class="hero-card hc-teal">
-      <div class="hero-label" style="font-size:13px;">${label}</div>
+      <div class="hero-label" style="font-size:14px;">${label}</div>
       <div style="position:relative;height:32px;margin:18px 0 2px;">
         <div style="position:absolute;top:14px;left:${bP}%;right:${100-uP}%;height:3px;background:${lineColor};border-radius:2px;"></div>
         <div style="position:absolute;top:8px;left:${bP}%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:var(--bg2);border:3px solid #b3c1d1;"></div>
-        <div style="position:absolute;top:8px;left:${uP}%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:var(--teal);border:3px solid var(--teal);"></div>
+        <div style="position:absolute;top:8px;left:${uP}%;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:${lineColor};border:3px solid ${lineColor};"></div>
       </div>
-      <div style="position:relative;height:16px;">
-        <div style="position:absolute;left:${bP}%;transform:translateX(-50%);font-size:11px;color:var(--text3);white-space:nowrap;font-weight:600;">Budget</div>
-        <div style="position:absolute;left:${uP}%;transform:translateX(-50%);font-size:11px;color:var(--teal);white-space:nowrap;font-weight:600;">Updated</div>
+      <div style="position:relative;height:18px;">
+        <div style="position:absolute;left:${bP}%;transform:translateX(-50%);font-size:13px;color:var(--text3);white-space:nowrap;font-weight:600;">Budget</div>
+        <div style="position:absolute;left:${uP}%;transform:translateX(-50%);font-size:13px;color:${lineColor};white-space:nowrap;font-weight:700;">Updated</div>
       </div>
-      <div style="position:relative;height:24px;margin-top:2px;">
-        <div style="position:absolute;left:${bP}%;transform:translateX(-50%);font-size:15px;font-weight:700;font-family:var(--mono);color:var(--text2);white-space:nowrap;">${compactFn(budget)}</div>
-        <div style="position:absolute;left:${uP}%;transform:translateX(-50%);font-size:15px;font-weight:700;font-family:var(--mono);color:var(--teal);white-space:nowrap;">${compactFn(forecast)}</div>
+      <div style="position:relative;height:26px;margin-top:2px;">
+        <div style="position:absolute;left:${bP}%;transform:translateX(-50%);font-size:17px;font-weight:700;font-family:var(--mono);color:var(--text2);white-space:nowrap;">${compactFn(budget)}</div>
+        <div style="position:absolute;left:${uP}%;transform:translateX(-50%);font-size:17px;font-weight:700;font-family:var(--mono);color:${lineColor};white-space:nowrap;">${compactFn(forecast)}</div>
       </div>
-      <div style="text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid var(--border);font-family:var(--mono);font-weight:700;font-size:16px;color:${vColor}">
+      <div style="text-align:center;margin-top:16px;padding-top:10px;border-top:1px solid var(--border);font-family:var(--mono);font-weight:700;font-size:18px;color:${vColor}">
         ${diff===0?'—':(diff>0?'▲ +':'▼ -')+compactFn(Math.abs(diff))+' ('+(pct>=0?'+':'')+pct.toFixed(1)+'%)'}
       </div>
     </div>`;
@@ -2689,9 +2675,7 @@ function build6MFcst(){
       kpiCard('Revenue', revBase, revUpd, false, dollarFmt) +
       kpiCard('Expenses', Math.abs(expBase), Math.abs(expUpd), true, dollarFmt) +
       kpiCard('Gross Margin', gmBase, gmUpd, false, pctFmt) +
-      kpiCard('Operating Profit', opBase, opUpd, false, dollarFmt) +
-      kpiCard('Ending Cash (Dec \'26)', cashBudget, cashUpdated, false, dollarFmt) +
-      kpiCard('Cash Runway', budgetRunway, updatedRunway, true, moFmt);
+      kpiCard('Operating Profit', opBase, opUpd, false, dollarFmt);
   }
 
   // ── Revenue Waterfall: Budget → category deltas → Updated Forecast ──
@@ -2809,34 +2793,6 @@ function build6MFcst(){
   makeChart('fcst_rev_chart', rows.map(r=>r.baseRev), rows.map(r=>r.updRev), teal);
   makeChart('fcst_op_chart',  rows.map(r=>r.baseOp),  rows.map(r=>r.updOp),  green);
 
-  // ── Cash Balance monthly trend — always full year, since ending cash is a point-in-time figure ──
-  (function(){
-    // Build month-by-month projected balance: actuals use real balA, future months roll forward from latest actual
-    const doneIdx = s26.findIndex(r=>!r.done);
-    const lastDoneIdx = doneIdx === -1 ? s26.length-1 : doneIdx-1;
-    let runB = latestActualCash, runU = latestActualCash;
-    const baseBalSeries = s26.map((r,i)=>{
-      if(i<=lastDoneIdx){ const c=(cashArr[i]&&cashArr[i].balA)||null; return c; }
-      runB += (r.sF+r.pl+r.gF)+r.eF; return runB;
-    });
-    const updBalSeries = s26.map((r,i)=>{
-      if(i<=lastDoneIdx){ const c=(cashArr[i]&&cashArr[i].balA)||null; return c; }
-      runU += (r.sF_dyn+r.plF_dyn+r.gF_dyn)+r.eF_dyn; return runU;
-    });
-    destroyChart('fcst_cash_chart');
-    const cEl = elT('fcst_cash_chart'); if(!cEl) return;
-    charts['fcst_cash_chart'] = new Chart(cEl,{type:'line',
-      data:{labels:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], datasets:[
-        {label:'Budget (modeled)', data:baseBalSeries, borderColor:'#94a3b8', borderDash:[5,4], borderWidth:2, pointRadius:2, fill:false, tension:0.25},
-        {label:'Updated Forecast', data:updBalSeries,  borderColor:teal, borderWidth:2.5, pointRadius:3, fill:false, tension:0.25},
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
-          tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
-        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
-                y:{grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#cbd5e1'}}}}});
-  })();
-
   // ── Executive Commentary ──
   (function(){
     const el2 = elT('fcst_exec_summary'); if(!el2) return;
@@ -2862,11 +2818,8 @@ function build6MFcst(){
       `(${expUpd<=expBase?'−':'+'}${fC(Math.abs(expUpd-expBase))}), resulting in Operating Profit of `+
       `<b style="color:${opUpd>=0?'var(--green)':'var(--coral)'}">${fC(opUpd)}</b> versus a budgeted ${fC(opBase)} `+
       `— a variance of ${opUpd>=opBase?'+':''}${fC(opUpd-opBase)}.`;
-    const p4 = `At the current trajectory, cash is projected to end the period at approximately <b>${fC(cashUpdated)}</b> `+
-      `versus a budget-modeled ${fC(cashBudget)}, with an estimated runway of `+
-      `<b style="color:${updatedRunway<3?'var(--coral)':updatedRunway<6?'var(--amber)':'var(--green)'}">${updatedRunway?updatedRunway.toFixed(1)+' months':'N/A'}</b>.`;
 
-    el2.innerHTML = `<p style="margin:0 0 10px;">${p1}</p><p style="margin:0 0 10px;">${p2}</p><p style="margin:0 0 10px;">${p3}</p><p style="margin:0;">${p4}</p>`;
+    el2.innerHTML = `<p style="margin:0 0 10px;">${p1}</p><p style="margin:0 0 10px;">${p2}</p><p style="margin:0;">${p3}</p>`;
   })();
 }
 
