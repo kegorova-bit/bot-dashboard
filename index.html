@@ -267,7 +267,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Full Year Forecast</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Full Year Forecast</div><div class="csub">Dynamic forecast (Staging) · updates with latest pipeline and actuals</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc g"><div class="slb">Op Profit (F)</div><div class="sv g" id="pF">—</div></div>
@@ -788,7 +788,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           </select>
         </div>
       </div>
-      <table class="pt"><thead><tr><th style="width:28px">#</th><th>Company</th><th>Probability</th><th>Est. Value</th></tr></thead><tbody id="pb"></tbody></table>
+      <table class="pt"><thead><tr><th style="width:28px">#</th><th>Company</th><th>Project</th><th>Probability</th><th>Est. Value</th></tr></thead><tbody id="pb"></tbody></table>
     </div>
     <div class="dc">
       <div class="ctitle" style="margin-bottom:12px">Split by Probability</div>
@@ -1112,7 +1112,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v67Jul-revenue-legend · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v70Jul-pipeline-project · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1385,7 +1385,7 @@ function buildVarTable25(s25){
   vt.appendChild(vb);vt.appendChild(tf);
 }
 
-function buildFD(p,s26){return(s26||window._s26||[]).map(r=>({s:r.sF,g:r.gF,pl:p?r.pl:0,e:r.done?(r.eA||r.eF):r.eF,pr:p?r.pFp:r.pFn,done:r.done}));}
+function buildFD(p,s26){return(s26||window._s26||[]).map(r=>({s:r.sF_dyn, g:r.gF_dyn, pl:p?r.plF_dyn:0, e:r.done?(r.eA||r.eF_dyn):r.eF_dyn, pr:p?r.pF_dyn_pipe:r.pF_dyn_nopipe, done:r.done}));}
 function updateF(){
   const s26=window._s26||[];if(!s26.length)return;
   const p=document.getElementById('ftog').value==='pipe';
@@ -2453,12 +2453,12 @@ function sortPipeline(){
   sp.forEach(function(p){
     var bc=p.s==='High'?'bh':p.s==='Medium'?'bm':'bl';
     var tr=document.createElement('tr');
-    tr.innerHTML='<td class="rn">'+n+'.</td><td>'+p.c+'</td><td><span class="badge '+bc+'">'+p.s+'</span></td><td>'+(p.a?fC(p.a):'—')+'</td>';
+    tr.innerHTML='<td class="rn">'+n+'.</td><td>'+p.c+'</td><td style="color:var(--text2)">'+(p.proj||'—')+'</td><td><span class="badge '+bc+'">'+p.s+'</span></td><td>'+(p.a?fC(p.a):'—')+'</td>';
     pb.appendChild(tr);n++;
   });
   var tf=document.createElement('tr');tf.className='tr';
   var tot=(window._pipelineData||[]).reduce(function(s,p){return s+p.a;},0);
-  tf.innerHTML='<td></td><td colspan="2"><strong>Grand Total</strong></td><td>'+fC(tot)+'</td>';
+  tf.innerHTML='<td></td><td colspan="3"><strong>Grand Total</strong></td><td>'+fC(tot)+'</td>';
   pb.appendChild(tf);
 }
 
@@ -2601,14 +2601,17 @@ function buildH1(){
     const fw = isTotal ? '700' : '600';
     const fs = isTotal ? '13px' : '12px';
     const labelInside = pctActual > 22; // enough room to fit the value text inside the fill
-    return `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:${isTotal?'12px 0':'9px 0'};${isTotal?'':'border-bottom:1px solid var(--border);'}">
+    // Keep the target label from clipping off the left/right edge of the track
+    const targetLabelPct = Math.min(92, Math.max(8, pctTarget));
+    return `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:${isTotal?'16px 0 12px':'13px 0 9px'};${isTotal?'':'border-bottom:1px solid var(--border);'}">
       <span style="font-size:${fs};font-weight:${fw};color:${isTotal?'var(--text)':'var(--text2)'};padding-left:${indent||0}px;white-space:nowrap;">${indent?'↳ ':''}${label}</span>
-      <div style="position:relative;height:${barH}px;background:rgba(255,255,255,.06);border-radius:6px;">
+      <div style="position:relative;height:${barH}px;background:rgba(255,255,255,.06);border-radius:6px;overflow:visible;">
         <div style="position:absolute;top:0;left:0;height:100%;width:${pctActual.toFixed(1)}%;background:${barColor};border-radius:6px;transition:width .6s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;">
           ${labelInside?`<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#0b0d12;white-space:nowrap;">${fC(actual)}</span>`:''}
         </div>
         ${!labelInside?`<span style="position:absolute;top:50%;left:calc(${pctActual.toFixed(1)}% + 8px);transform:translateY(-50%);font-family:var(--mono);font-size:11px;font-weight:700;color:${barColor};white-space:nowrap;">${fC(actual)}</span>`:''}
         <div title="Target: ${fC(Math.abs(target))}" style="position:absolute;top:-3px;left:${pctTarget.toFixed(1)}%;width:2px;height:${barH+6}px;background:rgba(255,255,255,.75);"></div>
+        <span style="position:absolute;top:-15px;left:${targetLabelPct.toFixed(1)}%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;font-weight:700;color:var(--text3);white-space:nowrap;">🎯${fC(Math.abs(target))}</span>
       </div>
       <div style="text-align:right;font-size:${isTotal?'16px':'15px'};font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
       <div style="text-align:right;font-size:11px;color:var(--text3)">${fC(Math.abs(target))}</div>
@@ -2641,21 +2644,8 @@ function buildH1(){
       <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Target</span>
       <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Variance</span>
     </div>`;
-    // Legend — swatch + label + $ value for every tier
-    const legendItem = (color,label,val) => `<div style="display:flex;align-items:center;gap:6px;">
-      <span style="width:10px;height:10px;border-radius:3px;background:${color};display:inline-block;"></span>
-      <span style="font-size:11px;color:var(--text2);">${label}</span>
-      <span style="font-size:11px;font-family:var(--mono);font-weight:700;color:${color};">${fC(val)}</span>
-    </div>`;
-    const legend = `<div style="display:flex;flex-wrap:wrap;gap:18px;padding:2px 0 14px;">
-      ${legendItem(HUE_REVENUE,'Revenue',h1rev)}
-      ${legendItem(HUE_SALES,'Sales',h1sales)}
-      ${h1grants>0?legendItem(HUE_GRANTS,'Grants',h1grants):''}
-      ${legendItem(HUE_DC,'Data Collection',h1dc)}
-      ${legendItem(HUE_HAIVO,'HAIVO',h1haivo)}
-    </div>`;
     const revScale = Math.max(h1rev, h1target) || 1;
-    barsEl.innerHTML = legend + hdr +
+    barsEl.innerHTML = hdr +
       hierBar('Revenue',         h1rev,    h1target,       HUE_REVENUE, revScale, 0,  true) +
       (h1grants > 0 ? hierBar('Grants', h1grants, h1GrantTarget || h1grants, HUE_GRANTS, revScale, 16, false) : '') +
       hierBar('Sales',           h1sales,  h1SalesTarget,  HUE_SALES,   revScale, 16, false) +
@@ -3370,11 +3360,12 @@ function processInvoices(rows){
       const ps=(r[C.paymentStatus]||'').trim().toLowerCase();
       if(ps!=='pipeline-won'&&ps!=='pipeline') continue;
       const cust=(r[C.customer]||'').trim();
+      const proj=(r[C.project]||'').trim();
       // Pipeline-won = always High regardless of col E value
       const status = ps==='pipeline-won' ? 'High' : (r[C.status]||'').trim();
       const amt=pv(r[C.amountNoVat]);          // col L: Amount_noVAT
       if(!cust) continue;
-      pipeline.push({c:cust, s:status, a:amt});
+      pipeline.push({c:cust, proj:proj, s:status, a:amt});
     }
     window._pipelineData = pipeline;
     const _pH2 = pipeline.filter(p=>p.s==='High').reduce((s,p)=>s+p.a,0);
