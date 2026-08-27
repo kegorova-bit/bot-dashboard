@@ -704,7 +704,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <!-- Scorecards + Set Default -->
       <div class="scr">
           <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="scen_neg">—</div></div>
-          <div class="sc"><div class="slb" id="scen_dec_label">Dec balance</div><div class="sv w" id="scen_dec">—</div></div>
+          <div class="sc"><div class="slb" id="scen_dec_label">End of Period Balance</div><div class="sv w" id="scen_dec">—</div></div>
         <button onclick="saveScenDefault()" style="font-size:10px;padding:5px 10px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:6px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save current settings as default">
           📌 Set as default
         </button>
@@ -735,7 +735,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <th style="color:#3f83f8">Pipeline Med</th>
             <th>Base Out</th><th style="color:var(--coral)">Loans</th>
             <th style="color:var(--coral)">Tax</th><th style="color:var(--amber)">Payroll Save</th>
-            <th style="color:var(--coral)">Workforce</th>
+            <th style="color:var(--text2)">Direct Cost</th>
             <th>Total Out</th><th>Net Flow</th><th>Balance</th>
           </tr>
         </thead>
@@ -1203,7 +1203,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v86Aug-stagingcash-remap · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v88Aug-workforce-baseline-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1957,20 +1957,30 @@ function buildScenChart(){
   const PAYROLL_MONTHLY = window._payrollMonthly || [];
 
   // Base Out (operational outflow) — Staging_cash column K "Cash out - (F) base - no tax no loans"
-  // (cOutF2 field), already negative at source. Live/dynamic — updates whenever Staging_cash does.
+  // (cOutF2 field), already negative at source. IMPORTANT: this figure already includes workforce/direct
+  // cost baked in at a 25% baseline assumption — it is NOT added on top separately.
   const getBaseOut = (i, cRow) => cRow.cOutF2||0;
 
-  // Workforce cost — Staging_cash columns M (Workforce base projection) and N (Workforce actual), both
-  // negative at source. "Higher" = numerically greater (less negative / smaller-magnitude outflow) —
-  // validated against the Aug 26 2026 export: max(M=-6,534, N=-5,534) = -5,534, exact match to the
-  // confirmed example. No rate multiplier applied — these columns already reflect the sheet's own
-  // workforce cost assumption directly; the Workforce Cost Rate slider does not further scale this.
+  // Direct Cost (workforce) — Staging_cash columns M (base projection) and N (actual), both negative at
+  // source. "Higher" = numerically greater (less negative / smaller-magnitude outflow) — validated against
+  // the Aug 26 2026 export: max(M=-6,534, N=-5,534) = -5,534, exact match to the confirmed example.
+  // M/N represent this cost AT THE 25% BASELINE ALREADY INCLUDED IN col K above — so they are used ONLY to
+  // compute the incremental adjustment when the Workforce Cost Rate toggle moves away from 25%, not added
+  // to Base Out in full (that would double-count the portion already inside K).
+  const WORKFORCE_BASELINE_RATE = 0.25;
   const getWorkforceCost = (i, cRow) => {
     const base = cRow.wfBase, act = cRow.wfAct;
     if(!base && !act) return null; // neither present — signal fallback to the old pipeline-based formula
     if(!base) return act;
     if(!act) return base;
     return Math.max(base, act);
+  };
+  // Incremental Direct Cost adjustment when the Workforce Cost Rate toggle differs from the 25% baseline
+  // already included in Base Out (col K). At the default 25%, this is exactly 0 — no double-counting.
+  const getWorkforceAdjustment = (i, cRow, rate) => {
+    const baseline = getWorkforceCost(i, cRow);
+    if(baseline == null) return null; // signals "use the old pipeline-based fallback for the full amount"
+    return baseline * ((rate - WORKFORCE_BASELINE_RATE) / WORKFORCE_BASELINE_RATE);
   };
 
   // Build scenario month by month
@@ -2019,8 +2029,8 @@ function buildScenChart(){
         const fPayrollSave = fMonthPayroll * payrollCut;
         const fNextPipeIn  = (pipePM_base[i+1]||0) * pipeRate;
         const fDraftMonth  = (draftByIdx[i]||0);
-        const wfBase       = getWorkforceCost(i, c);  // MAX(Staging_cash col M, col N) — already complete, no rate scaling
-        const fWorkforce   = wfBase!=null ? wfBase : -((fNextPipeIn + fDraftMonth) * workRate);
+        const wfAdj        = getWorkforceAdjustment(i, c, workRate);  // delta from the 25% baseline already inside Base Out
+        const fWorkforce   = wfAdj!=null ? wfAdj : -((fNextPipeIn + fDraftMonth) * workRate);
         const fTax         = (i>=TAX_START && i<TAX_END) ? (taxLiability * taxRate / taxMonths) : 0;
         const fCashOut     = fBaseOut + fLoanExtra + fPayrollSave - fTax + fWorkforce;
         entry.fcst = {baseIn:fBaseIn, pipeHighIn:fPipeHighIn, pipeMedIn:fPipeMedIn, baseOut:fBaseOut, loanExtra:fLoanExtra, taxThisMonth:-fTax, payrollSave:fPayrollSave, workforceExtra:fWorkforce, cashOut:fCashOut, totalIn:fBaseIn+fPipelineIn, netFlow:fBaseIn+fPipelineIn+fCashOut};
@@ -2044,12 +2054,12 @@ function buildScenChart(){
       const loanExtra    = isJunePlus ? -(loanMonthly * oblRate_sel) : 0;
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = isJunePlus ? monthPayroll * payrollCut : 0;
-      // Workforce: Staging_cash cols M (base) / N (actual), MAX of the two — falls back to the old
-      // pipeline+draft-invoice formula if this month has neither.
+      // Direct Cost (workforce): Base Out (K) already includes this at a 25% baseline — only the
+      // incremental adjustment when the toggle differs from 25% is added here, to avoid double-counting.
       const nextPipelineIn  = isJunePlus ? (pipePM_base[i+1]||0) * pipeRate : 0;
       const draftThisMonth  = isJunePlus ? (draftByIdx[i]||0) : 0;
-      const wfBaseF         = getWorkforceCost(i, c);
-      const workforceExtra  = isJunePlus ? (wfBaseF!=null ? wfBaseF : -((nextPipelineIn + draftThisMonth) * workRate)) : 0;
+      const wfAdjF           = getWorkforceAdjustment(i, c, workRate);
+      const workforceExtra  = isJunePlus ? (wfAdjF!=null ? wfAdjF : -((nextPipelineIn + draftThisMonth) * workRate)) : 0;
       const taxThisMonth   = (isJunePlus && i>=TAX_START && i<TAX_END) ? (taxLiability * taxRate / taxMonths) : 0;
       const cashOut        = baseOut + loanExtra + payrollSave - taxThisMonth + workforceExtra;
       runBal = runBal + baseIn + pipelineIn + cashOut;
@@ -2064,6 +2074,14 @@ function buildScenChart(){
       scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});    }
   });
   window._scenMonthly = scenMonthly;  // expose for tooltip — kept at FULL length/absolute indices
+
+  // Corrected current-month forecasted balance — prior month's real ending balance + this month's full
+  // forecast net flow. Reused for every chart element that shows the current month's forecast, so the
+  // chart's dashed/overlay balance always matches the table's "Forecast" figure exactly instead of
+  // falling back to Staging_cash's own Balance F2 column (which can genuinely differ — see chat).
+  const currentMoFcst = scenMonthly[currentMonthIdx]?.fcst;
+  const priorBalForCurrent = currentMonthIdx > 0 ? scenBal[currentMonthIdx-1] : startBal;
+  const correctedCurrentBalance = currentMoFcst ? (priorBalForCurrent + currentMoFcst.netFlow) : scenBal[currentMonthIdx];
 
   // ── Display window — restricts the CHART and TABLE to a period, without touching the
   // full-range calculation above (scenBal/scenMonthly stay complete so cumulative balance math,
@@ -2134,7 +2152,7 @@ function buildScenChart(){
   const scDecLabel = document.getElementById('scen_dec_label');
   const decVal = scenBal[Math.min(winEnd, scenBal.length-1)];
   if(scNeg){scNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';scNeg.className='sv '+(negIdx>=0?'r':'g');}
-  if(scDecLabel) scDecLabel.textContent = (L26[winEnd]||'Period')+' balance';
+  if(scDecLabel) scDecLabel.textContent = 'End of Period Balance ('+(L26[winEnd]||'')+')';
   if(scDec){scDec.textContent=fC(decVal);scDec.className='sv '+(decVal<0?'r':'g');}
   // Also update main forecast scorecards (sc_neg / sc_dec)
   const mainNeg=document.getElementById('sc_neg');
@@ -2144,16 +2162,16 @@ function buildScenChart(){
 
   const L26_sc=L26.slice(winStart,winEnd+1);
   const actualScen  = scenBal.map((v,i)=>i<=actualCount?v:null);
-  const forecastScen= scenBal.map((v,i)=>i>=actualCount-1?v:null);
+  const forecastScen= scenBal.map((v,i)=>i>=actualCount-1?(i===currentMonthIdx?correctedCurrentBalance:v):null);
   // Faded forecast for current month (index actualCount-1)
   const curIdx = actualCount - 1;
   const fcstOverlayIn  = cash.map((c,i)=>i===curIdx?(c.cIF||null):null);
   const fcstOverlayOut = cash.map((c,i)=>i===curIdx?(getBaseOut(i,c)||null):null);
-  const fcstOverlayBal = cash.map((c,i)=>i===curIdx?(c.balF2||null):null);
+  const fcstOverlayBal = cash.map((c,i)=>i===curIdx?correctedCurrentBalance:null);
   // Current month: faded forecast overlays (shown alongside actual)
   const currFcstIn  = cash.map((c,i)=>i===currentMonthIdx?(c.cIF||null):null);
   const currFcstOut = cash.map((c,i)=>i===currentMonthIdx?(getBaseOut(i,c)||null):null);
-  const currFcstBal = cash.map((c,i)=>i===currentMonthIdx?(c.balF2||null):null);
+  const currFcstBal = cash.map((c,i)=>i===currentMonthIdx?correctedCurrentBalance:null);
 
   // Window every array to [winStart, winEnd] for the chart — all comparisons above already used
   // the FULL/absolute actualCount, so slicing the finished arrays here is safe and doesn't need
@@ -2302,7 +2320,7 @@ function buildScenChart(){
             if(data.baseOut) h+=rowH('Base ops',fC(data.baseOut),'var(--coral)');
             if(data.loanExtra<0) h+=rowH('Loan repayment',fC(data.loanExtra),'var(--coral)');
             if(data.taxThisMonth<0) h+=rowH('Tax',fC(data.taxThisMonth),'var(--coral)');
-            if(data.workforceExtra<0) h+=rowH('Workforce (pipeline + drafts)',fC(data.workforceExtra),'var(--coral)');
+            if(data.workforceExtra<0) h+=rowH('Direct Cost',fC(data.workforceExtra),'var(--coral)');
             if(data.payrollSave>0) h+=rowH('Payroll saving','+'+fC(data.payrollSave),'var(--green)');
             h+=totalH('Total Cash Out',fC(data.cashOut),'var(--coral)');
             return h;
@@ -2388,13 +2406,13 @@ function buildScenChart(){
       // bug (it silently omitted the base operational outflow entirely for the current month).
       var mo_fcst = (isCurrentMo && scenMonthly[i] && scenMonthly[i].fcst) ? scenMonthly[i].fcst : null;
       var baseOutV = ia ? (c_cash.cOA_op||0) : getBaseOut(i, c_cash);
-      var wfBaseTbl    = getWorkforceCost(i, c_cash);
+      var wfAdjTbl     = getWorkforceAdjustment(i, c_cash, workRate);
       var nextPipeV    = isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0)) * pipeRate : 0;
       var draftMonthV  = isJune ? (draftByIdx[i]||0) : 0;
       var loanV    = scenarioApplies ? (mo_fcst ? mo_fcst.loanExtra : (isJune ? -(loanMonthly * oblRate_sel) : 0)) : 0;
       var taxV     = scenarioApplies ? (mo_fcst ? mo_fcst.taxThisMonth : (isJune && i>=TAX_START && i<TAX_END ? -(taxLiability * taxRate / taxMonths) : 0)) : 0;
       var payV     = scenarioApplies ? (mo_fcst ? mo_fcst.payrollSave : (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0)) : 0;
-      var workV    = scenarioApplies ? (mo_fcst ? mo_fcst.workforceExtra : (isJune ? (wfBaseTbl!=null ? wfBaseTbl : -((nextPipeV + draftMonthV) * workRate)) : 0)) : 0;
+      var workV    = scenarioApplies ? (mo_fcst ? mo_fcst.workforceExtra : (isJune ? (wfAdjTbl!=null ? wfAdjTbl : -((nextPipeV + draftMonthV) * workRate)) : 0)) : 0;
       // Current month: Total Out / Net Flow / Balance come from the full-month forecast (mo_fcst), which
       // supersedes actual-to-date rather than layering on top of it, since the forecast independently
       // estimates the whole month. Balance chains from the PRIOR month's real ending balance.
@@ -2424,7 +2442,7 @@ function buildScenChart(){
         +td(loanV?'-'+fC(Math.abs(loanV)):'—','','color:var(--coral)')
         +td(taxV?'-'+fC(Math.abs(taxV)):'—','','color:var(--coral)')
         +td(payV?fC(payV):'—','pos')
-        +td(workV?'-'+fC(Math.abs(workV)):'—','','color:var(--coral)')
+        +td(workV?(workV>=0?'+':'-')+fC(Math.abs(workV)):'—','',workV>0?'color:var(--green)':'color:var(--coral)')
         +td(fC(coDisplay),'neg')
         +td(fC(ntDisplay),ntDisplay>=0?'pos':'neg')
         +td(isCurrentMo
@@ -2448,7 +2466,7 @@ function buildScenChart(){
         +'<td style="color:var(--coral)">'+(tLoan?'-'+fC(Math.abs(tLoan)):'—')+'</td>'
         +'<td style="color:var(--coral)">'+(tTax?'-'+fC(Math.abs(tTax)):'—')+'</td>'
         +'<td class="pos">'+(tPayroll?fC(tPayroll):'—')+'</td>'
-        +'<td style="color:var(--coral)">'+(tWork?'-'+fC(Math.abs(tWork)):'—')+'</td>'
+        +'<td style="color:'+(tWork>0?'var(--green)':'var(--coral)')+'">'+(tWork?(tWork>=0?'+':'-')+fC(Math.abs(tWork)):'—')+'</td>'
         +'<td class="neg">'+fC(tO)+'</td>'
         +'<td class="'+(tNet>=0?'pos':'neg')+'"><strong>'+fC(tNet)+'</strong></td>'
         +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
