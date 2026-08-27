@@ -690,13 +690,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </select>
       </div>
 
-      <!-- Workforce Cost -->
+      <!-- Direct Cost (Workforce, Project Cost, Incentives) -->
       <div>
-        <div class="tl" style="margin-bottom:4px;">Workforce cost</div>
+        <div class="tl" style="margin-bottom:4px;">Direct Cost (workforce, project cost, incentives)</div>
         <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_workforce_amt">on invoice month</div>
         <select class="ts" id="scen_workforce" onchange="buildScenChart()">
-          <option value="0.20" selected>20% — Base</option>
-          <option value="0.25">25% — Mid</option>
+          <option value="0.20">20% — Low</option>
+          <option value="0.25" selected>25% — Mid (Base)</option>
           <option value="0.30">30% — High</option>
         </select>
       </div>
@@ -718,8 +718,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div style="margin-top:12px;font-size:11px;color:var(--text3);line-height:1.6;">
       <strong style="color:var(--text2)">Methodology:</strong>
-      Workforce cost (20/25/30%): applied to pipeline (month before cash) + draft/won invoices (invoice date month) · Amount_noVAT col K · Status: Draft, Won, High, Medium.
-      Payroll from CF_f · Pipeline CCC: current month +2.
+      Pipeline conversion: cash starts arriving 2 months after the current month, spread evenly over the following 6 months — fixed, independent of Display Period.
     </div>
   </div>
   <!-- Scenario detail table -->
@@ -760,14 +759,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div style="flex:1;min-width:200px;">
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Monthly balance projection</div>
         <div id="scen_runway_bars" style="display:flex;align-items:flex-end;gap:3px;height:48px;"></div>
-        <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--text3);">
-          <span id="scen_runway_start_mo">—</span><span id="scen_runway_end_mo">Dec '26</span>
-        </div>
+        <div id="scen_runway_mo_labels" style="display:flex;gap:3px;margin-top:3px;"></div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">End balance</div>
-        <div id="scen_runway_endbал" style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:2px;">Dec 2026</div>
+        <div id="scen_runway_endbal" style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</div>
+        <div id="scen_runway_end_label" style="font-size:10px;color:var(--text3);margin-top:2px;">—</div>
       </div>
     </div>
 
@@ -1203,7 +1200,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v88Aug-workforce-baseline-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v93Aug-footnote-cleanup · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1899,6 +1896,29 @@ function updateCashChart(){buildCashChart();buildScenChart();}
 function buildScenChart(){
   const cash=window._cash||[];if(!cash.length)return;
   const actualCount = window._actualCount||0;
+
+  // ── Display window — computed early so the loan/tax/pipeline spread windows below can be scoped to
+  // whatever period is currently selected (2026 / 6-Month Forecast / 12-Month Forecast), instead of a
+  // fixed calendar window. scenBal/scenMonthly are still computed over the FULL cash array further down
+  // (so cumulative balance math, runway, and tooltip lookups stay correct regardless of what's displayed) —
+  // only the toggle-driven spread windows and the final chart/table rendering are scoped to this window.
+  const periodSel = document.getElementById('scen_period')?.value || '2026';
+  let winStart, winEnd;
+  if(periodSel==='2026'){
+    winStart = 0; winEnd = Math.min(11, cash.length-1);
+  } else {
+    const base = Math.max(0, actualCount - 1 - 3); // 3 last actual months before the current month
+    winStart = base;
+    winEnd = periodSel==='6mo' ? Math.min(cash.length-1, base+8) : Math.min(cash.length-1, base+14);
+  }
+  const winLen = winEnd - winStart + 1;
+  const winActualCount = Math.max(0, Math.min(winLen, actualCount - winStart)); // actualCount, relative to the window
+  const periodSubEl = document.getElementById('scen_period_sub');
+  if(periodSubEl) periodSubEl.textContent = (L26[winStart]||'')+' – '+(L26[winEnd]||'');
+  // Forecast portion of the selected window — this is what loan/tax/pipeline % now spread across.
+  const fcstWinStart = Math.max(actualCount, winStart);
+  const fcstWinEnd   = winEnd; // inclusive
+
   const oblRate_sel = parseFloat(document.getElementById('scen_obligations')?.value??1);
   const noLoan      = oblRate_sel === 0; // 0% repayment = no loans = use F2; any >0 = use F3 base
   // Update amount labels from live data
@@ -1917,25 +1937,22 @@ function buildScenChart(){
   const pipeRate    = parseFloat(document.getElementById('scen_pipe')?.value||1);
   const oblRate     = oblRate_sel;
   const taxRate     = parseFloat(document.getElementById('scen_tax')?.value??1);
-  const workRate    = parseFloat(document.getElementById('scen_workforce')?.value||0.20);
+  const workRate    = parseFloat(document.getElementById('scen_workforce')?.value||0.25);
   const taxLiability= Math.abs(window._db1Taxes||0); // DB1 O12
-  // Tax repayment: starts June 2026 (index 5), spreads over Jun-Dec 2026 = 7 months, THEN STOPS.
-  // This window is a fixed policy boundary, not "relative to today" — it does NOT auto-extend into 2027.
-  // (Previously had no upper bound at all; since the array only went to Dec 2026 that never surfaced as a
-  // bug, but extending the array into 2027 would have silently kept charging tax repayment forever without
-  // this explicit cap.)
-  const TAX_START   = 5; // June = index 5
-  const taxMonths   = 7; // Jun-Dec 2026 only
-  const TAX_END     = TAX_START + taxMonths; // index 12 — Jan '27 onward gets $0 here
-  const fcstLeft    = Math.max(1, cash.slice(actualCount).length); // remaining forecast months
+  // Tax repayment now spreads across the FORECAST portion of whatever Display Period is selected,
+  // instead of a fixed Jun-Dec 2026 calendar window — matches "distribute the % to the chosen period".
+  const TAX_START   = fcstWinStart;
+  const TAX_END     = fcstWinEnd + 1; // exclusive upper bound
+  const taxMonths   = Math.max(1, TAX_END - TAX_START);
+  const fcstLeft    = taxMonths; // loan repayment spreads across the same window
   const payrollCut  = parseFloat(document.getElementById('scen_payroll')?.value||0);
 
-  // Pipeline: probability-weighted, CCC-adjusted (no cash before Jun)
   // Pipeline: 100% face value (no probability weighting) — slider = % of full amount
-  // CCC: current month + 4 → cash starts arriving in August (month index 7)
-  // Remaining months after August split equally for both High and Medium.
-  // Same fixed-window caveat as tax above: this pool is spread Aug-Dec 2026 only, then stops —
-  // it does not auto-extend into 2027.
+  // CCC (cash conversion cycle): pipeline cash starts arriving 2 months after the CURRENT month, spread
+  // evenly over the following 6 months — always, regardless of which Display Period is selected. Unlike
+  // loan repayment and tax (which scale with the chosen period), pipeline timing is a fixed real-world
+  // assumption about sales-to-cash lag, not something that should shrink or stretch based on what's
+  // currently being viewed.
   // Draft invoices per month — keyed by Invoice_date month (col A), Payment_status=Draft/Won
   // Use _invMonthlyWorkforce if available (built in processInvoices), else fall back to _invMonthlyDraft
   const draftMap   = window._invMonthlyWorkforce || window._invMonthlyDraft || {};
@@ -1943,10 +1960,10 @@ function buildScenChart(){
 
   const pipeHigh = window._pipeHigh || 0;
   const pipeMed  = window._pipeMed  || 0;
-  const cccStart = 7; // August = index 7 (0=Jan)
-  const highMonths = 5;          // Aug-Dec 2026 only, fixed window
-  const medMonths  = 5;          // same spread
-  const CCC_END    = cccStart + highMonths; // index 12 — Jan '27 onward gets $0 here
+  const cccStart = (actualCount - 1) + 2;  // fixed 2-month lag from the current month
+  const CCC_END    = cccStart + 6;         // fixed 6-month spread, exclusive upper bound
+  const highMonths = 6;
+  const medMonths  = 6;
   const highPerMo  = pipeHigh / highMonths;
   const medPerMo   = pipeMed  / medMonths;
   const highPM_base = Array.from({length:cash.length},(_,i)=>(i>=cccStart && i<CCC_END)?highPerMo:0);
@@ -2024,7 +2041,7 @@ function buildScenChart(){
         const fPipeHighIn  = (highPM_base[i]||0) * pipeRate;
         const fPipeMedIn   = (medPM_base[i]||0)  * pipeRate;
         const fBaseOut     = getBaseOut(i, c);  // negative — Staging_cash col K
-        const fLoanExtra   = -(loanMonthly * oblRate_sel);
+        const fLoanExtra   = (i>=TAX_START && i<TAX_END) ? -(loanMonthly * oblRate_sel) : 0;
         const fMonthPayroll= PAYROLL_MONTHLY[i] || 17595;
         const fPayrollSave = fMonthPayroll * payrollCut;
         const fNextPipeIn  = (pipePM_base[i+1]||0) * pipeRate;
@@ -2051,7 +2068,7 @@ function buildScenChart(){
       const pipeHighIn   = isJunePlus ? (highPM_base[i]||0) * pipeRate : 0;
       const pipeMedIn    = isJunePlus ? (medPM_base[i]||0)  * pipeRate : 0;
       const baseOut      = getBaseOut(i, c);  // Staging_cash col K — already negative
-      const loanExtra    = isJunePlus ? -(loanMonthly * oblRate_sel) : 0;
+      const loanExtra    = (isJunePlus && i>=TAX_START && i<TAX_END) ? -(loanMonthly * oblRate_sel) : 0;
       const monthPayroll = PAYROLL_MONTHLY[i] || 17595;
       const payrollSave  = isJunePlus ? monthPayroll * payrollCut : 0;
       // Direct Cost (workforce): Base Out (K) already includes this at a 25% baseline — only the
@@ -2083,36 +2100,25 @@ function buildScenChart(){
   const priorBalForCurrent = currentMonthIdx > 0 ? scenBal[currentMonthIdx-1] : startBal;
   const correctedCurrentBalance = currentMoFcst ? (priorBalForCurrent + currentMoFcst.netFlow) : scenBal[currentMonthIdx];
 
-  // ── Display window — restricts the CHART and TABLE to a period, without touching the
-  // full-range calculation above (scenBal/scenMonthly stay complete so cumulative balance math,
-  // runway, and tooltip lookups are always correct regardless of what's currently shown).
-  const periodSel = document.getElementById('scen_period')?.value || '2026';
-  let winStart, winEnd;
-  if(periodSel==='2026'){
-    winStart = 0; winEnd = Math.min(11, cash.length-1);
-  } else {
-    const base = Math.max(0, actualCount - 1 - 3); // 3 last actual months before the current month
-    winStart = base;
-    winEnd = periodSel==='6mo' ? Math.min(cash.length-1, base+8) : Math.min(cash.length-1, base+14);
-  }
-  const winLen = winEnd - winStart + 1;
-  const winActualCount = Math.max(0, Math.min(winLen, actualCount - winStart)); // actualCount, relative to the window
-  const periodSubEl = document.getElementById('scen_period_sub');
-  if(periodSubEl) periodSubEl.textContent = (L26[winStart]||'')+' – '+(L26[winEnd]||'');
-
+  // (display window now computed earlier — see right after actualCount)
   // ── Runway calculation from scenario balance walk ─────────────────────────
   let runwayMo = null;  // index where balance first hits zero
   for(let i = actualCount; i < scenBal.length; i++){
     if(scenBal[i] <= 0){ runwayMo = i; break; }
   }
   const runwayMonths = runwayMo !== null ? runwayMo - actualCount : scenBal.length - actualCount;
-  const endBal_scen  = scenBal[scenBal.length - 1];
+  // End Balance now reflects the SELECTED period's end (winEnd), not always the full underlying array's
+  // last month — so switching Display Period (2026 / 6-Month / 12-Month Forecast) changes this card,
+  // and it can genuinely show Dec 2027 once that much data and forecast horizon is in view.
+  const winEndClamped = Math.min(winEnd, scenBal.length-1);
+  const endBal_scen  = scenBal[winEndClamped];
   const rVal  = document.getElementById('scen_runway_val');
   const rSub  = document.getElementById('scen_runway_sub');
-  const rEnd  = document.getElementById('scen_runway_endbал');
+  const rEnd  = document.getElementById('scen_runway_endbal');
+  const rEndLabel = document.getElementById('scen_runway_end_label');
   const rBars = document.getElementById('scen_runway_bars');
+  const rMoLabels = document.getElementById('scen_runway_mo_labels');
   const rWrap = document.getElementById('scen_runway_wrap');
-  const rStartMo = document.getElementById('scen_runway_start_mo');
   if(rVal){
     rVal.textContent = runwayMo !== null ? runwayMonths + ' mo' : (scenBal.length-actualCount)+'+ mo';
     rVal.style.color = runwayMonths < 2 ? 'var(--coral)' : runwayMonths < 4 ? 'var(--amber)' : 'var(--teal)';
@@ -2120,11 +2126,17 @@ function buildScenChart(){
   if(rSub){
     rSub.textContent = runwayMo !== null
       ? `balance hits zero in ${L26[runwayMo]}`
-      : `balance stays positive through ${L26[scenBal.length-1]||''}`;
+      : `balance stays positive through ${L26[winEndClamped]||''}`;
   }
   if(rEnd){
     rEnd.textContent = fC(endBal_scen);
     rEnd.style.color = endBal_scen < 0 ? 'var(--coral)' : 'var(--teal)';
+  }
+  if(rEndLabel){
+    // "Dec '27" -> "Dec 2027" style long-form label, dynamic to whatever the selected period actually ends on
+    const lbl = L26[winEndClamped]||'';
+    const m = lbl.match(/^(\w+)\s+'(\d+)/);
+    rEndLabel.textContent = m ? (m[1]+' 20'+m[2]) : lbl;
   }
   if(rWrap){
     rWrap.style.borderColor = runwayMonths < 2 ? 'rgba(255,107,107,.35)'
@@ -2132,10 +2144,10 @@ function buildScenChart(){
     rWrap.style.background  = runwayMonths < 2 ? 'rgba(255,107,107,.06)'
       : runwayMonths < 4 ? 'rgba(245,166,35,.06)' : 'rgba(15,184,184,.06)';
   }
-  if(rStartMo) rStartMo.textContent = L26[actualCount]||'';
-  // Mini bar chart — one bar per forecast month
+  // Mini bar chart — one bar per forecast month, now bounded to the selected Display Period's end
+  // (was previously unbounded, silently showing the full underlying array regardless of the period toggle).
   if(rBars){
-    const fcastBals = scenBal.slice(actualCount);
+    const fcastBals = scenBal.slice(actualCount, winEndClamped+1);
     const maxAbs = Math.max(1, ...fcastBals.map(Math.abs));
     rBars.innerHTML = fcastBals.map((b, i) => {
       const pct  = Math.min(100, Math.abs(b) / maxAbs * 100);
@@ -2143,6 +2155,12 @@ function buildScenChart(){
       const mo   = L26[actualCount + i];
       return `<div title="${mo}: ${fC(b)}" style="flex:1;background:${col};height:${Math.max(4,pct*0.48)}px;border-radius:2px 2px 0 0;opacity:${b<0?1:0.7};cursor:default;"></div>`;
     }).join('');
+    if(rMoLabels){
+      rMoLabels.innerHTML = fcastBals.map((b,i) => {
+        const mo = (L26[actualCount+i]||'').replace(" '","’");
+        return `<div style="flex:1;text-align:center;font-size:8px;color:var(--text3);white-space:nowrap;overflow:hidden;">${mo}</div>`;
+      }).join('');
+    }
   }
 
   // Scorecards
@@ -2409,7 +2427,7 @@ function buildScenChart(){
       var wfAdjTbl     = getWorkforceAdjustment(i, c_cash, workRate);
       var nextPipeV    = isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0)) * pipeRate : 0;
       var draftMonthV  = isJune ? (draftByIdx[i]||0) : 0;
-      var loanV    = scenarioApplies ? (mo_fcst ? mo_fcst.loanExtra : (isJune ? -(loanMonthly * oblRate_sel) : 0)) : 0;
+      var loanV    = scenarioApplies ? (mo_fcst ? mo_fcst.loanExtra : (isJune && i>=TAX_START && i<TAX_END ? -(loanMonthly * oblRate_sel) : 0)) : 0;
       var taxV     = scenarioApplies ? (mo_fcst ? mo_fcst.taxThisMonth : (isJune && i>=TAX_START && i<TAX_END ? -(taxLiability * taxRate / taxMonths) : 0)) : 0;
       var payV     = scenarioApplies ? (mo_fcst ? mo_fcst.payrollSave : (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0)) : 0;
       var workV    = scenarioApplies ? (mo_fcst ? mo_fcst.workforceExtra : (isJune ? (wfAdjTbl!=null ? wfAdjTbl : -((nextPipeV + draftMonthV) * workRate)) : 0)) : 0;
@@ -4046,7 +4064,7 @@ function saveScenDefault(){
     oblig:     document.getElementById('scen_obligations')?.value||'1',
     tax:       document.getElementById('scen_tax')?.value||'1',
     payroll:   document.getElementById('scen_payroll')?.value||'0',
-    workforce: document.getElementById('scen_workforce')?.value||'0.20'
+    workforce: document.getElementById('scen_workforce')?.value||'0.25'
   };
   localStorage.setItem('scen_defaults', JSON.stringify(vals));
   const note=document.getElementById('scen_default_note');
