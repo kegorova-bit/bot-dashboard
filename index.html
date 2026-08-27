@@ -801,22 +801,33 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="page" id="page-dso">
   <div class="slabel"><span>Collections & DSO</span> — Invoice to Cash Lag Analysis</div>
 
-  <!-- Row 1: Invoices Outstanding + Won-To Be Invoiced (primary), DSO metrics shrunk to the right -->
+  <!-- Row 1: Base Forecast — overarching over Invoices Outstanding + Won-To Be Invoiced. DSO metrics shrunk to the right. -->
   <div style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch;flex-wrap:wrap;">
-    <div class="cm a" style="flex:1 1 200px;"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="col_inv_out" style="color:var(--amber)">—</div><div class="cms">Status=Invoiced · live</div></div>
-
-    <div class="cm a" style="flex:2 1 360px;">
-      <div class="cml">Won — To Be Invoiced</div>
-      <div class="cmv a" id="col_not_inv">—</div>
-      <div class="cms">Status=Draft · live, by Invoice Date (col A)</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+    <div class="cm t" style="flex:3 1 520px;">
+      <div class="cml">Base Forecast — 12 Months</div>
+      <div class="cmv t" id="col_fcst_np">—</div>
+      <div class="cms">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
         <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Next 2 Months</div>
-          <div id="col_tbi_2mo" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--teal);margin-top:3px;">—</div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Invoices Outstanding</div>
+          <div id="col_inv_out" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Invoiced · live, full AR balance (not time-capped)</div>
         </div>
         <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Next 6 Months</div>
-          <div id="col_tbi_6mo" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--teal);margin-top:3px;">—</div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Won — To Be Invoiced (next 12 months)</div>
+          <div id="col_not_inv" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Draft · live, by Invoice Date (col A) · capped to next 12mo</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Months 1–2</div>
+              <div id="col_tbi_2mo" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Months 3–6</div>
+              <div id="col_tbi_6mo" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+          </div>
+          <div style="font-size:8px;color:var(--text3);margin-top:5px;">Non-overlapping windows, both within the 12-month total above · months 7–12 aren't broken out separately</div>
         </div>
       </div>
     </div>
@@ -838,11 +849,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
-  <!-- Row 2: YTD Collected, Base Forecast, Total Forecast + Pipeline (12-month) -->
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+  <!-- Row 2: YTD Collected, Total Forecast + Pipeline (12-month) -->
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
     <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
-    <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
-    <div class="cm t"><div class="cml">Total Forecast + Pipeline — 12 Months</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base + High + Medium</div></div>
+    <div class="cm t"><div class="cml">Total Forecast + Pipeline — 12 Months</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base Forecast + Pipeline (High + Medium)</div></div>
   </div>
 
   <!-- Invoicing Timeline — rolling 12 months from today -->
@@ -1148,7 +1158,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v77Jul-invoiced-yellow · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v80Jul-baseforecast-12mo · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2391,9 +2401,9 @@ function buildDSO(){
   // Update scorecards
   const ytdCollected   = colActualInv.reduce((s,v)=>s+v,0);
   const invOutstanding = window._invoicesOutstanding || 0;
-  const notInvoiced    = window._notInvoiced || 0;
+  const notInvoiced12mo = window._notInvoiced12mo || 0;  // Won-To-Be-Invoiced capped to next 12 months — see processInvoices()
   const pipelineHM     = HIGH_TOTAL + MED_TOTAL;
-  const totalFcst      = invOutstanding + notInvoiced + pipelineHM;
+  const totalFcst      = invOutstanding + notInvoiced12mo + pipelineHM;
   const c_ytd  = document.getElementById('col_ytd');
   const c_inv  = document.getElementById('col_inv_out');
   const c_ni   = document.getElementById('col_not_inv');
@@ -2401,9 +2411,9 @@ function buildDSO(){
   const c_fp   = document.getElementById('col_fcst_p');
   if(c_ytd)  c_ytd.textContent  = fC(ytdCollected);
   if(c_inv)  c_inv.textContent  = fC(invOutstanding);
-  if(c_ni)   c_ni.textContent   = fC(notInvoiced);
-  if(c_fnp)  c_fnp.textContent  = fC(invOutstanding + notInvoiced);
-  if(c_fp)   c_fp.textContent   = fC(invOutstanding + notInvoiced + pipelineHM);
+  if(c_ni)   c_ni.textContent   = fC(notInvoiced12mo);
+  if(c_fnp)  c_fnp.textContent  = fC(invOutstanding + notInvoiced12mo);
+  if(c_fp)   c_fp.textContent   = fC(invOutstanding + notInvoiced12mo + pipelineHM);
   const cfInvEl = document.getElementById('cm_invoices');
   if(cfInvEl) cfInvEl.textContent = fC(invOutstanding);
 
@@ -3142,6 +3152,19 @@ function processInvoices(rows){
   console.log('Total rows in invoice CSV:', rows.length);
 
   try {
+    // Shared date utilities — used to cap "forward-looking" figures (Won-To-Be-Invoiced) to a rolling
+    // 12-month window. Parses tolerantly: "2026-08", "2026-8", "2026/08", or a full date like "2026-08-15".
+    const _now = new Date();
+    const _curKey = _now.getFullYear()*12 + _now.getMonth();  // absolute month index, e.g. 2026-08 -> 24319
+    const _parseYM = raw => {
+      if(!raw) return null;
+      const m = raw.trim().match(/(\d{4})[-\/](\d{1,2})/);
+      if(!m) return null;
+      const yr = parseInt(m[1],10), mo = parseInt(m[2],10)-1;
+      if(isNaN(yr)||isNaN(mo)) return null;
+      return yr*12 + mo;
+    };
+
     const byCustomerProject = [];
     let grandTotal = 0;
     let outstandingInvoiceCount = 0;  // actual invoice row count (not grouped)
@@ -3173,26 +3196,12 @@ function processInvoices(rows){
       grandTotal += outstanding;
       outstandingInvoiceCount++;
     }
-    window._notInvoiced = notInvoicedTotal;
-    const niEl2 = document.getElementById('col_not_inv');
-    if(niEl2) niEl2.textContent = fC(notInvoicedTotal);
+    window._notInvoiced = notInvoicedTotal;  // true unbounded total — used by the To Be Invoiced by Customer table footer
 
     // Build To Be Invoiced by customer table — col E (Status) = 'draft'
-    // Also bucket live by Expected_Collection_Month into rolling "next 2 months" / "next 6 months"
-    // windows (current month + N-1 following), for the two scorecards next to Invoices Outstanding.
-    const _now = new Date();
-    const _curKey = _now.getFullYear()*12 + _now.getMonth();  // absolute month index, e.g. 2026-08 -> 24320
-    // Parse the sheet's Expected_Collection_Month tolerantly — handles "2026-08", "2026-8", "2026/08",
-    // extra spaces, or a full date like "2026-08-15" — instead of requiring an exact zero-padded string match.
-    const _parseYM = raw => {
-      if(!raw) return null;
-      const m = raw.trim().match(/(\d{4})[-\/](\d{1,2})/);
-      if(!m) return null;
-      const yr = parseInt(m[1],10), mo = parseInt(m[2],10)-1;
-      if(isNaN(yr)||isNaN(mo)) return null;
-      return yr*12 + mo;
-    };
-    let tbi2mo = 0, tbi6mo = 0;
+    // Also bucket live by Invoice Date (col A) into non-overlapping windows (months 1-2, months 3-6)
+    // and a full rolling 12-month array, for the scorecards next to Invoices Outstanding.
+    let tbi2mo = 0, tbi3to6mo = 0;
     const monthlyTBI = new Array(12).fill(0);  // rolling 12 months from today, index 0 = current month
 
     const notInvRows=[];  // [{key, customer, project, amount}]
@@ -3210,7 +3219,7 @@ function processInvoices(rows){
       if(expKey!=null){
         const monthsOut = expKey - _curKey;
         if(monthsOut>=0 && monthsOut<2) tbi2mo += amt;
-        if(monthsOut>=0 && monthsOut<6) tbi6mo += amt;
+        if(monthsOut>=2 && monthsOut<6) tbi3to6mo += amt;
         if(monthsOut>=0 && monthsOut<12) monthlyTBI[monthsOut] += amt;
       }
       const existing=notInvRows.find(x=>x.key===key);
@@ -3222,10 +3231,21 @@ function processInvoices(rows){
     const tbi2El = document.getElementById('col_tbi_2mo');
     const tbi6El = document.getElementById('col_tbi_6mo');
     if(tbi2El) tbi2El.textContent = fC(tbi2mo);
-    if(tbi6El) tbi6El.textContent = fC(tbi6mo);
-    console.log('To Be Invoiced 2mo/6mo — current month key:', _curKey, '(', _now.toISOString().slice(0,7), ')',
+    if(tbi6El) tbi6El.textContent = fC(tbi3to6mo);
+
+    // Won-To-Be-Invoiced, capped to the next 12 months — this is the figure that feeds "Base Forecast"
+    // and "Total Forecast + Pipeline", since a genuine forward forecast needs a bounded horizon
+    // (the full unbounded notInvoicedTotal has no cutoff and isn't a "12-month" number).
+    const notInvoiced12mo = monthlyTBI.reduce((s,v)=>s+v,0);
+    window._notInvoiced12mo = notInvoiced12mo;
+    const niEl2 = document.getElementById('col_not_inv');
+    if(niEl2) niEl2.textContent = fC(notInvoiced12mo);
+
+    console.log('To Be Invoiced windows (non-overlapping) — current month key:', _curKey, '(', _now.toISOString().slice(0,7), ')',
       ' | draft rows with a parseable Invoice Date (col A):', notInvRows.filter(x=>_parseYM(x.expMonth)!=null).length,
-      '/', notInvRows.length, ' | tbi2mo=', tbi2mo, ' tbi6mo=', tbi6mo);
+      '/', notInvRows.length, ' | next2mo=', tbi2mo, ' months3to6=', tbi3to6mo,
+      ' | 12mo total (feeds Base Forecast)=', notInvoiced12mo, ' | unbounded total (table footer)=', notInvoicedTotal);
+
 
     // Invoicing Timeline chart — rolling 12 months from today
     (function(){
