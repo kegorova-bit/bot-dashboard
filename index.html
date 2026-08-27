@@ -807,9 +807,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cm a"><div class="cml">Dominant Payment Term</div><div class="cmv a">1 month</div><div class="cms">Most common</div></div>
   </div>
   <!-- Collections scorecards -->
-  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:16px;">
     <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
     <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="col_inv_out" style="color:var(--amber)">—</div><div class="cms">Status=Invoiced · live</div></div>
+
+    <div class="cm a"><div class="cml">To Be Invoiced — Next 2 Months</div><div class="cmv a" id="col_tbi_2mo" style="color:var(--teal)">—</div><div class="cms">Status=Draft · live, by expected month</div></div>
+    <div class="cm a"><div class="cml">To Be Invoiced — Next 6 Months</div><div class="cmv a" id="col_tbi_6mo" style="color:var(--teal)">—</div><div class="cms">Status=Draft · live, by expected month</div></div>
 
     <div class="cm a"><div class="cml">Won — Not Yet Invoiced</div><div class="cmv a" id="col_not_inv">—</div><div class="cms">Status=Draft · col L</div></div>
     <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
@@ -1112,7 +1115,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v70Jul-pipeline-project · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v72Jul-tbi-scorecards · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1780,42 +1783,16 @@ function processCash(rows){
       }
     }});
 
-  // Runway — two scenarios: T=no loans, U=incl loans
-  // Runway — single chart with toggle
+  // Runway — two scenarios: T=no loans, U=incl loans.
+  // Kept as raw data (window._runwayT/_runwayU, latest actual month) for reference/data-dictionary
+  // purposes. The only LIVE runway number the dashboard actually displays is the Scenario Builder's
+  // "Runway — this scenario" card, calculated dynamically from the scenario balance walk further below —
+  // that number responds to the pipeline/loan/tax/payroll/workforce sliders; this sheet-extracted figure does not.
   const latestT=cash.filter(c=>c.runwayT!==0);
   const latestU=cash.filter(c=>c.runwayU!==0);
   window._runwayT=latestT.length?latestT[latestT.length-1].runwayT:0;
   window._runwayU=latestU.length?latestU[latestU.length-1].runwayU:0;
   updateRunwayCard();
-
-  function buildRunwayChart(){
-    const noLoan=(document.getElementById('rwyChartTog')?.value||'noloan')==='noloan';
-    const rwyData=cash.map(c=>noLoan?(c.runwayT||null):(c.runwayU||null));
-    const curVal=noLoan?window._runwayT:window._runwayU;
-    const scV=document.getElementById('sc_rwy_val');
-    const scL=document.getElementById('sc_rwy_label');
-    const scW=document.getElementById('sc_rwy_wrap');
-    if(scV){scV.textContent=curVal?curVal.toFixed(1)+' mo':'—';scV.style.color=curVal<0?'var(--coral)':curVal<2?'var(--amber)':'var(--teal)';}
-    if(scL)scL.textContent=noLoan?'No Loan Repayment':'Incl Loan Repayment';
-    if(scW){scW.style.borderColor=curVal<0?'rgba(255,107,107,.5)':curVal<2?'rgba(245,166,35,.5)':'rgba(15,184,184,.5)';scW.style.background=curVal<0?'var(--cDim)':curVal<2?'var(--aDim)':'var(--tDim)';}
-    destroyChart('rwy');
-    charts['rwy']=new Chart(document.getElementById('rwy'),{type:'bar',
-      data:{labels:L26.slice(0,cash.length),datasets:[{
-        label:noLoan?'No Loan Repayment':'Incl Loan Repayment',
-        data:rwyData,
-        backgroundColor:rwyData.map(v=>v==null?tDim:v<0?cDim:v<2?aDim:tDim),
-        borderColor:rwyData.map(v=>v==null?teal:v<0?coral:v<2?amber:teal),
-        borderWidth:1.5,borderRadius:4
-      }]},
-      options:{...bO(),
-        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' Runway: '+c.parsed.y.toFixed(1)+' months'}}},
-        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
-          y:{grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?1.5:1},
-             ticks:{callback:v=>v.toFixed(1)+'m',color:'#cbd5e1'}}}
-      }
-    });
-  }
-  buildRunwayChart();
 }
 
 function tog(){return(document.getElementById('cashTog')?.value||'noloan')==='noloan';}
@@ -2904,9 +2881,6 @@ function build6MFcst(){
   const gmUpd  = revUpd  ? (opUpd/revUpd*100)   : 0;
   const revPctChange = revBase ? (revUpd-revBase)/Math.abs(revBase)*100 : 0;
 
-  // ── Cash & Runway — modeled forward from latest actual balance ──
-  // (Staging_cash tracks a single live forecast track, not a separate budget track,
-  //  so Budget Cash/Runway are modeled as: latest actual balance + cumulative BASE operating profit.)
   // ── Headline KPI ──
   if(elT('fcst_headline_val')){
     elT('fcst_headline_val').textContent = (revPctChange>=0?'▲ +':'▼ ')+Math.abs(revPctChange).toFixed(1)+'%';
@@ -3171,6 +3145,15 @@ function processInvoices(rows){
     if(niEl2) niEl2.textContent = fC(notInvoicedTotal);
 
     // Build To Be Invoiced by customer table — col E (Status) = 'draft'
+    // Also bucket live by Expected_Collection_Month into rolling "next 2 months" / "next 6 months"
+    // windows (current month + N-1 following), for the two scorecards next to Invoices Outstanding.
+    const _now = new Date();
+    const _ymKey = (y,m) => y + '-' + String(m+1).padStart(2,'0');
+    const _monthKeys = n => { const a=[]; for(let i=0;i<n;i++){ const d=new Date(_now.getFullYear(), _now.getMonth()+i, 1); a.push(_ymKey(d.getFullYear(), d.getMonth())); } return a; };
+    const _keys2 = new Set(_monthKeys(2));
+    const _keys6 = new Set(_monthKeys(6));
+    let tbi2mo = 0, tbi6mo = 0;
+
     const notInvRows=[];  // [{key, customer, project, amount}]
     for(let i=1;i<rows.length;i++){
       const r=rows[i];if(!r[0]||!r[0].trim())continue;
@@ -3182,12 +3165,18 @@ function processInvoices(rows){
       if(!cust||amt<=0)continue;
       const key=cust+'||'+proj;
       const expMo=(r[C.expectedMonth]||'').trim();
+      if(expMo && _keys2.has(expMo)) tbi2mo += amt;
+      if(expMo && _keys6.has(expMo)) tbi6mo += amt;
       const existing=notInvRows.find(x=>x.key===key);
       if(existing){
         existing.amount+=amt;
         if(expMo && (!existing.expMonth || expMo < existing.expMonth)) existing.expMonth = expMo;
       } else { notInvRows.push({key,customer:cust,project:proj,amount:amt,expMonth:expMo||null}); }
     }
+    const tbi2El = document.getElementById('col_tbi_2mo');
+    const tbi6El = document.getElementById('col_tbi_6mo');
+    if(tbi2El) tbi2El.textContent = fC(tbi2mo);
+    if(tbi6El) tbi6El.textContent = fC(tbi6mo);
     const niSorted=notInvRows.sort((a,b)=>b.amount-a.amount);
     const niTbody=document.getElementById('not_inv_tbody');
     const niTotEl=document.getElementById('not_inv_total');
