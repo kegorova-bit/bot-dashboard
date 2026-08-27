@@ -627,6 +627,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
 
+      <!-- Display Period -->
+      <div>
+        <div class="tl" style="margin-bottom:4px;">Display period</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_period_sub">—</div>
+        <select class="ts" id="scen_period" onchange="buildScenChart()">
+          <option value="2026" selected>2026 (Full Year)</option>
+          <option value="6mo">6-Month Forecast (+3 actual)</option>
+          <option value="12mo">12-Month Forecast (+3 actual)</option>
+        </select>
+      </div>
+
       <!-- Pipeline -->
       <div>
         <div class="tl" style="margin-bottom:4px;">Pipeline</div>
@@ -1149,10 +1160,14 @@ const teal='#0fb8b8',tA='rgba(15,184,184,0.65)',coral='#ff6b6b',cA='rgba(255,107
       cDim='rgba(255,107,107,0.18)',green='#2ECC8F',cyan='rgba(103,232,249,0.7)',
       amber='#f5a623',aDim='rgba(245,166,35,0.22)',tDim='rgba(15,184,184,0.18)';
 
-const L26=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+// Generates "Mon 'YY" labels starting Jan 2026, for however many months are needed (e.g. 24 = through Dec 2027).
+// Used wherever the old code had a hardcoded 12-entry 2026-only array — replacing those lets Cash Flow /
+// Scenario Builder display 2027 once Staging_cash has 2027 rows, instead of silently truncating at Dec 2026.
+const genMonthLabels = n => Array.from({length:n},(_,i)=>MN[i%12]+" '"+String(2026+Math.floor(i/12)).slice(2));
+const L26=genMonthLabels(24);  // Jan '26 .. Dec '27
 const L26H=L26.slice(0,6);
 const L25=["Jan '25","Feb '25","Mar '25","Apr '25","May '25","Jun '25","Jul '25","Aug '25","Sep '25","Oct '25","Nov '25","Dec '25"];
-const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 let charts={};
 const destroyChart=id=>{if(charts[id]){charts[id].destroy();delete charts[id];}};
 const bO=(st=false)=>({
@@ -1188,7 +1203,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v83Aug-current-month-scenario · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v84Aug-2027-period-selector · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1773,7 +1788,7 @@ function processCash(rows){
   const cash=[];
   for(let i=1;i<rows.length;i++){
     const r=rows[i];if(!r[0]||!r[0].trim())continue;
-    const yr2=parseInt(r[2]);if(yr2!==2026)continue;
+    const yr2=parseInt(r[2]);if(yr2!==2026 && yr2!==2027)continue;
     cash.push({
       date:r[0].trim(),
       cIF:    pv(r[col('cIF')]),
@@ -1899,31 +1914,38 @@ function buildScenChart(){
   const taxRate     = parseFloat(document.getElementById('scen_tax')?.value??1);
   const workRate    = parseFloat(document.getElementById('scen_workforce')?.value||0.20);
   const taxLiability= Math.abs(window._db1Taxes||0); // DB1 O12
-  // Tax repayment starts June (index 5), spreads over Jun-Dec = 7 months
+  // Tax repayment: starts June 2026 (index 5), spreads over Jun-Dec 2026 = 7 months, THEN STOPS.
+  // This window is a fixed policy boundary, not "relative to today" — it does NOT auto-extend into 2027.
+  // (Previously had no upper bound at all; since the array only went to Dec 2026 that never surfaced as a
+  // bug, but extending the array into 2027 would have silently kept charging tax repayment forever without
+  // this explicit cap.)
   const TAX_START   = 5; // June = index 5
-  const taxMonths   = Math.max(1, 12 - TAX_START); // 7 months Jun-Dec
+  const taxMonths   = 7; // Jun-Dec 2026 only
+  const TAX_END     = TAX_START + taxMonths; // index 12 — Jan '27 onward gets $0 here
   const fcstLeft    = Math.max(1, cash.slice(actualCount).length); // remaining forecast months
   const payrollCut  = parseFloat(document.getElementById('scen_payroll')?.value||0);
 
   // Pipeline: probability-weighted, CCC-adjusted (no cash before Jun)
   // Pipeline: 100% face value (no probability weighting) — slider = % of full amount
   // CCC: current month + 4 → cash starts arriving in August (month index 7)
-  // Remaining months after August split equally for both High and Medium
-  const L26_LABELS_S = ["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  // Remaining months after August split equally for both High and Medium.
+  // Same fixed-window caveat as tax above: this pool is spread Aug-Dec 2026 only, then stops —
+  // it does not auto-extend into 2027.
   // Draft invoices per month — keyed by Invoice_date month (col A), Payment_status=Draft/Won
   // Use _invMonthlyWorkforce if available (built in processInvoices), else fall back to _invMonthlyDraft
   const draftMap   = window._invMonthlyWorkforce || window._invMonthlyDraft || {};
-  const draftByIdx = L26_LABELS_S.map(l => draftMap[l] || 0);
+  const draftByIdx = L26.slice(0,cash.length).map(l => draftMap[l] || 0);
 
   const pipeHigh = window._pipeHigh || 0;
   const pipeMed  = window._pipeMed  || 0;
   const cccStart = 7; // August = index 7 (0=Jan)
-  const highMonths = 12 - cccStart;          // Aug through Dec = 5 months
-  const medMonths  = 12 - cccStart;          // same spread
+  const highMonths = 5;          // Aug-Dec 2026 only, fixed window
+  const medMonths  = 5;          // same spread
+  const CCC_END    = cccStart + highMonths; // index 12 — Jan '27 onward gets $0 here
   const highPerMo  = pipeHigh / highMonths;
   const medPerMo   = pipeMed  / medMonths;
-  const highPM_base = Array.from({length:12},(_,i)=>i>=cccStart?highPerMo:0);
-  const medPM_base  = Array.from({length:12},(_,i)=>i>=cccStart?medPerMo:0);
+  const highPM_base = Array.from({length:cash.length},(_,i)=>(i>=cccStart && i<CCC_END)?highPerMo:0);
+  const medPM_base  = Array.from({length:cash.length},(_,i)=>(i>=cccStart && i<CCC_END)?medPerMo:0);
   const pipePM_base = highPM_base.map((v,i)=>v+medPM_base[i]);
 
   // Monthly payroll from CF_f sheet (live per month)
@@ -1976,7 +1998,7 @@ function buildScenChart(){
         const fNextPipeIn  = (pipePM_base[i+1]||0) * pipeRate;
         const fDraftMonth  = (draftByIdx[i]||0);
         const fWorkforce   = -((fNextPipeIn + fDraftMonth) * workRate);
-        const fTax         = (taxLiability * taxRate / taxMonths);
+        const fTax         = (i>=TAX_START && i<TAX_END) ? (taxLiability * taxRate / taxMonths) : 0;
         const fCashOut     = fBaseOut + fLoanExtra + fPayrollSave - fTax + fWorkforce;
         entry.fcst = {baseIn:fBaseIn, pipeHighIn:fPipeHighIn, pipeMedIn:fPipeMedIn, baseOut:fBaseOut, loanExtra:fLoanExtra, taxThisMonth:-fTax, payrollSave:fPayrollSave, workforceExtra:fWorkforce, cashOut:fCashOut, totalIn:fBaseIn+fPipelineIn, netFlow:fBaseIn+fPipelineIn+fCashOut};
         // These scenario-driven cash movements (loan repayment, tax, payroll saving, workforce cost) still
@@ -2003,7 +2025,7 @@ function buildScenChart(){
       const nextPipelineIn  = isJunePlus ? (pipePM_base[i+1]||0) * pipeRate : 0;
       const draftThisMonth  = isJunePlus ? (draftByIdx[i]||0) : 0;
       const workforceExtra  = isJunePlus ? -((nextPipelineIn + draftThisMonth) * workRate) : 0;
-      const taxThisMonth   = isJunePlus ? (taxLiability * taxRate / taxMonths) : 0;
+      const taxThisMonth   = (isJunePlus && i>=TAX_START && i<TAX_END) ? (taxLiability * taxRate / taxMonths) : 0;
       const cashOut        = baseOut + loanExtra + payrollSave - taxThisMonth + workforceExtra;
       runBal = runBal + baseIn + pipelineIn + cashOut;
       
@@ -2016,10 +2038,26 @@ function buildScenChart(){
       // Store full breakdown for tooltip
       scenMonthly.push({baseIn, pipeHighIn, pipeMedIn, baseOut, loanExtra, taxThisMonth: -taxThisMonth, payrollSave, workforceExtra, cashOut, totalIn: baseIn+pipelineIn, netFlow: baseIn+pipelineIn+cashOut});    }
   });
-  window._scenMonthly = scenMonthly;  // expose for tooltip
+  window._scenMonthly = scenMonthly;  // expose for tooltip — kept at FULL length/absolute indices
+
+  // ── Display window — restricts the CHART and TABLE to a period, without touching the
+  // full-range calculation above (scenBal/scenMonthly stay complete so cumulative balance math,
+  // runway, and tooltip lookups are always correct regardless of what's currently shown).
+  const periodSel = document.getElementById('scen_period')?.value || '2026';
+  let winStart, winEnd;
+  if(periodSel==='2026'){
+    winStart = 0; winEnd = Math.min(11, cash.length-1);
+  } else {
+    const base = Math.max(0, actualCount - 1 - 3); // 3 last actual months before the current month
+    winStart = base;
+    winEnd = periodSel==='6mo' ? Math.min(cash.length-1, base+8) : Math.min(cash.length-1, base+14);
+  }
+  const winLen = winEnd - winStart + 1;
+  const winActualCount = Math.max(0, Math.min(winLen, actualCount - winStart)); // actualCount, relative to the window
+  const periodSubEl = document.getElementById('scen_period_sub');
+  if(periodSubEl) periodSubEl.textContent = (L26[winStart]||'')+' – '+(L26[winEnd]||'');
 
   // ── Runway calculation from scenario balance walk ─────────────────────────
-  const L26M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   let runwayMo = null;  // index where balance first hits zero
   for(let i = actualCount; i < scenBal.length; i++){
     if(scenBal[i] <= 0){ runwayMo = i; break; }
@@ -2033,13 +2071,13 @@ function buildScenChart(){
   const rWrap = document.getElementById('scen_runway_wrap');
   const rStartMo = document.getElementById('scen_runway_start_mo');
   if(rVal){
-    rVal.textContent = runwayMo !== null ? runwayMonths + ' mo' : '12+ mo';
+    rVal.textContent = runwayMo !== null ? runwayMonths + ' mo' : (scenBal.length-actualCount)+'+ mo';
     rVal.style.color = runwayMonths < 2 ? 'var(--coral)' : runwayMonths < 4 ? 'var(--amber)' : 'var(--teal)';
   }
   if(rSub){
     rSub.textContent = runwayMo !== null
-      ? `balance hits zero in ${L26M[runwayMo]} '26`
-      : 'balance stays positive through Dec \'26';
+      ? `balance hits zero in ${L26[runwayMo]}`
+      : `balance stays positive through ${L26[scenBal.length-1]||''}`;
   }
   if(rEnd){
     rEnd.textContent = fC(endBal_scen);
@@ -2051,7 +2089,7 @@ function buildScenChart(){
     rWrap.style.background  = runwayMonths < 2 ? 'rgba(255,107,107,.06)'
       : runwayMonths < 4 ? 'rgba(245,166,35,.06)' : 'rgba(15,184,184,.06)';
   }
-  if(rStartMo) rStartMo.textContent = L26M[actualCount] + " '26";
+  if(rStartMo) rStartMo.textContent = L26[actualCount]||'';
   // Mini bar chart — one bar per forecast month
   if(rBars){
     const fcastBals = scenBal.slice(actualCount);
@@ -2059,7 +2097,7 @@ function buildScenChart(){
     rBars.innerHTML = fcastBals.map((b, i) => {
       const pct  = Math.min(100, Math.abs(b) / maxAbs * 100);
       const col  = b < 0 ? 'var(--coral)' : b < startBal * 0.3 ? 'var(--amber)' : 'var(--teal)';
-      const mo   = L26M[actualCount + i];
+      const mo   = L26[actualCount + i];
       return `<div title="${mo}: ${fC(b)}" style="flex:1;background:${col};height:${Math.max(4,pct*0.48)}px;border-radius:2px 2px 0 0;opacity:${b<0?1:0.7};cursor:default;"></div>`;
     }).join('');
   }
@@ -2077,7 +2115,7 @@ function buildScenChart(){
   if(mainNeg){mainNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';mainNeg.className='sv '+(negIdx>=0?'r':'g');}
   if(mainDec){mainDec.textContent=fC(decVal);mainDec.className='sv '+(decVal<0?'r':'g');}
 
-  const L26_sc=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"].slice(0,cash.length);
+  const L26_sc=L26.slice(winStart,winEnd+1);
   const actualScen  = scenBal.map((v,i)=>i<=actualCount?v:null);
   const forecastScen= scenBal.map((v,i)=>i>=actualCount-1?v:null);
   // Faded forecast for current month (index actualCount-1)
@@ -2090,58 +2128,68 @@ function buildScenChart(){
   const currFcstOut = cash.map((c,i)=>i===currentMonthIdx?((c.cOutF2||null)):null);
   const currFcstBal = cash.map((c,i)=>i===currentMonthIdx?(c.balF2||null):null);
 
+  // Window every array to [winStart, winEnd] for the chart — all comparisons above already used
+  // the FULL/absolute actualCount, so slicing the finished arrays here is safe and doesn't need
+  // any index remapping. ctx.dataIndex inside the chart config below is relative to these sliced
+  // arrays, which is why winActualCount (not actualCount) is used in those specific callbacks.
+  const win = arr => arr.slice(winStart, winEnd+1);
+  const scenRevInW=win(scenRevIn), scenHighInW=win(scenHighIn), scenMedInW=win(scenMedIn), scenCashOutW=win(scenCashOut);
+  const actualScenW=win(actualScen), forecastScenW=win(forecastScen);
+  const currFcstInW=win(currFcstIn), currFcstOutW=win(currFcstOut), currFcstBalW=win(currFcstBal), fcstOverlayBalW=win(fcstOverlayBal);
+  const cashW = win(cash);
+
   destroyChart('cbal_scen');
   const el=document.getElementById('cbal_scen');if(!el)return;
   charts['cbal_scen']=new Chart(el,{type:'bar',
     data:{labels:L26_sc,datasets:[
       // Stacked bars — cash in (revenue)
-      {label:'Cash In (A)',data:scenRevIn.map((v,i)=>i<actualCount?v:null),
+      {label:'Cash In (A)',data:scenRevInW.map((v,i)=>i<winActualCount?v:null),
        backgroundColor:teal,borderColor:teal,borderWidth:0,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
-    {label:'Cash In (F)',data:scenRevIn.map((v,i)=>i>=actualCount?v:null),
+    {label:'Cash In (F)',data:scenRevInW.map((v,i)=>i>=winActualCount?v:null),
        backgroundColor:'rgba(15,184,184,0.3)',borderColor:'rgba(15,184,184,0.5)',borderWidth:1,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
-    {label:'Cash In (F) — cur mo',data:currFcstIn,
+    {label:'Cash In (F) — cur mo',data:currFcstInW,
        backgroundColor:'rgba(15,184,184,0.15)',borderColor:'rgba(15,184,184,0.3)',borderWidth:1,
        borderRadius:2,order:3,yAxisID:'y',stack:'sf'},
-    {label:'Cash Out (F) — cur mo',data:currFcstOut,
+    {label:'Cash Out (F) — cur mo',data:currFcstOutW,
        backgroundColor:'rgba(255,107,107,0.15)',borderColor:'rgba(255,107,107,0.3)',borderWidth:1,
        borderRadius:2,order:3,yAxisID:'y',stack:'sf'},
       // Stacked bars — High pipeline (blue) and Medium pipeline (amber)
-      {label:'Pipeline — High',data:scenHighIn,
+      {label:'Pipeline — High',data:scenHighInW,
        backgroundColor:'rgba(99,179,237,0.6)',
        borderColor:'rgba(99,179,237,0.85)',borderWidth:1,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
-      {label:'Pipeline — Medium',data:scenMedIn,
+      {label:'Pipeline — Medium',data:scenMedInW,
        backgroundColor:'rgba(63,131,248,0.5)',
        borderColor:'rgba(63,131,248,0.75)',borderWidth:1,
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
       // Stacked bars — cash out (negative, stacked below zero)
-      {label:'Cash Out (A)',data:scenCashOut,
-       backgroundColor:cash.map((_,i)=>i<actualCount?cA:'rgba(255,107,107,0.28)'),
+      {label:'Cash Out (A)',data:scenCashOutW,
+       backgroundColor:cashW.map((_,i)=>i<winActualCount?cA:'rgba(255,107,107,0.28)'),
        borderRadius:2,order:2,yAxisID:'y',stack:'s'},
       // Balance line — actual segment
-      {label:'Balance (Actual)',data:actualScen,type:'line',
+      {label:'Balance (Actual)',data:actualScenW,type:'line',
        borderColor:green,borderWidth:2.5,
-       pointRadius:ctx=>ctx.dataIndex<actualCount?4:0,
-       pointBackgroundColor:actualScen.map(v=>v!=null?(v<0?coral:green):green),
+       pointRadius:ctx=>ctx.dataIndex<winActualCount?4:0,
+       pointBackgroundColor:actualScenW.map(v=>v!=null?(v<0?coral:green):green),
        fill:false,tension:0.3,order:1,yAxisID:'y2',
-       segment:{borderColor:ctx=>actualScen[ctx.p1DataIndex]<0?coral:green}},
+       segment:{borderColor:ctx=>actualScenW[ctx.p1DataIndex]<0?coral:green}},
       // Balance line — forecast segment
-      {label:'Balance (Forecast — current mo)',data:currFcstBal,
+      {label:'Balance (Forecast — current mo)',data:currFcstBalW,
        type:'scatter',pointRadius:6,pointBackgroundColor:'rgba(15,184,184,0.3)',
        pointBorderColor:'rgba(15,184,184,0.5)',pointBorderWidth:1,
        showLine:false,order:0,yAxisID:'y2'},
-    {label:'Balance — Forecast (current mo)',data:fcstOverlayBal,type:'line',
+    {label:'Balance — Forecast (current mo)',data:fcstOverlayBalW,type:'line',
      borderColor:'rgba(15,184,184,0.35)',borderWidth:1,borderDash:[4,4],
      pointRadius:4,pointBackgroundColor:'rgba(15,184,184,0.35)',
      fill:false,tension:0.3,order:0,yAxisID:'y2'},
-    {label:'Balance (Scenario)',data:forecastScen,type:'line',
+    {label:'Balance (Scenario)',data:forecastScenW,type:'line',
        borderColor:'rgba(46,204,143,0.7)',borderWidth:2,borderDash:[6,4],
-       pointRadius:ctx=>ctx.dataIndex>=actualCount?3:0,
-       pointBackgroundColor:forecastScen.map(v=>v!=null?(v<0?coral:'rgba(46,204,143,0.7)'):'transparent'),
+       pointRadius:ctx=>ctx.dataIndex>=winActualCount?3:0,
+       pointBackgroundColor:forecastScenW.map(v=>v!=null?(v<0?coral:'rgba(46,204,143,0.7)'):'transparent'),
        fill:false,tension:0.3,order:1,yAxisID:'y2',
-       segment:{borderColor:ctx=>forecastScen[ctx.p1DataIndex]<0?coral:'rgba(46,204,143,0.7)'}}
+       segment:{borderColor:ctx=>forecastScenW[ctx.p1DataIndex]<0?coral:'rgba(46,204,143,0.7)'}}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{
@@ -2150,10 +2198,10 @@ function buildScenChart(){
           const {chart,tooltip}=context;
           const sTip=document.getElementById('scen-tooltip');if(!sTip)return;
           if(tooltip.opacity===0){sTip.style.opacity='0';setTimeout(()=>{sTip.style.display='none';},150);return;}
-          const mIdx=tooltip.dataPoints?.[0]?.dataIndex??-1;
-          if(mIdx<0){sTip.style.display='none';return;}
-          const L26T=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
-          const label=L26T[mIdx]||'';
+          const mIdxWin=tooltip.dataPoints?.[0]?.dataIndex??-1;
+          if(mIdxWin<0){sTip.style.display='none';return;}
+          const mIdx=mIdxWin+winStart;  // true absolute index — tooltip.dataPoints is relative to the windowed/sliced chart data
+          const label=L26[mIdx]||'';
           const isActM=mIdx<(window._actualCount||0);
           const isCurrentM=mIdx===(window._actualCount||0)-1;
           const mo=((window._scenMonthly||[])[mIdx])||{};
@@ -2290,12 +2338,13 @@ function buildScenChart(){
   // Scenario detail table
   const t_body=document.getElementById('scen_tbody');
   const t_foot=document.getElementById('scen_tfoot');
-  const t_L26=["Jan '26","Feb '26","Mar '26","Apr '26","May '26","Jun '26","Jul '26","Aug '26","Sep '26","Oct '26","Nov '26","Dec '26"];
+  const t_L26=L26;
   if(t_body){
     t_body.innerHTML='';
-    var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0,tBaseOut=0,tWork=0;
+    var tRI=0,tH=0,tM=0,tO=0,tTax=0,tLoan=0,tPayroll=0,tBaseOut=0,tWork=0,lastBvDisplay=null;
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
+      if(i<winStart||i>winEnd)return;  // restrict rendered rows to the selected display period
       var ia=i<actualCount;
       var isCurrentMo = i===actualCount-1;  // the latest month — actual-to-date, but still open for the rest of the month
       var ri=scenRevIn[i]||0,hi=scenHighIn[i]||0,mi=scenMedIn[i]||0;
@@ -2309,7 +2358,7 @@ function buildScenChart(){
       var scenarioApplies = !ia || isCurrentMo;
       var baseOutV = ia ? (c_cash.cOA_op||0) : -(c_cash.cOutF2||0);
       var loanV    = scenarioApplies ? -(isJune ? loanMonthly * oblRate_sel : 0) : 0;
-      var taxV     = scenarioApplies ? -(isJune ? (taxLiability * taxRate / taxMonths) : 0) : 0;
+      var taxV     = scenarioApplies ? -(isJune && i>=TAX_START && i<TAX_END ? (taxLiability * taxRate / taxMonths) : 0) : 0;
       var payV     = scenarioApplies ?  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0) : 0;
       // Workforce: pipeline (1 month before cash) + draft invoices (this month)
       var nextPipeV    = isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0)) * pipeRate : 0;
@@ -2323,6 +2372,7 @@ function buildScenChart(){
       var coDisplay = co + extraOut;
       var ntDisplay = ti + coDisplay;
       var bvDisplay = isCurrentMo ? bv + extraOut : bv;
+      lastBvDisplay = bvDisplay;
       tRI+=ri; tH+=hi; tM+=mi; tO+=coDisplay;
       tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);
       tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0;
@@ -2343,11 +2393,18 @@ function buildScenChart(){
         +td(workV?'-'+fC(Math.abs(workV)):'—','','color:var(--coral)')
         +td(fC(coDisplay),'neg')
         +td(fC(ntDisplay),ntDisplay>=0?'pos':'neg')
-        +td(fC(bvDisplay),bvDisplay<0?'neg':'pos','font-weight:700');
+        +td(isCurrentMo
+              ? '<div style="line-height:1.5;">'
+                +'<div style="font-size:9px;color:var(--text3);">Actual: <span style="color:var(--text2);font-weight:600;">'+fC(bv)+'</span></div>'
+                +'<div style="font-weight:700;color:'+(bvDisplay<0?'var(--coral)':'var(--teal)')+';">Forecast: '+fC(bvDisplay)+'</div>'
+                +'</div>'
+              : fC(bvDisplay),
+            isCurrentMo?'':(bvDisplay<0?'neg':'pos'),
+            isCurrentMo?'':'font-weight:700');
       t_body.appendChild(tr);
     });
     if(t_foot){
-      var fb=scenBal[scenBal.length-1];
+      var fb=lastBvDisplay!==null?lastBvDisplay:scenBal[Math.min(winEnd,scenBal.length-1)];
       var tNet=tRI+tH+tM+tO;
       t_foot.innerHTML='<tr><td style="text-align:left"><strong>Total</strong></td><td></td>'
         +'<td>'+fC(tRI)+'</td>'
