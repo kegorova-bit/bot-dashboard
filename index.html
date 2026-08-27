@@ -693,7 +693,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <!-- Direct Cost (Workforce, Project Cost, Incentives) -->
       <div>
         <div class="tl" style="margin-bottom:4px;">Direct Cost (workforce, project cost, incentives)</div>
-        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_workforce_amt">on invoice month</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_workforce_amt">vs 25% baseline in Base Out</div>
         <select class="ts" id="scen_workforce" onchange="buildScenChart()">
           <option value="0.20">20% — Low</option>
           <option value="0.25" selected>25% — Mid (Base)</option>
@@ -731,7 +731,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <tr>
             <th style="text-align:left">Month</th><th>Type</th>
             <th>Cash In</th><th style="color:#63b3ed">Pipeline High</th>
-            <th style="color:#3f83f8">Pipeline Med</th>
+            <th style="color:#3f83f8">Pipeline Med</th><th>Total In</th>
             <th>Base Out</th><th style="color:var(--coral)">Loans</th>
             <th style="color:var(--coral)">Tax</th><th style="color:var(--amber)">Payroll Save</th>
             <th style="color:var(--text2)">Direct Cost</th>
@@ -1200,7 +1200,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v93Aug-footnote-cleanup · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v94Aug-four-fixes · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1960,7 +1960,7 @@ function buildScenChart(){
 
   const pipeHigh = window._pipeHigh || 0;
   const pipeMed  = window._pipeMed  || 0;
-  const cccStart = (actualCount - 1) + 2;  // fixed 2-month lag from the current month
+  const cccStart = actualCount + 2;  // fixed 2-month lag from the first forecast month
   const CCC_END    = cccStart + 6;         // fixed 6-month spread, exclusive upper bound
   const highMonths = 6;
   const medMonths  = 6;
@@ -2338,7 +2338,7 @@ function buildScenChart(){
             if(data.baseOut) h+=rowH('Base ops',fC(data.baseOut),'var(--coral)');
             if(data.loanExtra<0) h+=rowH('Loan repayment',fC(data.loanExtra),'var(--coral)');
             if(data.taxThisMonth<0) h+=rowH('Tax',fC(data.taxThisMonth),'var(--coral)');
-            if(data.workforceExtra<0) h+=rowH('Direct Cost',fC(data.workforceExtra),'var(--coral)');
+            h+=rowH('Direct Cost',(data.workforceExtra>=0?'+':'')+fC(data.workforceExtra), data.workforceExtra>0?'var(--green)':(data.workforceExtra<0?'var(--coral)':'var(--text3)'));
             if(data.payrollSave>0) h+=rowH('Payroll saving','+'+fC(data.payrollSave),'var(--green)');
             h+=totalH('Total Cash Out',fC(data.cashOut),'var(--coral)');
             return h;
@@ -2456,11 +2456,17 @@ function buildScenChart(){
               : fC(ri))
         +td(hi?fC(hi):'—','','color:#63b3ed')
         +td(mi?fC(mi):'—','','color:#3f83f8')
+        +td(isCurrentMo && mo_fcst
+              ? '<div style="line-height:1.5;">'
+                +'<div style="font-size:9px;color:var(--text3);">Actual: <span style="color:var(--text2);font-weight:600;">'+fC(ti)+'</span></div>'
+                +'<div style="font-weight:700;color:var(--teal);">Forecast: '+fC(mo_fcst.totalIn)+'</div>'
+                +'</div>'
+              : fC(ti),'','font-weight:600')
         +td(ia?fC(c_cash.cOA_op||0):fC(baseOutV),'neg')
         +td(loanV?'-'+fC(Math.abs(loanV)):'—','','color:var(--coral)')
         +td(taxV?'-'+fC(Math.abs(taxV)):'—','','color:var(--coral)')
         +td(payV?fC(payV):'—','pos')
-        +td(workV?(workV>=0?'+':'-')+fC(Math.abs(workV)):'—','',workV>0?'color:var(--green)':'color:var(--coral)')
+        +td((workV>=0?'+':'-')+fC(Math.abs(workV)),'',workV>0?'color:var(--green)':(workV<0?'color:var(--coral)':'color:var(--text3)'))
         +td(fC(coDisplay),'neg')
         +td(fC(ntDisplay),ntDisplay>=0?'pos':'neg')
         +td(isCurrentMo
@@ -2480,11 +2486,12 @@ function buildScenChart(){
         +'<td>'+fC(tRI)+'</td>'
         +'<td style="color:#63b3ed">'+fC(tH)+'</td>'
         +'<td style="color:#3f83f8">'+fC(tM)+'</td>'
+        +'<td><strong>'+fC(tRI+tH+tM)+'</strong></td>'
         +'<td class="neg">'+fC(tBaseOut)+'</td>'
         +'<td style="color:var(--coral)">'+(tLoan?'-'+fC(Math.abs(tLoan)):'—')+'</td>'
         +'<td style="color:var(--coral)">'+(tTax?'-'+fC(Math.abs(tTax)):'—')+'</td>'
         +'<td class="pos">'+(tPayroll?fC(tPayroll):'—')+'</td>'
-        +'<td style="color:'+(tWork>0?'var(--green)':'var(--coral)')+'">'+(tWork?(tWork>=0?'+':'-')+fC(Math.abs(tWork)):'—')+'</td>'
+        +'<td style="color:'+(tWork>0?'var(--green)':(tWork<0?'var(--coral)':'var(--text3)'))+'">'+(tWork>=0?'+':'-')+fC(Math.abs(tWork))+'</td>'
         +'<td class="neg">'+fC(tO)+'</td>'
         +'<td class="'+(tNet>=0?'pos':'neg')+'"><strong>'+fC(tNet)+'</strong></td>'
         +'<td class="'+(fb<0?'neg':'pos')+'"><strong>'+fC(fb)+'</strong></td></tr>';
