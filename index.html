@@ -833,17 +833,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Won — To Be Invoiced (next 12 months)</div>
           <div id="col_not_inv" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
           <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Draft · live, by Invoice Date (col A) · capped to next 12mo</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
             <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Months 1–2</div>
-              <div id="col_tbi_2mo" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ 1–60 Days</div>
+              <div id="col_tbi_2mo" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
             </div>
             <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Months 3–6</div>
-              <div id="col_tbi_6mo" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ 61–180 Days</div>
+              <div id="col_tbi_6mo" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ 180+ Days</div>
+              <div id="col_tbi_180plus" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
             </div>
           </div>
-          <div style="font-size:8px;color:var(--text3);margin-top:5px;">Non-overlapping windows, both within the 12-month total above · months 7–12 aren't broken out separately</div>
+          <div style="font-size:8px;color:var(--text3);margin-top:5px;">Non-overlapping — all three add up to the full 12-month total above. Day ranges approximate whole months (Invoice Date has no day-level precision).</div>
         </div>
       </div>
     </div>
@@ -1184,7 +1188,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v81Aug-template-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v82Aug-day-buckets · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -3273,9 +3277,14 @@ function processInvoices(rows){
     console.log('Aging (whole-month proxy) — Not Yet Due:', ageNotYetDue, ' Overdue:', ageOverdue, ' Unclassified (no parseable Expected_Collection_Month):', ageUnclassified);
 
     // Build To Be Invoiced by customer table — col E (Status) = 'draft'
-    // Also bucket live by Invoice Date (col A) into non-overlapping windows (months 1-2, months 3-6)
-    // and a full rolling 12-month array, for the scorecards next to Invoices Outstanding.
-    let tbi2mo = 0, tbi3to6mo = 0;
+    // Also bucket live by Invoice Date (col A) into three non-overlapping day-ranges that together
+    // cover the FULL 12-month total (no gap, unlike the old month-based scheme):
+    //   1-60 days   = months 0-1  (~60 days, using 30-day months)
+    //   61-180 days = months 2-5  (~61-180 days)
+    //   180+ days   = months 6-11 (the remainder of the 12-month window)
+    // NOTE: this is a whole-month approximation of days, since Invoice Date only gives month-level
+    // granularity in most rows — not a true day-level calculation.
+    let tbi60d = 0, tbi61to180d = 0, tbi180plusd = 0;
     const monthlyTBI = new Array(12).fill(0);  // rolling 12 months from today, index 0 = current month
 
     const notInvRows=[];  // [{key, customer, project, amount}]
@@ -3292,8 +3301,9 @@ function processInvoices(rows){
       const expKey=_parseYM(expMo);
       if(expKey!=null){
         const monthsOut = expKey - _curKey;
-        if(monthsOut>=0 && monthsOut<2) tbi2mo += amt;
-        if(monthsOut>=2 && monthsOut<6) tbi3to6mo += amt;
+        if(monthsOut>=0 && monthsOut<2) tbi60d += amt;
+        else if(monthsOut>=2 && monthsOut<6) tbi61to180d += amt;
+        else if(monthsOut>=6 && monthsOut<12) tbi180plusd += amt;
         if(monthsOut>=0 && monthsOut<12) monthlyTBI[monthsOut] += amt;
       }
       const existing=notInvRows.find(x=>x.key===key);
@@ -3304,8 +3314,10 @@ function processInvoices(rows){
     }
     const tbi2El = document.getElementById('col_tbi_2mo');
     const tbi6El = document.getElementById('col_tbi_6mo');
-    if(tbi2El) tbi2El.textContent = fC(tbi2mo);
-    if(tbi6El) tbi6El.textContent = fC(tbi3to6mo);
+    const tbi180El = document.getElementById('col_tbi_180plus');
+    if(tbi2El) tbi2El.textContent = fC(tbi60d);
+    if(tbi6El) tbi6El.textContent = fC(tbi61to180d);
+    if(tbi180El) tbi180El.textContent = fC(tbi180plusd);
 
     // Won-To-Be-Invoiced, capped to the next 12 months — this is the figure that feeds "Base Forecast"
     // and "Total Forecast + Pipeline", since a genuine forward forecast needs a bounded horizon
@@ -3315,10 +3327,11 @@ function processInvoices(rows){
     const niEl2 = document.getElementById('col_not_inv');
     if(niEl2) niEl2.textContent = fC(notInvoiced12mo);
 
-    console.log('To Be Invoiced windows (non-overlapping) — current month key:', _curKey, '(', _now.toISOString().slice(0,7), ')',
+    console.log('To Be Invoiced day-buckets (non-overlapping, full partition) — current month key:', _curKey, '(', _now.toISOString().slice(0,7), ')',
       ' | draft rows with a parseable Invoice Date (col A):', notInvRows.filter(x=>_parseYM(x.expMonth)!=null).length,
-      '/', notInvRows.length, ' | next2mo=', tbi2mo, ' months3to6=', tbi3to6mo,
-      ' | 12mo total (feeds Base Forecast)=', notInvoiced12mo, ' | unbounded total (table footer)=', notInvoicedTotal);
+      '/', notInvRows.length, ' | 1-60d=', tbi60d, ' 61-180d=', tbi61to180d, ' 180+d=', tbi180plusd,
+      ' | sum of buckets=', tbi60d+tbi61to180d+tbi180plusd, ' vs 12mo total (feeds Base Forecast)=', notInvoiced12mo,
+      ' | unbounded total (table footer)=', notInvoicedTotal);
 
 
     // Invoicing Timeline chart — rolling 12 months from today
