@@ -729,12 +729,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <table class="vt" id="scen_table" style="min-width:900px;">
         <thead>
           <tr>
+            <th colspan="2" style="background:var(--bg3);"></th>
+            <th colspan="4" style="text-align:center;background:rgba(15,184,184,.10);color:var(--teal);font-size:10px;letter-spacing:.6px;border-bottom:2px solid rgba(15,184,184,.4);">CASH IN</th>
+            <th colspan="7" style="text-align:center;background:rgba(255,107,107,.08);color:var(--coral);font-size:10px;letter-spacing:.6px;border-bottom:2px solid rgba(255,107,107,.35);">CASH OUT</th>
+            <th colspan="2" style="text-align:center;background:rgba(255,255,255,.05);color:var(--text2);font-size:10px;letter-spacing:.6px;border-bottom:2px solid rgba(255,255,255,.2);">SUMMARY</th>
+          </tr>
+          <tr>
             <th style="text-align:left">Month</th><th>Type</th>
             <th>Cash In</th><th style="color:#63b3ed">Pipeline High</th>
             <th style="color:#3f83f8">Pipeline Med</th><th>Total In</th>
             <th>Base Out</th><th style="color:var(--coral)">Loans</th>
             <th style="color:var(--coral)">Tax</th><th style="color:var(--amber)">Payroll Save</th>
-            <th style="color:var(--text2)">Direct Cost (base forecast)</th>
+            <th style="color:var(--text2)">Direct Cost</th>
             <th style="color:var(--text2)">Direct Cost (change applied)</th>
             <th>Total Out</th><th>Net Flow</th><th>Balance</th>
           </tr>
@@ -766,7 +772,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">End balance</div>
         <div id="scen_runway_endbal" style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</div>
         <div id="scen_runway_end_label" style="font-size:10px;color:var(--text3);margin-top:2px;">—</div>
+        <div id="scen_runway_warning" style="font-size:9px;color:var(--amber);margin-top:4px;max-width:180px;display:none;">⚠ Below 3-month cash cushion</div>
       </div>
+    </div>
+    <div style="font-size:9px;color:var(--text3);margin-top:8px;line-height:1.5;">
+      Amber warning rule: End Balance turns amber when it falls below 3× the average monthly outflow from confirmed actual months (Base Out actuals only, excluding the current partial month) — a rough "3-month cash cushion" check, separate from the Runway calculation above.
     </div>
 
 </div>
@@ -1201,7 +1211,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v96Aug-pipeline-directcost · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v98Aug-cushion-warning · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2032,7 +2042,7 @@ function buildScenChart(){
       scenHighIn.push(null);
       scenMedIn.push(null);
       scenCashOut.push(c.cOA_op||null);
-      const entry = {baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true};
+      const entry = {baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceBase:c.wfAct||0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true};
       // Current (latest) month is only partially actual — also compute the full-month forecast estimate
       // so the tooltip can show actual-to-date and forecast side by side, instead of losing the forecast view entirely.
       let _curMoFullForecastNetFlow = null;
@@ -2121,10 +2131,21 @@ function buildScenChart(){
   // and it can genuinely show Dec 2027 once that much data and forecast horizon is in view.
   const winEndClamped = Math.min(winEnd, scenBal.length-1);
   const endBal_scen  = scenBal[winEndClamped];
+
+  // 3-month cash cushion check — average monthly outflow from CONFIRMED actual months only
+  // (excludes the current partial month, since it isn't a complete month of data yet).
+  const closedActualOutflows = cash.slice(0, Math.max(0,currentMonthIdx))
+    .map(c=>Math.abs(c.cOA_op||0)).filter(v=>v>0);
+  const avgMonthlyOutflow = closedActualOutflows.length
+    ? closedActualOutflows.reduce((s,v)=>s+v,0)/closedActualOutflows.length : 0;
+  const threeMonthCushion = avgMonthlyOutflow * 3;
+  const belowCushion = endBal_scen >= 0 && endBal_scen < threeMonthCushion;
+
   const rVal  = document.getElementById('scen_runway_val');
   const rSub  = document.getElementById('scen_runway_sub');
   const rEnd  = document.getElementById('scen_runway_endbal');
   const rEndLabel = document.getElementById('scen_runway_end_label');
+  const rWarning = document.getElementById('scen_runway_warning');
   const rBars = document.getElementById('scen_runway_bars');
   const rMoLabels = document.getElementById('scen_runway_mo_labels');
   const rWrap = document.getElementById('scen_runway_wrap');
@@ -2139,7 +2160,11 @@ function buildScenChart(){
   }
   if(rEnd){
     rEnd.textContent = fC(endBal_scen);
-    rEnd.style.color = endBal_scen < 0 ? 'var(--coral)' : 'var(--teal)';
+    rEnd.style.color = endBal_scen < 0 ? 'var(--coral)' : (belowCushion ? 'var(--amber)' : 'var(--teal)');
+  }
+  if(rWarning){
+    rWarning.style.display = belowCushion ? 'block' : 'none';
+    if(belowCushion) rWarning.title = `End balance ${fC(endBal_scen)} is below 3× avg monthly outflow (${fC(threeMonthCushion)})`;
   }
   if(rEndLabel){
     // "Dec '27" -> "Dec 2027" style long-form label, dynamic to whatever the selected period actually ends on
@@ -2347,7 +2372,7 @@ function buildScenChart(){
             if(data.baseOut) h+=rowH('Base ops',fC(data.baseOut),'var(--coral)');
             if(data.loanExtra<0) h+=rowH('Loan repayment',fC(data.loanExtra),'var(--coral)');
             if(data.taxThisMonth<0) h+=rowH('Tax',fC(data.taxThisMonth),'var(--coral)');
-            if(data.workforceBase!=null) h+=rowH('Direct Cost (base forecast)', fC(data.workforceBase), 'var(--text2)');
+            if(data.workforceBase!=null) h+=rowH('Direct Cost', fC(data.workforceBase), 'var(--text2)');
             h+=rowH('Direct Cost (change applied)',(data.workforceExtra>=0?'+':'')+fC(data.workforceExtra), data.workforceExtra>0?'var(--green)':(data.workforceExtra<0?'var(--coral)':'var(--text3)'));
             if(data.payrollSave>0) h+=rowH('Payroll saving','+'+fC(data.payrollSave),'var(--green)');
             h+=totalH('Total Cash Out',fC(data.cashOut),'var(--coral)');
@@ -2455,7 +2480,7 @@ function buildScenChart(){
       lastBvDisplay = bvDisplay;
       tRI+=ri; tH+=hi; tM+=mi; tO+=coDisplay;
       tBaseOut += ia ? (c_cash.cOA_op||0) : baseOutV;
-      tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0; tWorkBase+=((isCurrentMo&&mo_fcst)?(mo_fcst.workforceBase||0):(ia?0:(wfBaseTbl||0)));
+      tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0; tWorkBase+=((isCurrentMo&&mo_fcst)?(mo_fcst.workforceBase||0):(ia?(c_cash.wfAct||0):(wfBaseTbl||0)));
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
       var typeLabel = isCurrentMo ? 'ACTUAL + SCEN' : (ia?'ACTUAL':'FORECAST');
@@ -2480,7 +2505,7 @@ function buildScenChart(){
         +td(loanV?'-'+fC(Math.abs(loanV)):'—','','color:var(--coral)')
         +td(taxV?'-'+fC(Math.abs(taxV)):'—','','color:var(--coral)')
         +td(payV?fC(payV):'—','pos')
-        +td((isCurrentMo&&mo_fcst)?fC(mo_fcst.workforceBase):(ia?'—':fC(wfBaseTbl)),'','color:var(--text2)')
+        +td((isCurrentMo&&mo_fcst)?fC(mo_fcst.workforceBase):(ia?fC(c_cash.wfAct||0):fC(wfBaseTbl)),'','color:var(--text2)')
         +td((workV>=0?'+':'-')+fC(Math.abs(workV)),'',workV>0?'color:var(--green)':(workV<0?'color:var(--coral)':'color:var(--text3)'))
         +td(fC(coDisplay),'neg')
         +td(fC(ntDisplay),ntDisplay>=0?'pos':'neg')
