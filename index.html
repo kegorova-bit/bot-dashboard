@@ -801,17 +801,33 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="page" id="page-dso">
   <div class="slabel"><span>Collections & DSO</span> — Invoice to Cash Lag Analysis</div>
 
-  <!-- Row 1: Base Forecast — overarching over Invoices Outstanding + Won-To Be Invoiced. DSO metrics shrunk to the right. -->
+  <!-- Row 1: Base Forecast — overarching over Invoices Outstanding (+ aging) and Won-To Be Invoiced (+ near-term windows). DSO metrics with sparkline + trend, shrunk to the right. -->
   <div style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch;flex-wrap:wrap;">
-    <div class="cm t" style="flex:3 1 520px;">
-      <div class="cml">Base Forecast — 12 Months</div>
-      <div class="cmv t" id="col_fcst_np">—</div>
-      <div class="cms">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
+    <div class="cm t" style="flex:3 1 560px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div class="cml">Base Forecast — Next 12 Months</div>
+          <div class="cmv t" id="col_fcst_np" style="font-size:26px;">—</div>
+          <div class="cms">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
+        </div>
+        <div style="width:120px;height:36px;flex-shrink:0;"><canvas id="base_fcst_spark"></canvas></div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
         <div>
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Invoices Outstanding</div>
           <div id="col_inv_out" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
           <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Invoiced · live, full AR balance (not time-capped)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Not Yet Due</div>
+              <div id="col_age_notdue" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Overdue</div>
+              <div id="col_age_overdue" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--coral);margin-top:2px;">—</div>
+            </div>
+          </div>
+          <div style="font-size:8px;color:var(--text3);margin-top:5px;">Aging is by whole month (Expected Collection Month vs today), not exact days — see note below</div>
         </div>
         <div>
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Won — To Be Invoiced (next 12 months)</div>
@@ -832,27 +848,37 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="cm t" style="flex:0.6 1 110px;padding:12px 14px;">
+    <div class="cm t" style="flex:0.7 1 130px;padding:12px 14px;">
       <div class="cml" style="font-size:10px;margin-bottom:4px;">Avg DSO</div>
-      <div class="cmv t" id="dso_avg" style="font-size:17px;">—</div>
+      <div class="cmv t" id="dso_avg" style="font-size:19px;">—</div>
       <div class="cms" style="font-size:10px;margin-top:3px;">Days to collect</div>
+      <div style="height:26px;margin-top:6px;"><canvas id="dso_avg_spark"></canvas></div>
+      <div id="dso_avg_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
     </div>
-    <div class="cm a" style="flex:0.6 1 110px;padding:12px 14px;">
+    <div class="cm a" style="flex:0.7 1 130px;padding:12px 14px;">
       <div class="cml" style="font-size:10px;margin-bottom:4px;">Median DSO</div>
-      <div class="cmv a" id="dso_med" style="font-size:17px;">—</div>
+      <div class="cmv a" id="dso_med" style="font-size:19px;">—</div>
       <div class="cms" style="font-size:10px;margin-top:3px;">50th percentile</div>
+      <div style="height:26px;margin-top:6px;"><canvas id="dso_med_spark"></canvas></div>
+      <div id="dso_med_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
     </div>
     <div class="cm a" style="flex:0.6 1 110px;padding:12px 14px;">
       <div class="cml" style="font-size:10px;margin-bottom:4px;">Payment Term</div>
       <div class="cmv a" style="font-size:17px;">1 month</div>
-      <div class="cms" style="font-size:10px;margin-top:3px;">Most common</div>
+      <div class="cms" style="font-size:10px;margin-top:3px;">Most common (not yet calculated — see note)</div>
     </div>
   </div>
 
   <!-- Row 2: YTD Collected, Total Forecast + Pipeline (12-month) -->
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
-    <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
-    <div class="cm t"><div class="cml">Total Forecast + Pipeline — 12 Months</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base Forecast + Pipeline (High + Medium)</div></div>
+    <div class="cm g" style="display:flex;justify-content:space-between;align-items:center;">
+      <div><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd" style="font-size:24px;">—</div><div class="cms">Actual cash in Jan–today</div></div>
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(46,204,143,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">💰</div>
+    </div>
+    <div class="cm t" style="display:flex;justify-content:space-between;align-items:center;">
+      <div><div class="cml">Total Forecast + Pipeline — 12 Months</div><div class="cmv t" id="col_fcst_p" style="font-size:24px;">—</div><div class="cms">Base Forecast + Pipeline (High + Medium)</div></div>
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(15,184,184,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">📊</div>
+    </div>
   </div>
 
   <!-- Invoicing Timeline — rolling 12 months from today -->
@@ -1158,7 +1184,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v80Jul-baseforecast-12mo · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v81Aug-template-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2342,6 +2368,42 @@ function buildDSO(){
     const el2=document.getElementById('dso_med');if(el2)el2.textContent=med+'d';
     const el3=document.getElementById('dso_avg_sc');if(el3)el3.textContent=avg+'d';
   }
+
+  // DSO sparklines (last up to 12 months) + "vs prior 12 months" comparison.
+  // The comparison only renders if there are at least 24 months of history to compare
+  // a full current-12 window against a full prior-12 window — otherwise it stays "—"
+  // rather than showing a comparison built on a partial, misleading window.
+  (function(){
+    const mkSpark = (id, data, color) => {
+      const el = document.getElementById(id); if(!el || !data.length) return;
+      destroyChart(id);
+      charts[id] = new Chart(el, {type:'line',
+        data:{labels:data.map((_,i)=>i), datasets:[{data, borderColor:color, borderWidth:2, pointRadius:0, fill:false, tension:0.3}]},
+        options:{responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}, tooltip:{enabled:false}},
+          scales:{x:{display:false}, y:{display:false}}}});
+    };
+    const last12 = dsoVals.slice(-12);
+    mkSpark('dso_avg_spark', last12, '#0fb8b8');
+    mkSpark('dso_med_spark', last12, '#f5a623');
+
+    const trendEl = (id, curWindow, priorWindow) => {
+      const el = document.getElementById(id); if(!el) return;
+      if(dsoVals.length < 24){ el.textContent = 'vs prior 12mo — not enough history yet'; return; }
+      const curAvg = curWindow.reduce((s,v)=>s+v,0)/curWindow.length;
+      const priorAvg = priorWindow.reduce((s,v)=>s+v,0)/priorWindow.length;
+      const diff = curAvg - priorAvg;
+      const pct = priorAvg ? (diff/priorAvg*100) : 0;
+      const better = diff <= 0;  // fewer days to collect = better
+      el.innerHTML = (better?'▼ ':'▲ ')+Math.abs(pct).toFixed(0)+'% vs prior 12mo';
+      el.style.color = diff===0 ? 'var(--text3)' : (better?'var(--green)':'var(--coral)');
+    };
+    const cur12 = dsoVals.slice(-12);
+    const prior12 = dsoVals.slice(-24, -12);
+    trendEl('dso_avg_trend', cur12, prior12);
+    trendEl('dso_med_trend', cur12, prior12);
+  })();
+
   // DSO trend — live data
   destroyChart('dso_trend');
   charts['dso_trend']=new Chart(document.getElementById('dso_trend'),{type:'line',
@@ -3168,6 +3230,7 @@ function processInvoices(rows){
     const byCustomerProject = [];
     let grandTotal = 0;
     let outstandingInvoiceCount = 0;  // actual invoice row count (not grouped)
+    let ageNotYetDue = 0, ageOverdue = 0, ageUnclassified = 0;  // aging by whole month (see note in UI)
 
     let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
@@ -3187,6 +3250,12 @@ function processInvoices(rows){
       if(outstanding <= 0) continue;
       const project = (r[C.project]||'').trim();
       const expMo = (r[C.expectedMonth]||'').trim();
+      // Aging proxy — whole-month granularity only, since Expected_Collection_Month has no day component.
+      // "Overdue" = expected collection month is before the current month and it's still outstanding.
+      const expKeyForAging = _parseYM(expMo);
+      if(expKeyForAging==null) ageUnclassified += outstanding;
+      else if(expKeyForAging < _curKey) ageOverdue += outstanding;
+      else ageNotYetDue += outstanding;
       const key = customer + '||' + project;
       const existing = byCustomerProject.find(x=>x.key===key);
       if(existing){
@@ -3197,6 +3266,11 @@ function processInvoices(rows){
       outstandingInvoiceCount++;
     }
     window._notInvoiced = notInvoicedTotal;  // true unbounded total — used by the To Be Invoiced by Customer table footer
+    const ageNotDueEl = document.getElementById('col_age_notdue');
+    const ageOverdueEl = document.getElementById('col_age_overdue');
+    if(ageNotDueEl) ageNotDueEl.textContent = fC(ageNotYetDue);
+    if(ageOverdueEl) ageOverdueEl.textContent = fC(ageOverdue);
+    console.log('Aging (whole-month proxy) — Not Yet Due:', ageNotYetDue, ' Overdue:', ageOverdue, ' Unclassified (no parseable Expected_Collection_Month):', ageUnclassified);
 
     // Build To Be Invoiced by customer table — col E (Status) = 'draft'
     // Also bucket live by Invoice Date (col A) into non-overlapping windows (months 1-2, months 3-6)
@@ -3270,6 +3344,22 @@ function processInvoices(rows){
             tooltip:{callbacks:{label:c=>' '+fC(c.parsed.y)}}},
           scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#b3c1d1'}},
                   y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
+    })();
+
+    // Base Forecast sparkline — shows the shape of the Won-To-Be-Invoiced portion across the next 12
+    // months (the only piece of Base Forecast that's naturally month-distributed; Invoices Outstanding
+    // is a point-in-time AR balance, not a monthly series, so it isn't part of this shape).
+    (function(){
+      const spEl = document.getElementById('base_fcst_spark'); if(!spEl) return;
+      destroyChart('base_fcst_spark');
+      charts['base_fcst_spark'] = new Chart(spEl, {type:'line',
+        data:{labels: monthlyTBI.map((_,i)=>i), datasets:[{
+          data: monthlyTBI, borderColor:'#0fb8b8', borderWidth:2, pointRadius:0,
+          fill:true, backgroundColor:'rgba(15,184,184,0.12)', tension:0.35
+        }]},
+        options:{responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false}, tooltip:{enabled:false}},
+          scales:{x:{display:false}, y:{display:false}}}});
     })();
     const niSorted=notInvRows.sort((a,b)=>b.amount-a.amount);
     const niTbody=document.getElementById('not_inv_tbody');
