@@ -1188,7 +1188,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v82Aug-day-buckets · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v83Aug-current-month-scenario · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1963,6 +1963,7 @@ function buildScenChart(){
       const entry = {baseIn:c.cIA||0, pipeHighIn:0, pipeMedIn:0, baseOut:c.cOA_op||0, loanExtra:0, taxThisMonth:0, payrollSave:0, workforceExtra:0, cashOut:c.cOA_op||0, totalIn:c.cIA||0, netFlow:(c.cIA||0)+(c.cOA_op||0), actual:true};
       // Current (latest) month is only partially actual — also compute the full-month forecast estimate
       // so the tooltip can show actual-to-date and forecast side by side, instead of losing the forecast view entirely.
+      let _curMoScenarioDelta = 0;
       if(i === actualCount - 1){
         const fBaseIn      = c.cIF || 0;
         const fPipelineIn  = (pipePM_base[i]||0) * pipeRate;
@@ -1978,9 +1979,14 @@ function buildScenChart(){
         const fTax         = (taxLiability * taxRate / taxMonths);
         const fCashOut     = fBaseOut + fLoanExtra + fPayrollSave - fTax + fWorkforce;
         entry.fcst = {baseIn:fBaseIn, pipeHighIn:fPipeHighIn, pipeMedIn:fPipeMedIn, baseOut:fBaseOut, loanExtra:fLoanExtra, taxThisMonth:-fTax, payrollSave:fPayrollSave, workforceExtra:fWorkforce, cashOut:fCashOut, totalIn:fBaseIn+fPipelineIn, netFlow:fBaseIn+fPipelineIn+fCashOut};
+        // These scenario-driven cash movements (loan repayment, tax, payroll saving, workforce cost) still
+        // apply for whatever's left of the current month — they aren't optional just because some actual
+        // cash-in/out has already posted. Without this, every future month's projected balance silently
+        // understates outflow by this amount, since they all chain forward from this month's ending balance.
+        _curMoScenarioDelta = fLoanExtra + fPayrollSave - fTax + fWorkforce;
       }
       scenMonthly.push(entry);
-      runBal = c.balA || c.balF2 || runBal;
+      runBal = (c.balA || c.balF2 || runBal) + _curMoScenarioDelta;
     } else {
       const isJunePlus   = true; // scenario adjustments apply to every forecast month (branch already guarantees i>=actualCount)
       const baseIn       = c.cIF || 0;
@@ -2291,26 +2297,41 @@ function buildScenChart(){
     scenBal.forEach(function(bv,i){
       if(i>=cash.length)return;
       var ia=i<actualCount;
+      var isCurrentMo = i===actualCount-1;  // the latest month — actual-to-date, but still open for the rest of the month
       var ri=scenRevIn[i]||0,hi=scenHighIn[i]||0,mi=scenMedIn[i]||0;
       var ti=ri+hi+mi,co=scenCashOut[i]||0,nt=ti+co;
       // Break out cash out components for table display
       var c_cash=cash[i]||{};
-      var isJune   = true; // scenario adjustments apply to every forecast month (already gated by !ia below)
+      var isJune   = true; // scenario adjustments apply to every forecast month (already gated below)
+      // Scenario adjustments (loan/tax/payroll/workforce) apply to every month that ISN'T fully closed yet —
+      // that includes the current partial month, not just strictly-future months. A month only skips these
+      // once it's actually over (ia && !isCurrentMo).
+      var scenarioApplies = !ia || isCurrentMo;
       var baseOutV = ia ? (c_cash.cOA_op||0) : -(c_cash.cOutF2||0);
-      var loanV    = ia ? 0 : -(isJune ? loanMonthly * oblRate_sel : 0);
-      var taxV     = ia ? 0 : -(isJune ? (taxLiability * taxRate / taxMonths) : 0);
-      var payV     = ia ? 0 :  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0);
+      var loanV    = scenarioApplies ? -(isJune ? loanMonthly * oblRate_sel : 0) : 0;
+      var taxV     = scenarioApplies ? -(isJune ? (taxLiability * taxRate / taxMonths) : 0) : 0;
+      var payV     = scenarioApplies ?  (isJune ? (PAYROLL_MONTHLY[i]||0) * payrollCut : 0) : 0;
       // Workforce: pipeline (1 month before cash) + draft invoices (this month)
       var nextPipeV    = isJune ? ((highPM_base[i+1]||0)+(medPM_base[i+1]||0)) * pipeRate : 0;
       var draftMonthV  = isJune ? (draftByIdx[i]||0) : 0;
-      var workV        = ia ? 0 : -(isJune ? (nextPipeV + draftMonthV) * workRate : 0);
-      tRI+=ri; tH+=hi; tM+=mi; tO+=co;
+      var workV        = scenarioApplies ? -(isJune ? (nextPipeV + draftMonthV) * workRate : 0) : 0;
+      // For the current month, co/nt/bv (cash-out/net-flow/balance) already come from scenBal/scenCashOut,
+      // which is built from the actual-to-date figure alone (see the cash.forEach balance walk above) —
+      // add the scenario adjustments here so the displayed Total Out / Net Flow / Balance reflect the
+      // rest-of-month forecast too, not just what's posted so far.
+      var extraOut = isCurrentMo ? (loanV + taxV + payV + workV) : 0;
+      var coDisplay = co + extraOut;
+      var ntDisplay = ti + coDisplay;
+      var bvDisplay = isCurrentMo ? bv + extraOut : bv;
+      tRI+=ri; tH+=hi; tM+=mi; tO+=coDisplay;
       tBaseOut += ia ? (c_cash.cOA_op||0) : (c_cash.cOutF2||0);
       tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0;
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
+      var typeLabel = isCurrentMo ? 'ACTUAL + SCEN' : (ia?'ACTUAL':'FORECAST');
+      var typeColor = isCurrentMo ? 'var(--amber)' : (ia?'var(--teal)':'var(--amber)');
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
-        +td(ia?'ACTUAL':'FORECAST','','font-size:10px;color:'+(ia?'var(--teal)':'var(--amber)'))
+        +td(typeLabel,'','font-size:10px;color:'+typeColor)
         +td(fC(ri))
         +td(hi?fC(hi):'—','','color:#63b3ed')
         +td(mi?fC(mi):'—','','color:#3f83f8')
@@ -2320,9 +2341,9 @@ function buildScenChart(){
         +td(taxV?'-'+fC(Math.abs(taxV)):'—','','color:var(--coral)')
         +td(payV?fC(payV):'—','pos')
         +td(workV?'-'+fC(Math.abs(workV)):'—','','color:var(--coral)')
-        +td(fC(co),'neg')
-        +td(fC(nt),nt>=0?'pos':'neg')
-        +td(fC(bv),bv<0?'neg':'pos','font-weight:700');
+        +td(fC(coDisplay),'neg')
+        +td(fC(ntDisplay),ntDisplay>=0?'pos':'neg')
+        +td(fC(bvDisplay),bvDisplay<0?'neg':'pos','font-weight:700');
       t_body.appendChild(tr);
     });
     if(t_foot){
