@@ -692,8 +692,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
       <!-- Direct Cost (Workforce, Project Cost, Incentives) -->
       <div>
-        <div class="tl" style="margin-bottom:4px;">Direct Cost (workforce, project cost, incentives)</div>
-        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_workforce_amt">vs 25% baseline in Base Out</div>
+        <div class="tl" style="margin-bottom:4px;">Direct Cost</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;" id="scen_workforce_amt">workforce, project cost, incentives</div>
         <select class="ts" id="scen_workforce" onchange="buildScenChart()">
           <option value="0.20">20% — Low</option>
           <option value="0.25" selected>25% — Mid (Base)</option>
@@ -1200,7 +1200,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v94Aug-four-fixes · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v95Aug-label-restructure · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
