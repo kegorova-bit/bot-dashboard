@@ -800,18 +800,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <!-- ══════════ COLLECTIONS ══════════ -->
 <div class="page" id="page-dso">
   <div class="slabel"><span>Collections & DSO</span> — Invoice to Cash Lag Analysis</div>
-  <div class="dso-grid">
-    <div class="cm t"><div class="cml">Avg DSO</div><div class="cmv t" id="dso_avg">—</div><div class="cms">Days to collect</div></div>
-    <div class="cm a"><div class="cml">Median DSO</div><div class="cmv a" id="dso_med">—</div><div class="cms">50th percentile</div></div>
 
-    <div class="cm a"><div class="cml">Dominant Payment Term</div><div class="cmv a">1 month</div><div class="cms">Most common</div></div>
-  </div>
-  <!-- Collections scorecards -->
-  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px;">
-    <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
-    <div class="cm a"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="col_inv_out" style="color:var(--amber)">—</div><div class="cms">Status=Invoiced · live</div></div>
+  <!-- Row 1: Invoices Outstanding + Won-To Be Invoiced (primary), DSO metrics shrunk to the right -->
+  <div style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch;flex-wrap:wrap;">
+    <div class="cm a" style="flex:1 1 200px;"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="col_inv_out" style="color:var(--amber)">—</div><div class="cms">Status=Invoiced · live</div></div>
 
-    <div class="cm a" style="grid-column:span 2;">
+    <div class="cm a" style="flex:2 1 360px;">
       <div class="cml">Won — To Be Invoiced</div>
       <div class="cmv a" id="col_not_inv">—</div>
       <div class="cms">Status=Draft · live, by Invoice Date (col A)</div>
@@ -827,9 +821,36 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
-    <div class="cm t"><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base + High + Medium</div></div>
+    <div class="cm t" style="flex:0.6 1 110px;padding:12px 14px;">
+      <div class="cml" style="font-size:10px;margin-bottom:4px;">Avg DSO</div>
+      <div class="cmv t" id="dso_avg" style="font-size:17px;">—</div>
+      <div class="cms" style="font-size:10px;margin-top:3px;">Days to collect</div>
+    </div>
+    <div class="cm a" style="flex:0.6 1 110px;padding:12px 14px;">
+      <div class="cml" style="font-size:10px;margin-bottom:4px;">Median DSO</div>
+      <div class="cmv a" id="dso_med" style="font-size:17px;">—</div>
+      <div class="cms" style="font-size:10px;margin-top:3px;">50th percentile</div>
+    </div>
+    <div class="cm a" style="flex:0.6 1 110px;padding:12px 14px;">
+      <div class="cml" style="font-size:10px;margin-bottom:4px;">Payment Term</div>
+      <div class="cmv a" style="font-size:17px;">1 month</div>
+      <div class="cms" style="font-size:10px;margin-top:3px;">Most common</div>
+    </div>
   </div>
+
+  <!-- Row 2: YTD Collected, Base Forecast, Total Forecast + Pipeline (12-month) -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+    <div class="cm g"><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd">—</div><div class="cms">Actual cash in Jan–today</div></div>
+    <div class="cm t"><div class="cml">Base Forecast</div><div class="cmv t" id="col_fcst_np">—</div><div class="cms">Full year cIF</div></div>
+    <div class="cm t"><div class="cml">Total Forecast + Pipeline — 12 Months</div><div class="cmv t" id="col_fcst_p">—</div><div class="cms">Base + High + Medium</div></div>
+  </div>
+
+  <!-- Invoicing Timeline — rolling 12 months from today -->
+  <div class="card accent mb">
+    <div class="ch"><div><div class="ctitle">Invoicing Timeline — Next 12 Months (Rolling)</div><div class="csub">Draft (to-be-invoiced) amounts by expected Invoice Date, col A · live from Invoice Tracker</div></div></div>
+    <div class="cw tall"><canvas id="tbi_timeline_chart"></canvas></div>
+  </div>
+
   <div class="two">
     <div class="card accent mb">
       <div class="ch">
@@ -1127,7 +1148,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v75Jul-nested-scorecard · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v77Jul-invoiced-yellow · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2335,7 +2356,7 @@ function buildDSO(){
   destroyChart('inv_vs_col');
   charts['inv_vs_col']=new Chart(document.getElementById('inv_vs_col'),{type:'bar',
     data:{labels:L26short,datasets:[
-      {label:'Revenue Invoiced (A)',data:inv2026.map(v=>v||null),backgroundColor:tA,borderRadius:3,order:2},
+      {label:'Revenue Invoiced (A)',data:inv2026.map(v=>v||null),backgroundColor:'rgba(245,166,35,0.65)',borderColor:'#f5a623',borderWidth:1,borderRadius:3,order:2},
       {label:'Cash Collected (A)',data:col2026.map(v=>v||null),backgroundColor:'rgba(46,204,143,0.6)',borderRadius:3,order:2}
     ]},options:{...bO(),plugins:{...bO().plugins,tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}}}});
 
@@ -3172,6 +3193,7 @@ function processInvoices(rows){
       return yr*12 + mo;
     };
     let tbi2mo = 0, tbi6mo = 0;
+    const monthlyTBI = new Array(12).fill(0);  // rolling 12 months from today, index 0 = current month
 
     const notInvRows=[];  // [{key, customer, project, amount}]
     for(let i=1;i<rows.length;i++){
@@ -3189,6 +3211,7 @@ function processInvoices(rows){
         const monthsOut = expKey - _curKey;
         if(monthsOut>=0 && monthsOut<2) tbi2mo += amt;
         if(monthsOut>=0 && monthsOut<6) tbi6mo += amt;
+        if(monthsOut>=0 && monthsOut<12) monthlyTBI[monthsOut] += amt;
       }
       const existing=notInvRows.find(x=>x.key===key);
       if(existing){
@@ -3203,6 +3226,31 @@ function processInvoices(rows){
     console.log('To Be Invoiced 2mo/6mo — current month key:', _curKey, '(', _now.toISOString().slice(0,7), ')',
       ' | draft rows with a parseable Invoice Date (col A):', notInvRows.filter(x=>_parseYM(x.expMonth)!=null).length,
       '/', notInvRows.length, ' | tbi2mo=', tbi2mo, ' tbi6mo=', tbi6mo);
+
+    // Invoicing Timeline chart — rolling 12 months from today
+    (function(){
+      const tlEl = document.getElementById('tbi_timeline_chart'); if(!tlEl) return;
+      const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const labels = monthlyTBI.map((_,i)=>{
+        const d = new Date(_now.getFullYear(), _now.getMonth()+i, 1);
+        return MN[d.getMonth()]+" '"+String(d.getFullYear()).slice(2);
+      });
+      destroyChart('tbi_timeline_chart');
+      charts['tbi_timeline_chart'] = new Chart(tlEl, {type:'bar',
+        data:{labels, datasets:[{
+          label:'To Be Invoiced',
+          data: monthlyTBI,
+          backgroundColor:'rgba(15,184,184,0.65)',
+          borderColor:'#0fb8b8',
+          borderWidth:1.5,
+          borderRadius:4
+        }]},
+        options:{responsive:true, maintainAspectRatio:false,
+          plugins:{legend:{display:false},
+            tooltip:{callbacks:{label:c=>' '+fC(c.parsed.y)}}},
+          scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#b3c1d1'}},
+                  y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
+    })();
     const niSorted=notInvRows.sort((a,b)=>b.amount-a.amount);
     const niTbody=document.getElementById('not_inv_tbody');
     const niTotEl=document.getElementById('not_inv_total');
