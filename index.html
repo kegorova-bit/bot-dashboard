@@ -283,11 +283,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Full Year Forecast</div><div class="csub">Dynamic forecast (Staging) · updates with latest pipeline and actuals</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — Full Year Forecast</div><div class="csub" id="fd_subtitle">Dynamic forecast (Staging) · updates with latest pipeline and actuals</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc g"><div class="slb">Op Profit (F)</div><div class="sv g" id="pF">—</div></div>
+          <div class="sc r"><div class="slb">Total Expenses (F)</div><div class="sv r" id="eFtot">—</div></div>
           <div class="sc"><div class="slb">Margin (F)</div><div class="sv w" id="mF">—</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="tl">Period</span>
+          <select class="ts" id="fdPeriodTog" onchange="updateF()">
+            <option value="2026">2026 (Full Year)</option>
+            <option value="6mo">6-Month Forecast (+3 actual)</option>
+            <option value="12mo">12-Month Forecast (+3 actual)</option>
+          </select>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="tl">Forecast view</span>
@@ -1245,7 +1254,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v100Aug-cushion-legend · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v101Aug-fy-forecast-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1276,7 +1285,7 @@ function processStaging(rows){
   window._stagingColMap = mapHeaders(rows[0], stagingSchema, stagingFallbacks);
   const C = window._stagingColMap;
 
-  const s25=[],s26=[];
+  const s25=[],s26=[],sAll=[];
   for(let i=1;i<rows.length;i++){
     const r=rows[i];
     if(!r[C.date]||!r[C.date].trim())continue;
@@ -1348,6 +1357,7 @@ function processStaging(rows){
       done:     rA !== 0
     };
     if(yr===2026)s26.push(d);else if(yr===2025)s25.push(d);
+    if(yr===2026||yr===2027)sAll.push(d);  // extended array incl. 2027, used only by the Full Year Forecast chart's period toggle — s26 itself stays 2026-only since several other tabs (Q1/Q2/H1/Full Year card) assume it is
   }
 
   // 2025 summary
@@ -1408,35 +1418,9 @@ function processStaging(rows){
   window._s26=s26;
   buildSalesChart();
 
-  // Forecast chart
+  // Forecast chart — built entirely by updateF() below (period-aware, sources pipeline from Invoice Tracker)
   window._s26=s26;
-  const fd=buildFD(true,s26);
-  destroyChart('c2026f');
-  // Visually distinguish actual months (solid) vs forecast (striped/lighter)
-  const fcstBgSales = fd.map(r=>r.done?tA:'rgba(15,184,184,0.25)');
-  const fcstBgExp   = fd.map(r=>r.done?cA:'rgba(255,107,107,0.22)');
-  const fcstBgGrant = fd.map(r=>r.done?cyan:'rgba(103,232,249,0.3)');
-  charts['c2026f']=new Chart(document.getElementById('c2026f'),{type:'bar',
-    data:{labels:L26,datasets:[
-      {label:'Sales (A/F)',data:fd.map(r=>r.s||null),backgroundColor:fcstBgSales,stack:'r',order:2,borderRadius:2,
-       borderColor:fd.map(r=>r.done?teal:'rgba(15,184,184,0.5)'),borderWidth:fd.map(r=>r.done?0:1)},
-      {label:'Grants (A/F)',data:fd.map(r=>r.g||null),backgroundColor:fcstBgGrant,stack:'r',order:2,borderRadius:2},
-      {label:'Pipeline',data:fd.map(r=>r.pl||null),backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.8)',borderWidth:1,stack:'r',order:2,borderRadius:2},
-      {label:'Expenses (A/F)',data:fd.map(r=>r.e||null),backgroundColor:fcstBgExp,stack:'r',order:2,borderRadius:2,
-       borderColor:fd.map(r=>r.done?coral:'rgba(255,107,107,0.45)'),borderWidth:fd.map(r=>r.done?0:1)},
-      {label:'Op Profit',data:fd.map(r=>r.pr),type:'line',
-       borderColor:green,borderWidth:2,
-       pointRadius:3,
-       pointBackgroundColor:fd.map(r=>r.pr<0?coral:(r.done?green:'rgba(46,204,143,0.4)')),
-       pointBorderColor:fd.map(r=>r.pr<0?coral:(r.done?green:'rgba(46,204,143,0.4)')),
-       fill:false,tension:0.3,order:1,
-       segment:{
-         borderColor:ctx=>fd[ctx.p1DataIndex]?.pr<0?coral:green,
-         borderDash:ctx=>fd[ctx.p1DataIndex]?.done?[]:[4,3]
-       }}
-    ]},options:{...bO(true),
-      plugins:{...bO(true).plugins,
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fN(c.parsed.y)}}}}});
+  window._sAll=sAll;  // extended array incl. 2027, for the Full Year Forecast chart's period toggle
   updateF();
   buildVarTable(s26);
   buildVarTable25(s25);
@@ -1518,26 +1502,78 @@ function buildVarTable25(s25){
   vt.appendChild(vb);vt.appendChild(tf);
 }
 
-function buildFD(p,s26){return(s26||window._s26||[]).map(r=>({s:r.sF_dyn, g:r.gF_dyn, pl:p?r.plF_dyn:0, e:r.done?(r.eA||r.eF_dyn):r.eF_dyn, pr:p?r.pF_dyn_pipe:r.pF_dyn_nopipe, done:r.done}));}
+// Pipeline for the Full Year Forecast chart — sourced from Invoice Tracker (window._pipeHigh/_pipeMed),
+// same underlying data as the Scenario Builder, but with its OWN timing rule: starts the month AFTER
+// the current month (current month's own index = count of "done" rows - 1, so start = that count),
+// split evenly over exactly 6 months. This is intentionally a different offset than the Scenario
+// Builder's pipeline rule (current month +2) — the two are independent, per-feature assumptions.
+function buildFD(p, dataArr){
+  const arr = dataArr || window._sAll || window._s26 || [];
+  const doneCount = arr.filter(r=>r.done).length;
+  const pipelineStart = doneCount; // "current month" (last done row) + 1
+  const pipelineSpread = 6;
+  const pipeHigh = window._pipeHigh || 0, pipeMed = window._pipeMed || 0;
+  const perMo = (pipeHigh + pipeMed) / pipelineSpread;
+  return arr.map((r,i)=>{
+    const pl = p && i>=pipelineStart && i<pipelineStart+pipelineSpread ? perMo : 0;
+    const s = r.sF_dyn, g = r.gF_dyn, e = r.done?(r.eA||r.eF_dyn):r.eF_dyn;
+    const pr = s + g + pl + e; // recomputed fresh — do NOT trust r.pF_dyn_pipe/nopipe, which internally used Staging's own (different) pipeline figure
+    return {s, g, pl, e, pr, done:r.done};
+  });
+}
 function updateF(){
-  const s26=window._s26||[];if(!s26.length)return;
+  const sAll=window._sAll||window._s26||[];if(!sAll.length)return;
   const p=document.getElementById('ftog').value==='pipe';
-  const d=buildFD(p,s26);
-  const tP=d.reduce((s,r)=>s+r.pr,0),tR=d.reduce((s,r)=>s+r.s+r.g+r.pl,0);
-  const pFel=document.getElementById('pF');if(pFel){pFel.textContent=fmt(tP);pFel.className='sv '+(tP>=0?'g':'r');} const pFwrap=document.getElementById('pF_wrap');if(pFwrap)pFwrap.className='sc '+(tP>=0?'g':'r');
-  document.getElementById('mF').textContent=tR>0?(tP/tR*100).toFixed(0)+'%':'—';
-  if(charts['c2026f']){
-    const c=charts['c2026f'];
-    c.data.datasets[0].data=d.map(r=>r.s||null);
-    c.data.datasets[0].backgroundColor=d.map(r=>r.done?tA:'rgba(15,184,184,0.25)');
-    c.data.datasets[3].data=d.map(r=>r.e||null);
-    c.data.datasets[3].backgroundColor=d.map(r=>r.done?cA:'rgba(255,107,107,0.22)');
-    c.data.datasets[2].data=d.map(r=>r.pl||null);
-    c.data.datasets[4].data=d.map(r=>r.pr);
-    c.data.datasets[4].pointBackgroundColor=d.map(r=>r.pr<0?coral:(r.done?green:'rgba(46,204,143,0.4)'));
-    c.data.datasets[4].pointBorderColor=d.map(r=>r.pr<0?coral:(r.done?green:'rgba(46,204,143,0.4)'));
-    c.update();
+  const periodSel=document.getElementById('fdPeriodTog')?.value||'2026';
+  const doneCount=sAll.filter(r=>r.done).length;
+
+  // ── Period window — mirrors the Scenario Builder's period selector for a consistent dashboard UX ──
+  let winStart, winEnd;
+  if(periodSel==='2026'){
+    winStart=0; winEnd=Math.min(11, sAll.length-1);
+  } else {
+    const base=Math.max(0, doneCount-1-3); // 3 last actual months before the current month
+    winStart=base;
+    winEnd = periodSel==='6mo' ? Math.min(sAll.length-1, base+8) : Math.min(sAll.length-1, base+14);
   }
+  const fdSubEl=document.getElementById('fd_subtitle');
+  if(fdSubEl) fdSubEl.textContent = 'Dynamic forecast (Staging) · '+(sAll[winStart]?.date||'')+' – '+(sAll[winEnd]?.date||'')+' · updates with latest pipeline and actuals';
+
+  const dFull=buildFD(p,sAll);               // pipeline timing computed against the FULL array (so "current month" is always correct regardless of the window shown)
+  const d=dFull.slice(winStart,winEnd+1);    // only the selected window is displayed/summed
+
+  const tP=d.reduce((s,r)=>s+r.pr,0), tR=d.reduce((s,r)=>s+r.s+r.g+r.pl,0), tE=d.reduce((s,r)=>s+r.e,0);
+  const pFel=document.getElementById('pF');if(pFel){pFel.textContent=fmt(tP);pFel.className='sv '+(tP>=0?'g':'r');}
+  const eFel=document.getElementById('eFtot');if(eFel){eFel.textContent=fmt(Math.abs(tE));}
+  document.getElementById('mF').textContent=tR>0?(tP/tR*100).toFixed(0)+'%':'—';
+
+  const winLabels=sAll.slice(winStart,winEnd+1).map(r=>r.date);
+  const fcstBgSales=d.map(r=>r.done?tA:'rgba(15,184,184,0.25)');
+  const fcstBgExp  =d.map(r=>r.done?cA:'rgba(255,107,107,0.22)');
+
+  destroyChart('c2026f');
+  const el=document.getElementById('c2026f'); if(!el) return;
+  charts['c2026f']=new Chart(el,{type:'bar',
+    data:{labels:winLabels,datasets:[
+      {label:'Sales (A/F)',data:d.map(r=>r.s||null),backgroundColor:fcstBgSales,stack:'r',order:2,borderRadius:2,
+       borderColor:d.map(r=>r.done?teal:'rgba(15,184,184,0.5)'),borderWidth:d.map(r=>r.done?0:1)},
+      {label:'Grants (A/F)',data:d.map(r=>r.g||null),backgroundColor:d.map(r=>r.done?cyan:'rgba(103,232,249,0.3)'),stack:'r',order:2,borderRadius:2},
+      {label:'Pipeline',data:d.map(r=>r.pl||null),backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.8)',borderWidth:1,stack:'r',order:2,borderRadius:2},
+      {label:'Expenses (A/F)',data:d.map(r=>r.e||null),backgroundColor:fcstBgExp,stack:'r',order:2,borderRadius:2,
+       borderColor:d.map(r=>r.done?coral:'rgba(255,107,107,0.45)'),borderWidth:d.map(r=>r.done?0:1)},
+      {label:'Op Profit',data:d.map(r=>r.pr),type:'line',
+       borderColor:green,borderWidth:2,
+       pointRadius:3,
+       pointBackgroundColor:d.map(r=>r.pr<0?coral:(r.done?green:'rgba(46,204,143,0.4)')),
+       pointBorderColor:d.map(r=>r.pr<0?coral:(r.done?green:'rgba(46,204,143,0.4)')),
+       fill:false,tension:0.3,order:1,
+       segment:{
+         borderColor:ctx=>d[ctx.p1DataIndex]?.pr<0?coral:green,
+         borderDash:ctx=>d[ctx.p1DataIndex]?.done?[]:[4,3]
+       }}
+    ]},options:{...bO(true),
+      plugins:{...bO(true).plugins,
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fN(c.parsed.y)}}}}});
 }
 
 function buildVarTable(s26){
