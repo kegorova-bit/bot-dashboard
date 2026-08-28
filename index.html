@@ -22,8 +22,23 @@
   --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
   --radius:14px;
 }
+/* Light color scheme — toggled via .theme-light on <html>, persisted in localStorage.
+   Covers the CSS-variable-driven UI (cards, backgrounds, borders, base text, tables, badges).
+   NOTE: Chart.js chart colors (gridlines, axis ticks, per-dataset colors) are set individually per
+   chart with hardcoded hex/rgba values throughout the file, not via these variables — they are NOT
+   re-themed by this toggle and will still render with dark-theme-oriented colors in light mode. */
+html.theme-light{
+  --bg:#f6f7f9;--bg2:#ffffff;--bg3:#eef1f5;--bg4:#e3e7ed;
+  --border:rgba(15,23,42,0.10);--border2:rgba(15,23,42,0.16);
+  --teal:#0a9797;--tDim:rgba(10,151,151,0.12);
+  --coral:#dc3545;--cDim:rgba(220,53,69,0.12);
+  --green:#1d9c68;--gDim:rgba(29,156,104,0.12);
+  --amber:#c2760a;--aDim:rgba(194,118,10,0.14);
+  --cyan:rgba(11,120,140,0.85);
+  --text:#12151f;--text2:#3d4456;--text3:#5c6478;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;}
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}
 .header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 36px;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:200;}
 .logo{font-size:24px;font-weight:700;letter-spacing:1.5px;}
@@ -101,10 +116,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .cash-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
 .cash-grid-2{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
 .cm{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
-.cm.t{border-color:rgba(15,184,184,.4);background:rgba(15,184,184,.06);}
-.cm.r{border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.06);}
-.cm.g{border-color:rgba(46,204,143,.4);background:rgba(46,204,143,.06);}
-.cm.a{border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.06);}
+.cm.t{border-color:rgba(15,184,184,.4);background:var(--tDim);}
+.cm.r{border-color:rgba(255,107,107,.4);background:var(--cDim);}
+.cm.g{border-color:rgba(46,204,143,.4);background:var(--gDim);}
+.cm.a{border-color:rgba(245,166,35,.4);background:var(--aDim);}
 .cml{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
 .cmv{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
 .cmv.t{color:var(--teal);}.cmv.r{color:var(--coral);}.cmv.g{color:var(--green);}.cmv.a{color:var(--amber);}.cmv.w{color:var(--text);}
@@ -190,6 +205,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <span class="header-sub">Company Financial Health — 2026</span>
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
+    <button class="refresh-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Switch color scheme" style="padding:6px 10px;">🌙</button>
     <button class="refresh-btn" id="refreshBtn" onclick="loadAllData()">⟳ Refresh</button>
     <span class="hdate" id="hDate">Loading...</span>
   </div>
@@ -776,7 +792,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
     <div style="font-size:9px;color:var(--text3);margin-top:8px;line-height:1.5;">
-      Amber warning rule: End Balance turns amber when it falls below 3× the average monthly outflow from confirmed actual months (Base Out actuals only, excluding the current partial month) — a rough "3-month cash cushion" check, separate from the Runway calculation above.
+      Amber warning rule: applies to End Balance above, the "End of Period Balance" scorecard, and the dashed forecast line in the chart below — all three turn amber when the projected balance is positive but falls below 3× the average monthly outflow from confirmed actual months (Base Out actuals only, excluding the current partial month). A rough "3-month cash cushion" check, separate from the Runway calculation above.
     </div>
 
 </div>
@@ -979,6 +995,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 
 <script>
+
+// ═══════════════════════════════════════════════════════════════
+// COLOR SCHEME — light/dark toggle, persisted in localStorage
+// ═══════════════════════════════════════════════════════════════
+function toggleTheme(){
+  const isLight = document.documentElement.classList.toggle('theme-light');
+  localStorage.setItem('bot_theme', isLight ? 'light' : 'dark');
+  const btn = document.getElementById('themeToggleBtn');
+  if(btn) btn.textContent = isLight ? '☀️' : '🌙';
+}
+(function applySavedTheme(){
+  const saved = localStorage.getItem('bot_theme');
+  if(saved === 'light'){
+    document.documentElement.classList.add('theme-light');
+    const btn = document.getElementById('themeToggleBtn');
+    if(btn) btn.textContent = '☀️';
+  }
+})();
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -1211,7 +1245,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v98Aug-cushion-warning · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v100Aug-cushion-legend · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2205,12 +2239,20 @@ function buildScenChart(){
   const decVal = scenBal[Math.min(winEnd, scenBal.length-1)];
   if(scNeg){scNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';scNeg.className='sv '+(negIdx>=0?'r':'g');}
   if(scDecLabel) scDecLabel.textContent = 'End of Period Balance ('+(L26[winEnd]||'')+')';
-  if(scDec){scDec.textContent=fC(decVal);scDec.className='sv '+(decVal<0?'r':'g');}
+  if(scDec){
+    scDec.textContent=fC(decVal);
+    const belowCushionDec = decVal >= 0 && decVal < threeMonthCushion;
+    scDec.className='sv '+(decVal<0?'r':(belowCushionDec?'a':'g'));
+  }
   // Also update main forecast scorecards (sc_neg / sc_dec)
   const mainNeg=document.getElementById('sc_neg');
   const mainDec=document.getElementById('sc_dec');
   if(mainNeg){mainNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';mainNeg.className='sv '+(negIdx>=0?'r':'g');}
-  if(mainDec){mainDec.textContent=fC(decVal);mainDec.className='sv '+(decVal<0?'r':'g');}
+  if(mainDec){
+    mainDec.textContent=fC(decVal);
+    const belowCushionMain = decVal >= 0 && decVal < threeMonthCushion;
+    mainDec.className='sv '+(decVal<0?'r':(belowCushionMain?'a':'g'));
+  }
 
   const L26_sc=L26.slice(winStart,winEnd+1);
   const actualScen  = scenBal.map((v,i)=>i<=actualCount?v:null);
@@ -2284,13 +2326,22 @@ function buildScenChart(){
     {label:'Balance (Scenario)',data:forecastScenW,type:'line',
        borderColor:'rgba(46,204,143,0.7)',borderWidth:2,borderDash:[6,4],
        pointRadius:ctx=>ctx.dataIndex>=winActualCount?3:0,
-       pointBackgroundColor:forecastScenW.map(v=>v!=null?(v<0?coral:'rgba(46,204,143,0.7)'):'transparent'),
+       pointBackgroundColor:forecastScenW.map(v=>v==null?'transparent':(v<0?coral:(v<threeMonthCushion?amber:'rgba(46,204,143,0.7)'))),
        fill:false,tension:0.3,order:1,yAxisID:'y2',
-       segment:{borderColor:ctx=>forecastScenW[ctx.p1DataIndex]<0?coral:'rgba(46,204,143,0.7)'}}
+       segment:{borderColor:ctx=>{
+         const v=forecastScenW[ctx.p1DataIndex];
+         return v<0?coral:(v<threeMonthCushion?amber:'rgba(46,204,143,0.7)');
+       }}}
     ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
+        legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8,
+          // Hide the current-month-only overlay datasets from the legend — they're supplementary
+          // annotations (visible on hover via the tooltip regardless), not core series, and having
+          // near-duplicate labels like "Balance (Forecast — current mo)" next to "Balance — Forecast
+          // (current mo)" made the legend read as cluttered/repetitive rather than informative.
+          filter:(item)=>!['Cash In (F) — cur mo','Cash Out (F) — cur mo','Balance (Forecast — current mo)','Balance — Forecast (current mo)'].includes(item.text)
+        }},
         tooltip:{enabled:false, external:(context)=>{
           const {chart,tooltip}=context;
           const sTip=document.getElementById('scen-tooltip');if(!sTip)return;
