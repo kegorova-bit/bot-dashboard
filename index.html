@@ -845,87 +845,103 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="page" id="page-dso">
   <div class="slabel"><span>Collections & DSO</span> — Invoice to Cash Lag Analysis</div>
 
-  <!-- Row 1: Base Forecast — overarching over Invoices Outstanding (+ aging) and Won-To Be Invoiced (+ near-term windows). DSO metrics with sparkline + trend, shrunk to the right. -->
-  <div style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch;flex-wrap:wrap;">
-    <div class="cm t" style="flex:3 1 560px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div>
-          <div class="cml">Base Forecast — Next 12 Months</div>
-          <div class="cmv t" id="col_fcst_np" style="font-size:26px;">—</div>
-          <div class="cms">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
-        </div>
-        <div style="width:120px;height:36px;flex-shrink:0;"><canvas id="base_fcst_spark"></canvas></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Invoices Outstanding</div>
-          <div id="col_inv_out" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Invoiced · live, full AR balance (not time-capped)</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
-            <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Not Yet Due</div>
-              <div id="col_age_notdue" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
-            </div>
-            <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ Overdue</div>
-              <div id="col_age_overdue" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--coral);margin-top:2px;">—</div>
-            </div>
-          </div>
-          <div style="font-size:8px;color:var(--text3);margin-top:5px;">Aging is by whole month (Expected Collection Month vs today), not exact days — see note below</div>
-        </div>
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Won — To Be Invoiced (next 12 months)</div>
-          <div id="col_not_inv" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Draft · live, by Invoice Date (col A) · capped to next 12mo</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
-            <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ 1–60 Days</div>
-              <div id="col_tbi_2mo" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
-            </div>
-            <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ 61–180 Days</div>
-              <div id="col_tbi_6mo" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
-            </div>
-            <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳↳ 180+ Days</div>
-              <div id="col_tbi_180plus" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
-            </div>
-          </div>
-          <div style="font-size:8px;color:var(--text3);margin-top:5px;">Non-overlapping — all three add up to the full 12-month total above. Day ranges approximate whole months (Invoice Date has no day-level precision).</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="cm t" style="flex:0.7 1 130px;padding:12px 14px;">
-      <div class="cml" style="font-size:10px;margin-bottom:4px;">Avg DSO</div>
-      <div class="cmv t" id="dso_avg" style="font-size:19px;">—</div>
-      <div class="cms" style="font-size:10px;margin-top:3px;">Days to collect</div>
-      <div style="height:26px;margin-top:6px;"><canvas id="dso_avg_spark"></canvas></div>
-      <div id="dso_avg_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
-    </div>
-    <div class="cm a" style="flex:0.7 1 130px;padding:12px 14px;">
-      <div class="cml" style="font-size:10px;margin-bottom:4px;">Median DSO</div>
-      <div class="cmv a" id="dso_med" style="font-size:19px;">—</div>
-      <div class="cms" style="font-size:10px;margin-top:3px;">50th percentile</div>
-      <div style="height:26px;margin-top:6px;"><canvas id="dso_med_spark"></canvas></div>
-      <div id="dso_med_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
-    </div>
-    <div class="cm a" style="flex:0.6 1 110px;padding:12px 14px;">
-      <div class="cml" style="font-size:10px;margin-bottom:4px;">Payment Term</div>
-      <div class="cmv a" style="font-size:17px;">1 month</div>
-      <div class="cms" style="font-size:10px;margin-top:3px;">Most common (not yet calculated — see note)</div>
-    </div>
+  <!-- Row 0: YTD Collected — moved to top -->
+  <div class="cm g" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd" style="font-size:24px;">—</div><div class="cms">Actual cash in Jan–today</div></div>
+    <div style="width:36px;height:36px;border-radius:50%;background:rgba(46,204,143,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">💰</div>
   </div>
 
-  <!-- Row 2: YTD Collected, Total Forecast + Pipeline (12-month) -->
-  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
-    <div class="cm g" style="display:flex;justify-content:space-between;align-items:center;">
-      <div><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd" style="font-size:24px;">—</div><div class="cms">Actual cash in Jan–today</div></div>
-      <div style="width:36px;height:36px;border-radius:50%;background:rgba(46,204,143,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">💰</div>
+  <!-- Row 1: Cash In Forecast + Total Forecast&Pipeline (stacked, left) | Invoices Outstanding + Won-To-Be-Invoiced (combined card, right) | DSO metrics (small, far right) -->
+  <div style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch;flex-wrap:wrap;">
+
+    <div style="display:flex;flex-direction:column;gap:12px;flex:1.4 1 260px;">
+      <div class="cm t">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="cml">Cash In Forecast</div>
+            <div class="cmv t" id="col_fcst_np" style="font-size:24px;">—</div>
+            <div class="cms" id="col_fcst_np_sub" style="font-size:9px;">Invoices Outstanding + Won — To Be Invoiced</div>
+          </div>
+          <div style="width:80px;height:32px;flex-shrink:0;"><canvas id="base_fcst_spark"></canvas></div>
+        </div>
+        <select class="ts" id="colTbiPeriodTog" onchange="processInvoices(window._invRowsCache); buildDSO();" style="font-size:10px;margin-top:8px;width:100%;">
+          <option value="2026">2026 (Full Year)</option>
+          <option value="6mo">6-Month Forecast</option>
+          <option value="12mo" selected>12-Month Forecast</option>
+        </select>
+      </div>
+      <div class="cm t" style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p" style="font-size:22px;">—</div><div class="cms" style="font-size:9px;">Cash In Forecast + Pipeline (High + Medium) · same period toggle above</div></div>
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(15,184,184,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;">📊</div>
+      </div>
     </div>
-    <div class="cm t" style="display:flex;justify-content:space-between;align-items:center;">
-      <div><div class="cml">Total Forecast + Pipeline — 12 Months</div><div class="cmv t" id="col_fcst_p" style="font-size:24px;">—</div><div class="cms">Base Forecast + Pipeline (High + Medium)</div></div>
-      <div style="width:36px;height:36px;border-radius:50%;background:rgba(15,184,184,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">📊</div>
+
+    <div class="cm a" style="flex:2 1 380px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Invoices Outstanding</div>
+          <div id="col_inv_out" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Invoiced · live, full AR balance (not time-capped)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Not Yet Due</div>
+              <div id="col_age_notdue" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 1-60 Days</div>
+              <div id="col_age_60" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber);margin-top:2px;">—</div>
+            </div>
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 61-180 Days</div>
+              <div id="col_age_61to180" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--coral);margin-top:2px;">—</div>
+            </div>
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 180+ Days</div>
+              <div id="col_age_180plus" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--coral);margin-top:2px;">—</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;" id="col_wtbi_label">Won — To Be Invoiced (next 12 months)</div>
+          <div id="col_not_inv" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Draft · live, by Invoice Date (col A)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 1–60 Days</div>
+              <div id="col_tbi_2mo" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+            <div>
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 61–180 Days</div>
+              <div id="col_tbi_6mo" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+            <div style="grid-column:span 2;">
+              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 180+ Days</div>
+              <div id="col_tbi_180plus" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:8px;color:var(--text3);margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">Both sets of day-buckets approximate whole months, not exact days (no day-level due date/invoice date precision in the source data). Outstanding's 3 overdue buckets + Not Yet Due are exhaustive. Won-To-Be-Invoiced's 3 buckets are fixed at months 0-1/2-5/6-11 regardless of the Cash In Forecast period toggle above — they may not sum to that toggle's total if a period shorter than 12 months is selected.</div>
+    </div>
+
+    <div class="cm t" style="flex:0.6 1 120px;padding:12px 14px;">
+      <div class="cml" style="font-size:10px;margin-bottom:4px;">Avg DSO</div>
+      <div class="cmv t" id="dso_avg" style="font-size:18px;">—</div>
+      <div class="cms" style="font-size:10px;margin-top:3px;">Days to collect</div>
+      <div style="height:24px;margin-top:6px;"><canvas id="dso_avg_spark"></canvas></div>
+      <div id="dso_avg_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
+    </div>
+    <div class="cm a" style="flex:0.6 1 120px;padding:12px 14px;">
+      <div class="cml" style="font-size:10px;margin-bottom:4px;">Median DSO</div>
+      <div class="cmv a" id="dso_med" style="font-size:18px;">—</div>
+      <div class="cms" style="font-size:10px;margin-top:3px;">50th percentile</div>
+      <div style="height:24px;margin-top:6px;"><canvas id="dso_med_spark"></canvas></div>
+      <div id="dso_med_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
+    </div>
+    <div class="cm a" style="flex:0.5 1 100px;padding:12px 14px;">
+      <div class="cml" style="font-size:10px;margin-bottom:4px;">Payment Term</div>
+      <div class="cmv a" style="font-size:16px;">1 month</div>
+      <div class="cms" style="font-size:9px;margin-top:3px;">Most common (not yet calculated)</div>
     </div>
   </div>
 
@@ -1167,7 +1183,7 @@ const invoiceSchema = {
   amountGross:   ['Amount_wVAT', 'Amount (gross)', 'Amount with VAT'],
   collectionDate:['Actual_collection_Date', 'Actual collection Date', 'Collection Date', 'Payment Date'],
   monthLabel:    ['Actual_Collection_month', 'Actual Collection month', 'Collection Month'],
-  amountDso:     ['Actual_Payment', 'Actual Payment', 'Amount (DSO)'],
+  amountDso:     ['Actual_payment_with_VAT', 'Actual Payment with VAT', 'Actual_Payment_with_VAT', 'Amount (DSO)'],
   outstanding:   ['Amount_Outstanding', 'Amount Outstanding', 'Outstanding', 'Balance Due'],
   notInvoicedAmt:['Amount_noVAT', 'Amount (no VAT)', 'Amount no VAT', 'Net Amount'],
   expectedMonth: ['Expected_Collection_Month', 'Expected Collection Month'],
@@ -1262,7 +1278,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v102Sep-collections-period · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v104Sep-vat-column-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2757,7 +2773,7 @@ function buildDSO(){
   // Update scorecards
   const ytdCollected   = colActualInv.reduce((s,v)=>s+v,0);
   const invOutstanding = window._invoicesOutstanding || 0;
-  const notInvoiced12mo = window._notInvoiced12mo || 0;  // Won-To-Be-Invoiced capped to next 12 months — see processInvoices()
+  const notInvoiced12mo = window._notInvoicedPeriod || 0;  // Won-To-Be-Invoiced capped to the selected Cash In Forecast period — see processInvoices()
   const pipelineHM     = HIGH_TOTAL + MED_TOTAL;
   const totalFcst      = invOutstanding + notInvoiced12mo + pipelineHM;
   const c_ytd  = document.getElementById('col_ytd');
@@ -3492,6 +3508,7 @@ function build6MFcst(){
 
 
 function processInvoices(rows){
+  window._invRowsCache = rows;  // cached so the Cash In Forecast Display Period toggle can re-invoke this function
   // Resolve columns from header row using invoiceSchema — resilient to column shifts
   window._invoiceColMap = mapHeaders(rows[0], invoiceSchema, invoiceFallbacks);
   const C = window._invoiceColMap;
@@ -3526,7 +3543,9 @@ function processInvoices(rows){
     const byCustomerProject = [];
     let grandTotal = 0;
     let outstandingInvoiceCount = 0;  // actual invoice row count (not grouped)
-    let ageNotYetDue = 0, ageOverdue = 0, ageUnclassified = 0;  // aging by whole month (see note in UI)
+    // Aging by whole month (see note in UI). Not Yet Due stays separate; Overdue splits into the same
+    // 3 day-buckets used for Won-To-Be-Invoiced (1-60 / 61-180 / 180+ days), approximated via 30-day months.
+    let ageNotYetDue = 0, age60 = 0, age61to180 = 0, age180plus = 0, ageUnclassified = 0;
 
     let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
@@ -3547,11 +3566,17 @@ function processInvoices(rows){
       const project = (r[C.project]||'').trim();
       const expMo = (r[C.expectedMonth]||'').trim();
       // Aging proxy — whole-month granularity only, since Expected_Collection_Month has no day component.
-      // "Overdue" = expected collection month is before the current month and it's still outstanding.
       const expKeyForAging = _parseYM(expMo);
-      if(expKeyForAging==null) ageUnclassified += outstanding;
-      else if(expKeyForAging < _curKey) ageOverdue += outstanding;
-      else ageNotYetDue += outstanding;
+      if(expKeyForAging==null){
+        ageUnclassified += outstanding;
+      } else if(expKeyForAging >= _curKey){
+        ageNotYetDue += outstanding;
+      } else {
+        const monthsOverdue = _curKey - expKeyForAging;
+        if(monthsOverdue<=2) age60 += outstanding;
+        else if(monthsOverdue<=6) age61to180 += outstanding;
+        else age180plus += outstanding;
+      }
       const key = customer + '||' + project;
       const existing = byCustomerProject.find(x=>x.key===key);
       if(existing){
@@ -3563,21 +3588,23 @@ function processInvoices(rows){
     }
     window._notInvoiced = notInvoicedTotal;  // true unbounded total — used by the To Be Invoiced by Customer table footer
     const ageNotDueEl = document.getElementById('col_age_notdue');
-    const ageOverdueEl = document.getElementById('col_age_overdue');
+    const age60El = document.getElementById('col_age_60');
+    const age61to180El = document.getElementById('col_age_61to180');
+    const age180plusEl = document.getElementById('col_age_180plus');
     if(ageNotDueEl) ageNotDueEl.textContent = fC(ageNotYetDue);
-    if(ageOverdueEl) ageOverdueEl.textContent = fC(ageOverdue);
-    console.log('Aging (whole-month proxy) — Not Yet Due:', ageNotYetDue, ' Overdue:', ageOverdue, ' Unclassified (no parseable Expected_Collection_Month):', ageUnclassified);
+    if(age60El) age60El.textContent = fC(age60);
+    if(age61to180El) age61to180El.textContent = fC(age61to180);
+    if(age180plusEl) age180plusEl.textContent = fC(age180plus);
+    console.log('Aging (whole-month proxy) — Not Yet Due:', ageNotYetDue, ' 1-60d:', age60, ' 61-180d:', age61to180, ' 180+d:', age180plus, ' Unclassified:', ageUnclassified);
 
     // Build To Be Invoiced by customer table — col E (Status) = 'draft'
-    // Also bucket live by Invoice Date (col A) into three non-overlapping day-ranges that together
-    // cover the FULL 12-month total (no gap, unlike the old month-based scheme):
-    //   1-60 days   = months 0-1  (~60 days, using 30-day months)
-    //   61-180 days = months 2-5  (~61-180 days)
-    //   180+ days   = months 6-11 (the remainder of the 12-month window)
-    // NOTE: this is a whole-month approximation of days, since Invoice Date only gives month-level
-    // granularity in most rows — not a true day-level calculation.
+    // Day-buckets (1-60/61-180/180+) stay FIXED at their own definition regardless of the Cash In
+    // Forecast period toggle below — they always cover months 0-1/2-5/6-11 from today. NOTE: this means
+    // if the period toggle is set below 12 months, the parent Cash In Forecast total can be LESS than
+    // what these three buckets sum to — the buckets are a fixed near-term breakdown, not a sub-total of
+    // whatever period is currently selected.
     let tbi60d = 0, tbi61to180d = 0, tbi180plusd = 0;
-    const monthlyTBI = new Array(12).fill(0);  // rolling 12 months from today, index 0 = current month
+    const monthlyTBI = new Array(24).fill(0);  // rolling 24 months from today, index 0 = current month — supports up to the 12-Month Forecast period option
 
     const notInvRows=[];  // [{key, customer, project, amount}]
     for(let i=1;i<rows.length;i++){
@@ -3596,7 +3623,7 @@ function processInvoices(rows){
         if(monthsOut>=0 && monthsOut<2) tbi60d += amt;
         else if(monthsOut>=2 && monthsOut<6) tbi61to180d += amt;
         else if(monthsOut>=6 && monthsOut<12) tbi180plusd += amt;
-        if(monthsOut>=0 && monthsOut<12) monthlyTBI[monthsOut] += amt;
+        if(monthsOut>=0 && monthsOut<24) monthlyTBI[monthsOut] += amt;
       }
       const existing=notInvRows.find(x=>x.key===key);
       if(existing){
@@ -3611,14 +3638,27 @@ function processInvoices(rows){
     if(tbi6El) tbi6El.textContent = fC(tbi61to180d);
     if(tbi180El) tbi180El.textContent = fC(tbi180plusd);
 
-    // Won-To-Be-Invoiced, capped to the next 12 months — this is the figure that feeds "Base Forecast"
-    // and "Total Forecast + Pipeline", since a genuine forward forecast needs a bounded horizon
-    // (the full unbounded notInvoicedTotal has no cutoff and isn't a "12-month" number).
-    const notInvoiced12mo = monthlyTBI.reduce((s,v)=>s+v,0);
-    window._notInvoiced12mo = notInvoiced12mo;
+    // Won-To-Be-Invoiced, capped to the SELECTED Cash In Forecast period (2026 Full Year / 6-Month /
+    // 12-Month) — this feeds "Cash In Forecast" (formerly "Base Forecast") and "Total Forecast + Pipeline".
+    const _tbiPeriodSel = document.getElementById('colTbiPeriodTog')?.value || '12mo';
+    let _tbiMonths;
+    if(_tbiPeriodSel==='2026'){
+      _tbiMonths = Math.max(1, 12 - _now.getMonth()); // months remaining in the current calendar year, incl. this one
+    } else {
+      _tbiMonths = _tbiPeriodSel==='6mo' ? 6 : 12;
+    }
+    const notInvoicedPeriod = monthlyTBI.slice(0,_tbiMonths).reduce((s,v)=>s+v,0);
+    window._notInvoicedPeriod = notInvoicedPeriod;
+    window._tbiPeriodMonths = _tbiMonths;
+    const periodLabelText = _tbiPeriodSel==='2026' ? ('next '+_tbiMonths+' months (through Dec 2026)') : ('next '+_tbiMonths+' months');
+    const wtbiLabelEl = document.getElementById('col_wtbi_label');
+    if(wtbiLabelEl) wtbiLabelEl.textContent = '↳ Won — To Be Invoiced ('+periodLabelText+')';
+    const fcstNpSubEl = document.getElementById('col_fcst_np_sub');
+    if(fcstNpSubEl) fcstNpSubEl.textContent = 'Invoices Outstanding + Won — To Be Invoiced ('+periodLabelText+')';
     const niEl2 = document.getElementById('col_not_inv');
-    if(niEl2) niEl2.textContent = fC(notInvoiced12mo);
+    if(niEl2) niEl2.textContent = fC(notInvoicedPeriod);
 
+    console.log('Cash In Forecast period —', _tbiPeriodSel, '=', _tbiMonths, 'months —', 'notInvoicedPeriod=', notInvoicedPeriod);
     console.log('To Be Invoiced day-buckets (non-overlapping, full partition) — current month key:', _curKey, '(', _now.toISOString().slice(0,7), ')',
       ' | draft rows with a parseable Invoice Date (col A):', notInvRows.filter(x=>_parseYM(x.expMonth)!=null).length,
       '/', notInvRows.length, ' | 1-60d=', tbi60d, ' 61-180d=', tbi61to180d, ' 180+d=', tbi180plusd,
