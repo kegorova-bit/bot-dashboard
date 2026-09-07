@@ -244,6 +244,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
+          <div class="sc t"><div class="slb" id="sc_rA_label">Revenue YTD</div><div class="sv t" id="sc_rA">—</div></div>
+          <div class="sc r"><div class="slb" id="sc_eA_label">Expenses YTD</div><div class="sv r" id="sc_eA">—</div></div>
           <div class="sc" id="sc_pA_wrap"><div class="slb" id="sc_pA_label">Op Profit YTD</div><div class="sv" id="sc_pA">—</div></div>
           <div class="sc t"><div class="slb" id="sc_mA_label">Op Margin YTD</div><div class="sv t" id="sc_mA">—</div></div>
         </div>
@@ -253,6 +255,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <option value="ytd">YTD</option>
             <option value="q1">Q1 2026</option>
             <option value="q2">Q2 2026</option>
+            <option value="q3">Q3 2026</option>
+            <option value="q4">Q4 2026</option>
           </select>
         </div>
       </div>
@@ -881,11 +885,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div>
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Invoices Outstanding</div>
           <div id="col_inv_out" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
-            <div>
-              <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Not Yet Due</div>
-              <div id="col_age_notdue" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
-            </div>
+          <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">Collection Schedule</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;">
             <div>
               <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 1-60 Days</div>
               <div id="col_age_60" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber);margin-top:2px;">—</div>
@@ -920,25 +921,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </div>
       </div>
     </div>
+  </div>
 
-    <div class="cm t" style="flex:0.6 1 120px;padding:12px 14px;">
-      <div class="cml" style="font-size:10px;margin-bottom:4px;">Avg DSO</div>
-      <div class="cmv t" id="dso_avg" style="font-size:18px;">—</div>
-      <div class="cms" style="font-size:10px;margin-top:3px;">Days to collect</div>
-      <div style="height:24px;margin-top:6px;"><canvas id="dso_avg_spark"></canvas></div>
-      <div id="dso_avg_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
+  <!-- Avg DSO / Median DSO / Payment Term — own row, equal-width, full size -->
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">
+    <div class="cm t">
+      <div class="cml">Avg DSO</div>
+      <div class="cmv t" id="dso_avg" style="font-size:28px;">—</div>
+      <div class="cms">Days to collect</div>
+      <div style="height:40px;margin-top:10px;"><canvas id="dso_avg_spark"></canvas></div>
+      <div id="dso_avg_trend" style="font-size:10px;margin-top:6px;color:var(--text3);">—</div>
     </div>
-    <div class="cm a" style="flex:0.6 1 120px;padding:12px 14px;">
-      <div class="cml" style="font-size:10px;margin-bottom:4px;">Median DSO</div>
-      <div class="cmv a" id="dso_med" style="font-size:18px;">—</div>
-      <div class="cms" style="font-size:10px;margin-top:3px;">50th percentile</div>
-      <div style="height:24px;margin-top:6px;"><canvas id="dso_med_spark"></canvas></div>
-      <div id="dso_med_trend" style="font-size:9px;margin-top:4px;color:var(--text3);">—</div>
+    <div class="cm a">
+      <div class="cml">Median DSO</div>
+      <div class="cmv a" id="dso_med" style="font-size:28px;">—</div>
+      <div class="cms">50th percentile</div>
+      <div style="height:40px;margin-top:10px;"><canvas id="dso_med_spark"></canvas></div>
+      <div id="dso_med_trend" style="font-size:10px;margin-top:6px;color:var(--text3);">—</div>
     </div>
-    <div class="cm a" style="flex:0.5 1 100px;padding:12px 14px;">
-      <div class="cml" style="font-size:10px;margin-bottom:4px;">Payment Term</div>
-      <div class="cmv a" style="font-size:16px;">1 month</div>
-      <div class="cms" style="font-size:9px;margin-top:3px;">Most common (not yet calculated)</div>
+    <div class="cm a">
+      <div class="cml">Payment Term</div>
+      <div class="cmv a" style="font-size:28px;">1 month</div>
+      <div class="cms">Most common (not yet calculated)</div>
     </div>
   </div>
 
@@ -1276,7 +1280,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v106Sep-crash-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v108Sep-ytd-q3q4-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1426,13 +1430,18 @@ function processStaging(rows){
       {label:'Op Profit',data:s25.map(r=>r.pA),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:s25.map(r=>r.pA<0?coral:green),fill:false,tension:0.3,order:1,segment:{borderColor:ctx=>s25[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},options:bO(true)});
 
-  // 2026 actual chart
+  // 2026 actual chart — Expenses falls back to forecast (eF_dyn) when a "done" month's actual (eA) is
+  // missing/zero, same fallback used elsewhere on the dashboard. Split into two datasets so forecast-
+  // sourced bars render in a visually distinct color instead of silently blending in as if they were actual.
   destroyChart('c2026a');
+  const expActualVals = s26.map(r => (r.done && r.eA) ? r.eA : null);
+  const expForecastFallbackVals = s26.map(r => (r.done && !r.eA && r.eF_dyn) ? r.eF_dyn : null);
   charts['c2026a']=new Chart(document.getElementById('c2026a'),{type:'bar',
     data:{labels:L26,datasets:[
       {label:'Sales',data:s26.map(r=>r.done?r.sA:null),backgroundColor:tA,stack:'s',order:2,borderRadius:2},
       {label:'Grants',data:s26.map(r=>r.done&&r.gA?r.gA:null),backgroundColor:cyan,stack:'s',order:2,borderRadius:2},
-      {label:'Expenses',data:s26.map(r=>r.done&&r.eA?r.eA:null),backgroundColor:cA,stack:'s',order:2,borderRadius:2},
+      {label:'Expenses (Actual)',data:expActualVals,backgroundColor:cA,stack:'s',order:2,borderRadius:2},
+      {label:'Expenses (Forecast — no actual posted)',data:expForecastFallbackVals,backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.9)',borderWidth:1,stack:'s',order:2,borderRadius:2},
       {label:'Op Profit',data:s26.map(r=>r.done?r.pA:null),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:s26.map(r=>r.pA<0?coral:green),fill:false,tension:0.3,order:1,segment:{borderColor:ctx=>s26[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},options:bO(true)});
 
@@ -2863,21 +2872,37 @@ function updateProfitScorecard(){
   const mode = document.getElementById('profitTog')?.value || 'ytd';
   const s26  = window._s26 || [];
   if(!s26.length) return;
-  let profit, rev, label;
+  const expVal = r => r.eA || r.eF_dyn || 0; // same forecast-fallback as the chart, for consistency
+  let profit, rev, exp, label;
   if(mode === 'q1'){
     const q1 = s26.filter((_,i)=>i<3).filter(r=>r.done);
     profit = q1.reduce((s,r)=>s+r.pA,0);
     rev    = q1.reduce((s,r)=>s+r.rA,0);
+    exp    = q1.reduce((s,r)=>s+expVal(r),0);
     label  = 'Q1 2026';
   } else if(mode === 'q2'){
     const q2 = s26.slice(3,6).filter(r=>r.done);
     profit = q2.reduce((s,r)=>s+r.pA,0);
     rev    = q2.reduce((s,r)=>s+r.rA,0);
+    exp    = q2.reduce((s,r)=>s+expVal(r),0);
     label  = 'Q2 2026';
+  } else if(mode === 'q3'){
+    const q3 = s26.slice(6,9).filter(r=>r.done);
+    profit = q3.reduce((s,r)=>s+r.pA,0);
+    rev    = q3.reduce((s,r)=>s+r.rA,0);
+    exp    = q3.reduce((s,r)=>s+expVal(r),0);
+    label  = 'Q3 2026';
+  } else if(mode === 'q4'){
+    const q4 = s26.slice(9,12).filter(r=>r.done);
+    profit = q4.reduce((s,r)=>s+r.pA,0);
+    rev    = q4.reduce((s,r)=>s+r.rA,0);
+    exp    = q4.reduce((s,r)=>s+expVal(r),0);
+    label  = 'Q4 2026';
   } else {
     const done = s26.filter(r=>r.done);
     profit = done.reduce((s,r)=>s+r.pA,0);
     rev    = done.reduce((s,r)=>s+r.rA,0);
+    exp    = done.reduce((s,r)=>s+expVal(r),0);
     label  = 'YTD';
   }
   const margin = rev>0?(profit/rev*100).toFixed(1)+'%':'—';
@@ -2887,10 +2912,18 @@ function updateProfitScorecard(){
   if(wrap) wrap.className='sc '+(profit>=0?'g':'r');
   const mEl = document.getElementById('sc_mA');
   if(mEl) mEl.textContent=margin;
+  const rEl = document.getElementById('sc_rA');
+  if(rEl) rEl.textContent=fmt(rev);
+  const eEl = document.getElementById('sc_eA');
+  if(eEl) eEl.textContent=fmt(Math.abs(exp));
   const lbl1 = document.getElementById('sc_pA_label');
   const lbl2 = document.getElementById('sc_mA_label');
+  const lbl3 = document.getElementById('sc_rA_label');
+  const lbl4 = document.getElementById('sc_eA_label');
   if(lbl1) lbl1.textContent='Op Profit '+label;
   if(lbl2) lbl2.textContent='Op Margin '+label;
+  if(lbl3) lbl3.textContent='Revenue '+label;
+  if(lbl4) lbl4.textContent='Expenses '+label;
 }
 
 function updateRunwayCard(){
@@ -3555,9 +3588,11 @@ function processInvoices(rows){
     const byCustomerProject = [];
     let grandTotal = 0;
     let outstandingInvoiceCount = 0;  // actual invoice row count (not grouped)
-    // Aging — genuine day-level precision from Expected_Collection_Date. Not Yet Due stays separate;
-    // Overdue splits into the same 1-60 / 61-180 / 180+ day buckets used for Won-To-Be-Invoiced.
-    let ageNotYetDue = 0, age60 = 0, age61to180 = 0, age180plus = 0, ageUnclassified = 0;
+    // Collection Schedule — genuine day-level precision from Expected_Collection_Date (col N), amounts
+    // from Amount_wVAT (col L) rather than the outstanding balance. Buckets by absolute distance from
+    // today (whether the expected date is still ahead or already past), so a near-term future collection
+    // and a recently-overdue one land in the same "1-60 days" bucket.
+    let age60 = 0, age61to180 = 0, age180plus = 0, ageUnclassified = 0;
 
     let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
@@ -3575,33 +3610,31 @@ function processInvoices(rows){
       if(!customer) continue;
       const outstanding = Math.abs(pv(r[C.outstanding]));
       if(outstanding <= 0) continue;
+      const scheduleAmt = Math.abs(pv(r[C.amountGross]));  // col L, Amount_wVAT — Collection Schedule uses full invoice amount, not the remaining balance
       const project = (r[C.project]||'').trim();
       const expMo = (r[C.expectedMonth]||'').trim();
-      // Day-level aging from Expected_Collection_Date — falls back to the month-only column (mid-month
-      // estimate) only for the rare row where the date column itself is blank/unparseable.
+      // Day-level scheduling from Expected_Collection_Date (col N) — falls back to the month-only column
+      // (mid-month estimate) only for the rare row where the date column itself is blank/unparseable.
       const expDateRaw = (r[C.expectedCollectionDate]||'').trim();
-      let daysOverdue = null;
+      let daysDistance = null;
       const expDate = _parseFullDate(expDateRaw);
       if(expDate){
-        daysOverdue = -_daysBetween(expDate); // positive = days overdue, negative = days until due
+        daysDistance = Math.abs(_daysBetween(expDate));
       } else {
         const expKeyForAging = _parseYM(expMo);
         if(expKeyForAging!=null){
-          // Fallback: treat the month as its 15th day (mid-month estimate) when only a month label exists
           const yr = Math.floor(expKeyForAging/12), mo = expKeyForAging%12;
-          daysOverdue = -_daysBetween(new Date(yr, mo, 15));
+          daysDistance = Math.abs(_daysBetween(new Date(yr, mo, 15)));
         }
       }
-      if(daysOverdue==null){
-        ageUnclassified += outstanding;
-      } else if(daysOverdue<=0){
-        ageNotYetDue += outstanding;
-      } else if(daysOverdue<=60){
-        age60 += outstanding;
-      } else if(daysOverdue<=180){
-        age61to180 += outstanding;
+      if(daysDistance==null){
+        ageUnclassified += scheduleAmt;
+      } else if(daysDistance<=60){
+        age60 += scheduleAmt;
+      } else if(daysDistance<=180){
+        age61to180 += scheduleAmt;
       } else {
-        age180plus += outstanding;
+        age180plus += scheduleAmt;
       }
       const key = customer + '||' + project;
       const existing = byCustomerProject.find(x=>x.key===key);
@@ -3613,15 +3646,13 @@ function processInvoices(rows){
       outstandingInvoiceCount++;
     }
     window._notInvoiced = notInvoicedTotal;  // true unbounded total — used by the To Be Invoiced by Customer table footer
-    const ageNotDueEl = document.getElementById('col_age_notdue');
     const age60El = document.getElementById('col_age_60');
     const age61to180El = document.getElementById('col_age_61to180');
     const age180plusEl = document.getElementById('col_age_180plus');
-    if(ageNotDueEl) ageNotDueEl.textContent = fC(ageNotYetDue);
     if(age60El) age60El.textContent = fC(age60);
     if(age61to180El) age61to180El.textContent = fC(age61to180);
     if(age180plusEl) age180plusEl.textContent = fC(age180plus);
-    console.log('Aging (day-level, from Expected_Collection_Date) — Not Yet Due:', ageNotYetDue, ' 1-60d:', age60, ' 61-180d:', age61to180, ' 180+d:', age180plus, ' Unclassified:', ageUnclassified);
+    console.log('Collection Schedule (day-level, Amount_wVAT × Expected_Collection_Date) — 1-60d:', age60, ' 61-180d:', age61to180, ' 180+d:', age180plus, ' Unclassified:', ageUnclassified);
 
     // Build To Be Invoiced by customer table — col E (Status) = 'draft'
     // Day-buckets (1-60/61-180/180+) now use genuine day-level precision from Invoice Date (col A),
