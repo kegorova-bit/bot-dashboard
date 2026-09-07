@@ -881,7 +881,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div>
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Invoices Outstanding</div>
           <div id="col_inv_out" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Invoiced · live, full AR balance (not time-capped)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
             <div>
               <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Not Yet Due</div>
@@ -904,7 +903,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div>
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;" id="col_wtbi_label">Won — To Be Invoiced (next 12 months)</div>
           <div id="col_not_inv" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:2px;">Status=Draft · live, by Invoice Date (col A)</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
             <div>
               <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 1–60 Days</div>
@@ -921,7 +919,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           </div>
         </div>
       </div>
-      <div style="font-size:8px;color:var(--text3);margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">Both sets of day-buckets approximate whole months, not exact days (no day-level due date/invoice date precision in the source data). Outstanding's 3 overdue buckets + Not Yet Due are exhaustive. Won-To-Be-Invoiced's 3 buckets are fixed at months 0-1/2-5/6-11 regardless of the Cash In Forecast period toggle above — they may not sum to that toggle's total if a period shorter than 12 months is selected.</div>
     </div>
 
     <div class="cm t" style="flex:0.6 1 120px;padding:12px 14px;">
@@ -1187,12 +1184,13 @@ const invoiceSchema = {
   outstanding:   ['Amount_Outstanding', 'Amount Outstanding', 'Outstanding', 'Balance Due'],
   notInvoicedAmt:['Amount_noVAT', 'Amount (no VAT)', 'Amount no VAT', 'Net Amount'],
   expectedMonth: ['Expected_Collection_Month', 'Expected Collection Month'],
+  expectedCollectionDate: ['Expected_Collection_Date', 'Expected Collection Date'],
 };
 
 const invoiceFallbacks = {
   invoiceDate:1, paymentStatus:3, status:4, customer:7, amountNoVat:11,
   collectionDate:16, monthLabel:17, amountDso:18, outstanding:20,
-  notInvoicedAmt:11, project:8, company:10, amountGross:12, expectedMonth:14
+  notInvoicedAmt:11, project:8, company:10, amountGross:12, expectedMonth:14, expectedCollectionDate:13
 };
 
 const cffSchema = {
@@ -1278,7 +1276,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v104Sep-vat-column-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v106Sep-crash-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -3539,12 +3537,26 @@ function processInvoices(rows){
       if(isNaN(yr)||isNaN(mo)) return null;
       return yr*12 + mo;
     };
+    // True day-level date parser — the source columns (Invoice_Date, Expected_Collection_Date,
+    // Actual_collection_Date) DO carry full dates (verified against a live export, e.g. "2026-05-07"),
+    // not just year-month. Returns a Date at local midnight, or null if unparseable.
+    const _parseFullDate = raw => {
+      if(!raw) return null;
+      const m = raw.trim().match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if(!m) return null;
+      const yr = parseInt(m[1],10), mo = parseInt(m[2],10)-1, day = parseInt(m[3],10);
+      if(isNaN(yr)||isNaN(mo)||isNaN(day)) return null;
+      const d = new Date(yr, mo, day);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    const _todayMidnight = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate());
+    const _daysBetween = d => Math.round((d - _todayMidnight) / 86400000); // positive = future, negative = past
 
     const byCustomerProject = [];
     let grandTotal = 0;
     let outstandingInvoiceCount = 0;  // actual invoice row count (not grouped)
-    // Aging by whole month (see note in UI). Not Yet Due stays separate; Overdue splits into the same
-    // 3 day-buckets used for Won-To-Be-Invoiced (1-60 / 61-180 / 180+ days), approximated via 30-day months.
+    // Aging — genuine day-level precision from Expected_Collection_Date. Not Yet Due stays separate;
+    // Overdue splits into the same 1-60 / 61-180 / 180+ day buckets used for Won-To-Be-Invoiced.
     let ageNotYetDue = 0, age60 = 0, age61to180 = 0, age180plus = 0, ageUnclassified = 0;
 
     let notInvoicedTotal = 0;
@@ -3565,17 +3577,31 @@ function processInvoices(rows){
       if(outstanding <= 0) continue;
       const project = (r[C.project]||'').trim();
       const expMo = (r[C.expectedMonth]||'').trim();
-      // Aging proxy — whole-month granularity only, since Expected_Collection_Month has no day component.
-      const expKeyForAging = _parseYM(expMo);
-      if(expKeyForAging==null){
-        ageUnclassified += outstanding;
-      } else if(expKeyForAging >= _curKey){
-        ageNotYetDue += outstanding;
+      // Day-level aging from Expected_Collection_Date — falls back to the month-only column (mid-month
+      // estimate) only for the rare row where the date column itself is blank/unparseable.
+      const expDateRaw = (r[C.expectedCollectionDate]||'').trim();
+      let daysOverdue = null;
+      const expDate = _parseFullDate(expDateRaw);
+      if(expDate){
+        daysOverdue = -_daysBetween(expDate); // positive = days overdue, negative = days until due
       } else {
-        const monthsOverdue = _curKey - expKeyForAging;
-        if(monthsOverdue<=2) age60 += outstanding;
-        else if(monthsOverdue<=6) age61to180 += outstanding;
-        else age180plus += outstanding;
+        const expKeyForAging = _parseYM(expMo);
+        if(expKeyForAging!=null){
+          // Fallback: treat the month as its 15th day (mid-month estimate) when only a month label exists
+          const yr = Math.floor(expKeyForAging/12), mo = expKeyForAging%12;
+          daysOverdue = -_daysBetween(new Date(yr, mo, 15));
+        }
+      }
+      if(daysOverdue==null){
+        ageUnclassified += outstanding;
+      } else if(daysOverdue<=0){
+        ageNotYetDue += outstanding;
+      } else if(daysOverdue<=60){
+        age60 += outstanding;
+      } else if(daysOverdue<=180){
+        age61to180 += outstanding;
+      } else {
+        age180plus += outstanding;
       }
       const key = customer + '||' + project;
       const existing = byCustomerProject.find(x=>x.key===key);
@@ -3595,16 +3621,16 @@ function processInvoices(rows){
     if(age60El) age60El.textContent = fC(age60);
     if(age61to180El) age61to180El.textContent = fC(age61to180);
     if(age180plusEl) age180plusEl.textContent = fC(age180plus);
-    console.log('Aging (whole-month proxy) — Not Yet Due:', ageNotYetDue, ' 1-60d:', age60, ' 61-180d:', age61to180, ' 180+d:', age180plus, ' Unclassified:', ageUnclassified);
+    console.log('Aging (day-level, from Expected_Collection_Date) — Not Yet Due:', ageNotYetDue, ' 1-60d:', age60, ' 61-180d:', age61to180, ' 180+d:', age180plus, ' Unclassified:', ageUnclassified);
 
     // Build To Be Invoiced by customer table — col E (Status) = 'draft'
-    // Day-buckets (1-60/61-180/180+) stay FIXED at their own definition regardless of the Cash In
-    // Forecast period toggle below — they always cover months 0-1/2-5/6-11 from today. NOTE: this means
-    // if the period toggle is set below 12 months, the parent Cash In Forecast total can be LESS than
-    // what these three buckets sum to — the buckets are a fixed near-term breakdown, not a sub-total of
-    // whatever period is currently selected.
+    // Day-buckets (1-60/61-180/180+) now use genuine day-level precision from Invoice Date (col A),
+    // which DOES carry a full date (verified against a live export) — not a month-only approximation.
+    // These buckets stay FIXED regardless of the Cash In Forecast period toggle below: if that toggle is
+    // set below 12 months, the parent Cash In Forecast total can be LESS than what these three buckets
+    // sum to — the buckets are a fixed near-term breakdown, not a sub-total of whatever period is selected.
     let tbi60d = 0, tbi61to180d = 0, tbi180plusd = 0;
-    const monthlyTBI = new Array(24).fill(0);  // rolling 24 months from today, index 0 = current month — supports up to the 12-Month Forecast period option
+    const monthlyTBI = new Array(24).fill(0);  // rolling 24 months from today, index 0 = current month — feeds the period-toggle sum and sparkline (a coarser, separate aggregate from the day-buckets above)
 
     const notInvRows=[];  // [{key, customer, project, amount}]
     for(let i=1;i<rows.length;i++){
@@ -3617,12 +3643,18 @@ function processInvoices(rows){
       if(!cust||amt<=0)continue;
       const key=cust+'||'+proj;
       const expMo=(r[0]||'').trim();  // Invoice Date, column A — the expected/target invoice date for draft rows
+      // Day-level bucketing from the real date
+      const invDate = _parseFullDate(expMo);
+      if(invDate){
+        const daysOut = _daysBetween(invDate);
+        if(daysOut>=0 && daysOut<=60) tbi60d += amt;
+        else if(daysOut>60 && daysOut<=180) tbi61to180d += amt;
+        else if(daysOut>180) tbi180plusd += amt;
+      }
+      // Month-level bucketing (unchanged) — feeds the period-toggle sum and sparkline specifically
       const expKey=_parseYM(expMo);
       if(expKey!=null){
         const monthsOut = expKey - _curKey;
-        if(monthsOut>=0 && monthsOut<2) tbi60d += amt;
-        else if(monthsOut>=2 && monthsOut<6) tbi61to180d += amt;
-        else if(monthsOut>=6 && monthsOut<12) tbi180plusd += amt;
         if(monthsOut>=0 && monthsOut<24) monthlyTBI[monthsOut] += amt;
       }
       const existing=notInvRows.find(x=>x.key===key);
@@ -3662,7 +3694,7 @@ function processInvoices(rows){
     console.log('To Be Invoiced day-buckets (non-overlapping, full partition) — current month key:', _curKey, '(', _now.toISOString().slice(0,7), ')',
       ' | draft rows with a parseable Invoice Date (col A):', notInvRows.filter(x=>_parseYM(x.expMonth)!=null).length,
       '/', notInvRows.length, ' | 1-60d=', tbi60d, ' 61-180d=', tbi61to180d, ' 180+d=', tbi180plusd,
-      ' | sum of buckets=', tbi60d+tbi61to180d+tbi180plusd, ' vs 12mo total (feeds Base Forecast)=', notInvoiced12mo,
+      ' | sum of buckets=', tbi60d+tbi61to180d+tbi180plusd, ' vs period total (feeds Cash In Forecast)=', notInvoicedPeriod,
       ' | unbounded total (table footer)=', notInvoicedTotal);
 
 
