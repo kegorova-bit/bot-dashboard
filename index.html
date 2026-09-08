@@ -876,6 +876,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
       <div class="cm t" style="display:flex;justify-content:space-between;align-items:center;">
         <div><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p" style="font-size:20px;">—</div><div class="cms" style="font-size:9px;">Cash In Forecast + Pipeline (High + Medium)</div></div>
+        <div style="display:flex;gap:14px;padding-left:14px;border-left:1px solid var(--border);">
+          <div>
+            <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Cash In Forecast</div>
+            <div id="col_fcst_p_cashin" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+          </div>
+          <div>
+            <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Pipeline</div>
+            <div id="col_fcst_p_pipeline" style="font-family:var(--mono);font-size:14px;font-weight:700;color:#63b3ed;margin-top:2px;">—</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -883,11 +893,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
         <div>
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Invoices Outstanding</div>
-          <div id="col_inv_out" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          <div id="col_inv_out" style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--teal);margin-top:3px;">—</div>
         </div>
         <div>
           <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;" id="col_wtbi_label">Won — To Be Invoiced</div>
-          <div id="col_not_inv" style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          <div id="col_not_inv" style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--teal);margin-top:3px;">—</div>
         </div>
       </div>
       <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">Collection Schedule — combined (Outstanding + Won-To-Be-Invoiced)</div>
@@ -1267,7 +1277,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v109Sep-dso-combined-buckets · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v110Sep-color-and-breakdown · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2780,6 +2790,10 @@ function buildDSO(){
   if(c_ni)   c_ni.textContent   = fC(notInvoiced12mo);
   if(c_fnp)  c_fnp.textContent  = fC(invOutstanding + notInvoiced12mo);
   if(c_fp)   c_fp.textContent   = fC(invOutstanding + notInvoiced12mo + pipelineHM);
+  const c_fp_cashin = document.getElementById('col_fcst_p_cashin');
+  const c_fp_pipeline = document.getElementById('col_fcst_p_pipeline');
+  if(c_fp_cashin)   c_fp_cashin.textContent   = fC(invOutstanding + notInvoiced12mo);
+  if(c_fp_pipeline) c_fp_pipeline.textContent = fC(pipelineHM);
   const cfInvEl = document.getElementById('cm_invoices');
   if(cfInvEl) cfInvEl.textContent = fC(invOutstanding);
 
