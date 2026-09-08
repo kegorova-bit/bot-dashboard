@@ -241,7 +241,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals · amber/yellow = forecast-sourced (not yet posted as actual)</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only · lighter/hatched bars = preliminary (posted, not yet finalized — confirmed on the 15th of the following month)</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc t"><div class="slb" id="sc_rA_label">Revenue YTD</div><div class="sv t" id="sc_rA">—</div></div>
@@ -862,15 +862,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Cash In Forecast</div>
         <div id="col_fcst_np" style="font-family:var(--mono);font-size:32px;font-weight:700;color:var(--teal);line-height:1.15;margin-top:10px;">—</div>
-        <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:280px;">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
+        <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:280px;min-height:34px;">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:stretch;gap:10px;width:132px;">
         <div style="height:44px;width:132px;position:relative;"><canvas id="base_fcst_spark"></canvas></div>
         <select class="ts" id="colTbiPeriodTog" onchange="processInvoices(window._invRowsCache); buildDSO();" style="font-size:11px;width:100%;">
           <option value="2026">2026 (Full Year)</option>
           <option value="6mo">6-Month Forecast</option>
-          <option value="12mo" selected>12-Month Forecast</option>
+          <option value="12mo">12-Month Forecast</option>
         </select>
+        <button onclick="saveCashInForecastPeriodDefault()" style="font-size:9px;padding:4px 8px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:5px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save the current period as the default for future visits">📌 Set as default</button>
+        <div id="colTbiPeriodDefaultNote" style="font-size:8px;color:var(--text3);text-align:center;"></div>
       </div>
     </div>
 
@@ -913,7 +915,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div id="col_inv_out" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:10px;">—</div>
         </div>
         <div style="padding-left:24px;border-left:1px solid rgba(255,255,255,.08);">
-          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;" id="col_wtbi_label">Won → To Be Invoiced</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;min-height:28px;" id="col_wtbi_label">Won → To Be Invoiced</div>
           <div id="col_not_inv" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:10px;">—</div>
         </div>
       </div>
@@ -1263,6 +1265,19 @@ const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec
 const genMonthLabels = n => Array.from({length:n},(_,i)=>MN[i%12]+" '"+String(2026+Math.floor(i/12)).slice(2));
 const L26=genMonthLabels(24);  // Jan '26 .. Dec '27
 const L26H=L26.slice(0,6);
+
+// ═══════════════════════════════════════════════════════════════
+// PUBLICATION POLICY — actuals are treated as PRELIMINARY until the 15th of the following month, when
+// they're considered CONFIRMED/final. E.g. August's actual is preliminary until Sep 15, then confirmed.
+// A month index here is 0=Jan 2026, absolute (matches L26/s26 indexing). Apply this wherever the dashboard
+// needs to distinguish "posted but not yet finalized" from "confirmed" actual data.
+// ═══════════════════════════════════════════════════════════════
+function isMonthConfirmed(monthIdx){
+  const yr = 2026 + Math.floor((monthIdx+1)/12);
+  const mo = (monthIdx+1) % 12; // the FOLLOWING month, 0-indexed
+  const confirmDate = new Date(yr, mo, 15);
+  return new Date() >= confirmDate;
+}
 const L25=["Jan '25","Feb '25","Mar '25","Apr '25","May '25","Jun '25","Jul '25","Aug '25","Sep '25","Oct '25","Nov '25","Dec '25"];
 let charts={};
 const destroyChart=id=>{if(charts[id]){charts[id].destroy();delete charts[id];}};
@@ -1293,13 +1308,14 @@ async function loadAllData(){
     processCash(cashRows);
     processRevenues(revRows);
     processDB1(db1Rows);
+    loadCashInForecastPeriodDefault();
     processInvoices(invRows);
     processCFF(cffRows);
     processBudget(budBaseRows, budFcstRows);
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v115Sep-ytd-fallback-chart-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v116Sep-prelim-policy-defaults · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1449,33 +1465,33 @@ function processStaging(rows){
       {label:'Op Profit',data:s25.map(r=>r.pA),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:s25.map(r=>r.pA<0?coral:green),fill:false,tension:0.3,order:1,segment:{borderColor:ctx=>s25[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},options:bO(true)});
 
-  // 2026 actual chart — "Confirmed actuals only" per its subtitle, but months not yet marked done
-  // (revenue actual not yet posted in Staging) were previously rendered completely blank rather than
-  // showing anything. Now falls back to the dynamic FORECAST figure for any component that's missing —
-  // done months missing just one field (e.g. Expenses), or entire months not yet done at all — and colors
-  // every forecast-sourced value amber/yellow so it's never mistaken for a confirmed actual.
+  // 2026 actual chart — "Confirmed actuals only" per its subtitle. Reverted the forecast-fallback
+  // experiment from a prior turn — this chart should never substitute forecast data for actuals.
+  // Instead, applies the publication policy: a month's actual is PRELIMINARY until the 15th of the
+  // following month (e.g. August stays preliminary until Sep 15), shown lighter/hatched; CONFIRMED
+  // months render at full opacity. See isMonthConfirmed() — this policy is now available dashboard-wide.
   destroyChart('c2026a');
-  const salesActualVals    = s26.map(r => (r.done && r.sA) ? r.sA : null);
-  const salesForecastVals  = s26.map(r => (!r.done || !r.sA) && r.sF_dyn ? r.sF_dyn : null);
-  const grantsActualVals   = s26.map(r => (r.done && r.gA) ? r.gA : null);
-  const grantsForecastVals = s26.map(r => (!r.done || !r.gA) && r.gF_dyn ? r.gF_dyn : null);
-  const expActualVals = s26.map(r => (r.done && r.eA) ? r.eA : null);
-  const expForecastFallbackVals = s26.map(r => (!r.done || !r.eA) && r.eF_dyn ? r.eF_dyn : null);
-  const opProfitVals = s26.map(r => r.done ? r.pA : (r.pF_dyn_nopipe!=null ? r.pF_dyn_nopipe : null));
+  const salesVals   = s26.map(r=>r.done?r.sA:null);
+  const grantsVals  = s26.map((r,i)=>r.done&&r.gA?r.gA:null);
+  const expVals     = s26.map(r=>r.done&&r.eA?r.eA:null);
+  const opProfitVals= s26.map(r=>r.done?r.pA:null);
+  const salesBg  = s26.map((r,i)=>!r.done?null:(isMonthConfirmed(i)?tA:'rgba(15,184,184,0.32)'));
+  const grantsBg = s26.map((r,i)=>!r.done?null:(isMonthConfirmed(i)?cyan:'rgba(103,232,249,0.35)'));
+  const expBg    = s26.map((r,i)=>!r.done?null:(isMonthConfirmed(i)?cA:'rgba(255,107,107,0.32)'));
+  const salesBd  = s26.map((r,i)=>!r.done||isMonthConfirmed(i)?'transparent':'rgba(15,184,184,0.7)');
+  const grantsBd = s26.map((r,i)=>!r.done||isMonthConfirmed(i)?'transparent':'rgba(103,232,249,0.7)');
+  const expBd    = s26.map((r,i)=>!r.done||isMonthConfirmed(i)?'transparent':'rgba(255,107,107,0.7)');
   charts['c2026a']=new Chart(document.getElementById('c2026a'),{type:'bar',
     data:{labels:L26,datasets:[
-      {label:'Sales (Actual)',data:salesActualVals,backgroundColor:tA,stack:'s',order:2,borderRadius:2},
-      {label:'Sales (Forecast)',data:salesForecastVals,backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.9)',borderWidth:1,stack:'s',order:2,borderRadius:2},
-      {label:'Grants (Actual)',data:grantsActualVals,backgroundColor:cyan,stack:'s',order:2,borderRadius:2},
-      {label:'Grants (Forecast)',data:grantsForecastVals,backgroundColor:'rgba(245,166,35,0.4)',borderColor:'rgba(245,166,35,0.7)',borderWidth:1,stack:'s',order:2,borderRadius:2},
-      {label:'Expenses (Actual)',data:expActualVals,backgroundColor:cA,stack:'s',order:2,borderRadius:2},
-      {label:'Expenses (Forecast)',data:expForecastFallbackVals,backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.9)',borderWidth:1,stack:'s',order:2,borderRadius:2},
+      {label:'Sales',data:salesVals,backgroundColor:salesBg,borderColor:salesBd,borderWidth:1,borderDash:[3,2],stack:'s',order:2,borderRadius:2},
+      {label:'Grants',data:grantsVals,backgroundColor:grantsBg,borderColor:grantsBd,borderWidth:1,borderDash:[3,2],stack:'s',order:2,borderRadius:2},
+      {label:'Expenses',data:expVals,backgroundColor:expBg,borderColor:expBd,borderWidth:1,borderDash:[3,2],stack:'s',order:2,borderRadius:2},
       {label:'Op Profit',data:opProfitVals,type:'line',borderColor:green,borderWidth:2,pointRadius:3,
-       pointBackgroundColor:s26.map((r,i)=>opProfitVals[i]<0?coral:(r.done?green:amber)),
+       pointBackgroundColor:s26.map((r,i)=>r.pA<0?coral:(isMonthConfirmed(i)?green:'rgba(46,204,143,0.5)')),
        fill:false,tension:0.3,order:1,
        segment:{
-         borderColor:ctx=>opProfitVals[ctx.p1DataIndex]<0?coral:green,
-         borderDash:ctx=>s26[ctx.p1DataIndex]?.done?[]:[4,3]
+         borderColor:ctx=>s26[ctx.p1DataIndex]?.pA<0?coral:green,
+         borderDash:ctx=>isMonthConfirmed(ctx.p1DataIndex)?[]:[4,3]
        }}
     ]},options:bO(true)});
 
@@ -4437,6 +4453,21 @@ function loadScenDefaults(){
     const note=document.getElementById('scen_default_note');
     if(note) note.textContent='Default loaded';
     setTimeout(()=>{const n=document.getElementById('scen_default_note');if(n)n.textContent='';},2000);
+  } catch(e){}
+}
+
+function saveCashInForecastPeriodDefault(){
+  const val = document.getElementById('colTbiPeriodTog')?.value || '12mo';
+  localStorage.setItem('cashin_fcst_period_default', val);
+  const note=document.getElementById('colTbiPeriodDefaultNote');
+  if(note){note.textContent='Saved ✓';setTimeout(()=>{if(note)note.textContent='';},2000);}
+}
+
+function loadCashInForecastPeriodDefault(){
+  try{
+    const saved = localStorage.getItem('cashin_fcst_period_default');
+    const el = document.getElementById('colTbiPeriodTog');
+    if(el) el.value = saved || '12mo'; // fall back to 12-Month Forecast if no default has been saved yet
   } catch(e){}
 }
 
