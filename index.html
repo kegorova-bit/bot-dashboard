@@ -241,7 +241,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals · amber/yellow = forecast-sourced (not yet posted as actual)</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc t"><div class="slb" id="sc_rA_label">Revenue YTD</div><div class="sv t" id="sc_rA">—</div></div>
@@ -865,7 +865,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:280px;">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:stretch;gap:10px;width:132px;">
-        <div style="height:44px;"><canvas id="base_fcst_spark"></canvas></div>
+        <div style="height:44px;width:132px;position:relative;"><canvas id="base_fcst_spark"></canvas></div>
         <select class="ts" id="colTbiPeriodTog" onchange="processInvoices(window._invRowsCache); buildDSO();" style="font-size:11px;width:100%;">
           <option value="2026">2026 (Full Year)</option>
           <option value="6mo">6-Month Forecast</option>
@@ -928,6 +928,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div id="col_combined_61to180" style="grid-row:2;grid-column:2;font-family:var(--mono);font-size:19px;font-weight:700;color:var(--coral);">—</div>
           <div id="col_combined_180plus" style="grid-row:2;grid-column:3;font-family:var(--mono);font-size:19px;font-weight:700;color:var(--coral);">—</div>
         </div>
+        <div style="font-size:9px;color:var(--text3);margin-top:10px;">Always measured from today — independent of the Cash In Forecast period selected above.</div>
       </div>
       <!-- hidden holders for individual bucket calculations (kept so JS still computes cleanly; not displayed to avoid duplicating the combined row above) -->
       <div style="display:none;">
@@ -953,8 +954,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div style="grid-row:3;grid-column:2;font-size:11px;color:var(--text3);">50th percentile</div>
         <div style="grid-row:3;grid-column:3;font-size:11px;color:var(--text3);">Most common (not yet calculated)</div>
         <!-- Row 4: mini charts (Payment Term has none — cell intentionally empty, still occupies the shared row) -->
-        <div style="grid-row:4;grid-column:1;height:26px;margin-top:8px;"><canvas id="dso_avg_spark"></canvas></div>
-        <div style="grid-row:4;grid-column:2;height:26px;margin-top:8px;"><canvas id="dso_med_spark"></canvas></div>
+        <div style="grid-row:4;grid-column:1;height:26px;margin-top:8px;position:relative;"><canvas id="dso_avg_spark"></canvas></div>
+        <div style="grid-row:4;grid-column:2;height:26px;margin-top:8px;position:relative;"><canvas id="dso_med_spark"></canvas></div>
         <div style="grid-row:4;grid-column:3;"></div>
         <!-- Row 5: trend text -->
         <div id="dso_avg_trend" style="grid-row:5;grid-column:1;font-size:9px;margin-top:5px;color:var(--text3);">—</div>
@@ -1298,7 +1299,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v113Sep-pipeline-toggle-width · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v115Sep-ytd-fallback-chart-fix · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1448,19 +1449,34 @@ function processStaging(rows){
       {label:'Op Profit',data:s25.map(r=>r.pA),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:s25.map(r=>r.pA<0?coral:green),fill:false,tension:0.3,order:1,segment:{borderColor:ctx=>s25[ctx.p1DataIndex]?.pA<0?coral:green}}
     ]},options:bO(true)});
 
-  // 2026 actual chart — Expenses falls back to forecast (eF_dyn) when a "done" month's actual (eA) is
-  // missing/zero, same fallback used elsewhere on the dashboard. Split into two datasets so forecast-
-  // sourced bars render in a visually distinct color instead of silently blending in as if they were actual.
+  // 2026 actual chart — "Confirmed actuals only" per its subtitle, but months not yet marked done
+  // (revenue actual not yet posted in Staging) were previously rendered completely blank rather than
+  // showing anything. Now falls back to the dynamic FORECAST figure for any component that's missing —
+  // done months missing just one field (e.g. Expenses), or entire months not yet done at all — and colors
+  // every forecast-sourced value amber/yellow so it's never mistaken for a confirmed actual.
   destroyChart('c2026a');
+  const salesActualVals    = s26.map(r => (r.done && r.sA) ? r.sA : null);
+  const salesForecastVals  = s26.map(r => (!r.done || !r.sA) && r.sF_dyn ? r.sF_dyn : null);
+  const grantsActualVals   = s26.map(r => (r.done && r.gA) ? r.gA : null);
+  const grantsForecastVals = s26.map(r => (!r.done || !r.gA) && r.gF_dyn ? r.gF_dyn : null);
   const expActualVals = s26.map(r => (r.done && r.eA) ? r.eA : null);
-  const expForecastFallbackVals = s26.map(r => (r.done && !r.eA && r.eF_dyn) ? r.eF_dyn : null);
+  const expForecastFallbackVals = s26.map(r => (!r.done || !r.eA) && r.eF_dyn ? r.eF_dyn : null);
+  const opProfitVals = s26.map(r => r.done ? r.pA : (r.pF_dyn_nopipe!=null ? r.pF_dyn_nopipe : null));
   charts['c2026a']=new Chart(document.getElementById('c2026a'),{type:'bar',
     data:{labels:L26,datasets:[
-      {label:'Sales',data:s26.map(r=>r.done?r.sA:null),backgroundColor:tA,stack:'s',order:2,borderRadius:2},
-      {label:'Grants',data:s26.map(r=>r.done&&r.gA?r.gA:null),backgroundColor:cyan,stack:'s',order:2,borderRadius:2},
+      {label:'Sales (Actual)',data:salesActualVals,backgroundColor:tA,stack:'s',order:2,borderRadius:2},
+      {label:'Sales (Forecast)',data:salesForecastVals,backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.9)',borderWidth:1,stack:'s',order:2,borderRadius:2},
+      {label:'Grants (Actual)',data:grantsActualVals,backgroundColor:cyan,stack:'s',order:2,borderRadius:2},
+      {label:'Grants (Forecast)',data:grantsForecastVals,backgroundColor:'rgba(245,166,35,0.4)',borderColor:'rgba(245,166,35,0.7)',borderWidth:1,stack:'s',order:2,borderRadius:2},
       {label:'Expenses (Actual)',data:expActualVals,backgroundColor:cA,stack:'s',order:2,borderRadius:2},
-      {label:'Expenses (Forecast — no actual posted)',data:expForecastFallbackVals,backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.9)',borderWidth:1,stack:'s',order:2,borderRadius:2},
-      {label:'Op Profit',data:s26.map(r=>r.done?r.pA:null),type:'line',borderColor:green,borderWidth:2,pointRadius:3,pointBackgroundColor:s26.map(r=>r.pA<0?coral:green),fill:false,tension:0.3,order:1,segment:{borderColor:ctx=>s26[ctx.p1DataIndex]?.pA<0?coral:green}}
+      {label:'Expenses (Forecast)',data:expForecastFallbackVals,backgroundColor:'rgba(245,166,35,0.55)',borderColor:'rgba(245,166,35,0.9)',borderWidth:1,stack:'s',order:2,borderRadius:2},
+      {label:'Op Profit',data:opProfitVals,type:'line',borderColor:green,borderWidth:2,pointRadius:3,
+       pointBackgroundColor:s26.map((r,i)=>opProfitVals[i]<0?coral:(r.done?green:amber)),
+       fill:false,tension:0.3,order:1,
+       segment:{
+         borderColor:ctx=>opProfitVals[ctx.p1DataIndex]<0?coral:green,
+         borderDash:ctx=>s26[ctx.p1DataIndex]?.done?[]:[4,3]
+       }}
     ]},options:bO(true)});
 
   // Sales vs Forecast — 12 months with pipeline toggle
