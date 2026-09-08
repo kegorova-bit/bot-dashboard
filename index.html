@@ -849,70 +849,99 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="page" id="page-dso">
   <div class="slabel"><span>Collections & DSO</span> — Invoice to Cash Lag Analysis</div>
 
-  <!-- Row 0: YTD Collected — moved to top -->
+  <!-- YTD Collected — unchanged, kept above the redesigned grid -->
   <div class="cm g" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
     <div><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd" style="font-size:24px;">—</div><div class="cms">Actual cash in Jan–today</div></div>
     <div style="width:36px;height:36px;border-radius:50%;background:rgba(46,204,143,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;">💰</div>
   </div>
 
-  <!-- Row 1: Cash In Forecast + Total Forecast&Pipeline (stacked, left) | Invoices Outstanding + Won-To-Be-Invoiced (combined, center) | DSO metrics (right, full-size fonts matching Cash In Forecast) -->
-  <div style="display:flex;gap:12px;margin-bottom:16px;align-items:stretch;flex-wrap:wrap;">
+  <!-- Row 1: Cash In Forecast (primary) | Total Forecast + Pipeline (secondary headline, with breakdown) -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
 
-    <div style="display:flex;flex-direction:column;gap:12px;flex:1 1 220px;">
-      <div class="cm t">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <div class="cml">Cash In Forecast</div>
-            <div class="cmv t" id="col_fcst_np" style="font-size:24px;">—</div>
-            <div class="cms" id="col_fcst_np_sub" style="font-size:9px;">Invoices Outstanding + Won — To Be Invoiced</div>
+    <div style="background:linear-gradient(180deg,rgba(15,184,184,.09),rgba(15,184,184,.02));border:1px solid rgba(15,184,184,.22);border-radius:16px;padding:20px 22px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+            <div style="width:26px;height:26px;border-radius:8px;background:rgba(15,184,184,.16);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">🗄️</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;">Cash In Forecast</div>
           </div>
-          <div style="width:60px;height:28px;flex-shrink:0;"><canvas id="base_fcst_spark"></canvas></div>
+          <div id="col_fcst_np" style="font-family:var(--mono);font-size:34px;font-weight:700;color:var(--teal);line-height:1.1;">—</div>
+          <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:260px;">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
         </div>
-        <select class="ts" id="colTbiPeriodTog" onchange="processInvoices(window._invRowsCache); buildDSO();" style="font-size:10px;margin-top:8px;width:100%;">
-          <option value="2026">2026 (Full Year)</option>
-          <option value="6mo">6-Month Forecast</option>
-          <option value="12mo" selected>12-Month Forecast</option>
-        </select>
-      </div>
-      <div class="cm t" style="display:flex;justify-content:space-between;align-items:center;">
-        <div><div class="cml">Total Forecast + Pipeline</div><div class="cmv t" id="col_fcst_p" style="font-size:20px;">—</div><div class="cms" style="font-size:9px;">Cash In Forecast + Pipeline (High + Medium)</div></div>
-        <div style="display:flex;gap:14px;padding-left:14px;border-left:1px solid var(--border);">
-          <div>
-            <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Cash In Forecast</div>
-            <div id="col_fcst_p_cashin" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
-          </div>
-          <div>
-            <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ Pipeline</div>
-            <div id="col_fcst_p_pipeline" style="font-family:var(--mono);font-size:14px;font-weight:700;color:#63b3ed;margin-top:2px;">—</div>
-          </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0;">
+          <div style="width:130px;height:44px;"><canvas id="base_fcst_spark"></canvas></div>
+          <select class="ts" id="colTbiPeriodTog" onchange="processInvoices(window._invRowsCache); buildDSO();" style="font-size:11px;">
+            <option value="2026">2026 (Full Year)</option>
+            <option value="6mo">6-Month Forecast</option>
+            <option value="12mo" selected>12-Month Forecast</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <div class="cm a" style="flex:1.5 1 300px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Invoices Outstanding</div>
-          <div id="col_inv_out" style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--teal);margin-top:3px;">—</div>
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:20px 22px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;">
+            <div style="width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;">📊</div>
+            <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;">Total Forecast + Pipeline</div>
+          </div>
+          <div id="col_fcst_p" style="font-family:var(--mono);font-size:34px;font-weight:700;color:var(--teal);line-height:1.1;">—</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:8px;">Cash In Forecast + Pipeline (High + Medium)</div>
         </div>
-        <div>
-          <div style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;" id="col_wtbi_label">Won — To Be Invoiced</div>
-          <div id="col_not_inv" style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--teal);margin-top:3px;">—</div>
+        <div style="display:flex;gap:20px;padding-left:18px;border-left:1px solid var(--border2);flex-shrink:0;">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Cash In Forecast</div>
+            <div id="col_fcst_p_cashin" style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--teal);margin-top:4px;">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Pipeline</div>
+            <div id="col_fcst_p_pipeline" style="font-family:var(--mono);font-size:16px;font-weight:700;color:#63b3ed;margin-top:4px;">—</div>
+          </div>
         </div>
       </div>
-      <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">Collection Schedule — combined (Outstanding + Won-To-Be-Invoiced)</div>
-      <div style="display:flex;gap:16px;margin-top:6px;">
-        <div>
-          <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 1-60 Days</div>
-          <div id="col_combined_60" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--amber);margin-top:2px;">—</div>
+    </div>
+  </div>
+
+  <!-- Row 2: Collections (Outstanding + Won + Collection Schedule) | Collection Performance (DSO + Payment Term) -->
+  <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-bottom:16px;align-items:stretch;">
+
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:20px 22px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:30px;height:30px;border-radius:9px;background:rgba(245,166,35,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;">📄</div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Invoices Outstanding</div>
+            <div id="col_inv_out" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+          </div>
         </div>
-        <div>
-          <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 61-180 Days</div>
-          <div id="col_combined_61to180" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--coral);margin-top:2px;">—</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:30px;height:30px;border-radius:9px;background:rgba(15,184,184,.14);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;">🏆</div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;" id="col_wtbi_label">Won → To Be Invoiced</div>
+            <div id="col_not_inv" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:2px;">—</div>
+          </div>
         </div>
-        <div>
-          <div style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">↳ 180+ Days</div>
-          <div id="col_combined_180plus" style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--coral);margin-top:2px;">—</div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:12px;">
+          <div style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;">📅</div>
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Collection Schedule — Combined (Outstanding + Won-To-Be-Invoiced)</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">1–60 Days</div>
+            <div id="col_combined_60" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">61–180 Days</div>
+            <div id="col_combined_61to180" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--coral);margin-top:3px;">—</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">180+ Days</div>
+            <div id="col_combined_180plus" style="font-family:var(--mono);font-size:19px;font-weight:700;color:var(--coral);margin-top:3px;">—</div>
+          </div>
         </div>
       </div>
       <!-- hidden holders for individual bucket calculations (kept so JS still computes cleanly; not displayed to avoid duplicating the combined row above) -->
@@ -922,24 +951,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-    <div class="cm t" style="flex:0.8 1 150px;">
-      <div class="cml">Avg DSO</div>
-      <div class="cmv t" id="dso_avg" style="font-size:24px;">—</div>
-      <div class="cms">Days to collect</div>
-      <div style="height:28px;margin-top:8px;"><canvas id="dso_avg_spark"></canvas></div>
-      <div id="dso_avg_trend" style="font-size:9px;margin-top:5px;color:var(--text3);">—</div>
-    </div>
-    <div class="cm a" style="flex:0.8 1 150px;">
-      <div class="cml">Median DSO</div>
-      <div class="cmv a" id="dso_med" style="font-size:24px;">—</div>
-      <div class="cms">50th percentile</div>
-      <div style="height:28px;margin-top:8px;"><canvas id="dso_med_spark"></canvas></div>
-      <div id="dso_med_trend" style="font-size:9px;margin-top:5px;color:var(--text3);">—</div>
-    </div>
-    <div class="cm a" style="flex:0.7 1 130px;">
-      <div class="cml">Payment Term</div>
-      <div class="cmv a" style="font-size:24px;">1 month</div>
-      <div class="cms">Most common (not yet calculated)</div>
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:20px 22px;">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:16px;">
+        <div style="width:24px;height:24px;border-radius:7px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;">📈</div>
+        <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Collection Performance</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Avg DSO</div>
+          <div id="dso_avg" style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--teal);margin-top:3px;">—</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Days to collect</div>
+          <div style="height:26px;margin-top:8px;"><canvas id="dso_avg_spark"></canvas></div>
+          <div id="dso_avg_trend" style="font-size:9px;margin-top:5px;color:var(--text3);">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Median DSO</div>
+          <div id="dso_med" style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--amber);margin-top:3px;">—</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">50th percentile</div>
+          <div style="height:26px;margin-top:8px;"><canvas id="dso_med_spark"></canvas></div>
+          <div id="dso_med_trend" style="font-size:9px;margin-top:5px;color:var(--text3);">—</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Payment Term</div>
+          <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--amber);margin-top:3px;">1 month</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px;">Most common (not yet calculated)</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1277,7 +1314,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v110Sep-color-and-breakdown · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v111Sep-full-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
