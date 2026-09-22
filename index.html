@@ -372,7 +372,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Actual vs Forecast — toggle-able by variable -->
   <div class="card mb">
     <div class="ch">
-      <div><div class="ctitle">Actual vs Forecast</div><div class="csub">Solid = actual · Dashed = forecast · toggle which variables to show</div></div>
+      <div><div class="ctitle">Actual vs Forecast</div><div class="csub">Green = actual · Yellow (dashed) = forecast · circle/square/triangle markers distinguish Revenue/Expenses/Op Profit</div></div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;">
         <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
           <input type="checkbox" id="avf_rev" checked onchange="buildAvfChart()" style="accent-color:#0fb8b8;"> Revenue
@@ -1401,7 +1401,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v119Sep-variance-dash-avf · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v120Sep-colorfix-progressbars · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1528,13 +1528,25 @@ function processStaging(rows){
   const t26={rA:0,sA:0,gA:0,eA:0,pA:0,rF:0};
   done26.forEach(r=>{t26.rA+=r.rA;t26.sA+=r.sA;t26.gA+=r.gA;t26.eA+=r.eA;t26.pA+=r.pA;t26.rF+=r.rF;});
   const totRF26=s26.reduce((s,r)=>s+r.rF,0);
+  const totEF26=s26.reduce((s,r)=>s+r.eF,0);
+  const totPF26=s26.reduce((s,r)=>s+(r.pFp||0),0);
+  const progBar = (actual, forecast, favorableWhenLower, color) => {
+    const pct = forecast ? Math.max(0,(Math.abs(actual)/Math.abs(forecast))*100) : 0;
+    const variance = Math.abs(actual) - Math.abs(forecast);
+    const favorable = favorableWhenLower ? variance <= 0 : variance >= 0;
+    const barColor = favorable ? 'var(--green)' : 'var(--coral)';
+    return `<div style="height:6px;background:var(--bg3);border-radius:3px;margin-top:6px;overflow:hidden;position:relative;">
+      <div style="position:absolute;left:66.7%;top:-2px;bottom:-2px;width:2px;background:rgba(255,255,255,.5);"></div>
+      <div style="height:100%;width:${Math.min(100,(pct/150)*100)}%;border-radius:3px;background:${barColor};"></div>
+    </div><div style="font-size:10px;color:var(--text3);margin-top:4px;">${pct.toFixed(0)}% of full-year target</div>`;
+  };
   document.getElementById('yc2026').innerHTML=`
-    <div><div class="ycl">Revenue (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.rA)}</div><div class="ycs">${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} target</div></div>
-    <div><div class="ycl">Full Year Forecast</div><div class="ycv" style="color:var(--text3)">${fC(totRF26)}</div></div>
-    <div><div class="ycl">Op Profit (A) YTD</div><div class="ycv" style="color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</div><div class="ycs">Margin: ${fPct(t26.pA,t26.rA)}</div></div>
-    <div><div class="ycl">Expenses (A) YTD</div><div class="ycv" style="color:var(--coral)">${fC(t26.eA)}</div></div>
+    <div><div class="ycl">Revenue (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.rA)}</div><div class="ycs">${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} target</div>${progBar(t26.rA,totRF26,false)}</div>
+    <div><div class="ycl">Expenses (A) YTD</div><div class="ycv" style="color:var(--coral)">${fC(t26.eA)}</div><div class="ycs">${fPct(Math.abs(t26.eA),Math.abs(totEF26))} of ${fmt(Math.abs(totEF26))} target</div>${progBar(t26.eA,totEF26,true)}</div>
+    <div><div class="ycl">Op Profit (A) YTD</div><div class="ycv" style="color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</div><div class="ycs">Margin: ${fPct(t26.pA,t26.rA)}</div>${progBar(t26.pA,totPF26,false)}</div>
     <div><div class="ycl">Sales (A) YTD</div><div class="ycv" style="color:${t26.sA>=0?'var(--text)':'var(--coral)'}">${fC(t26.sA)}</div></div>
-    <div><div class="ycl">Grants (A) YTD</div><div class="ycv" style="color:var(--green)">${fC(t26.gA)}</div></div>`;
+    <div><div class="ycl">Grants (A) YTD</div><div class="ycv" style="color:var(--green)">${fC(t26.gA)}</div></div>
+    <div></div>`;
   const sc=document.getElementById('sc_pA');sc.textContent=fmt(t26.pA);sc.className='sv '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_pA_wrap').className='sc '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_mA').textContent=fPct(t26.pA,t26.rA);
@@ -1765,8 +1777,8 @@ function buildVarTable(s26){
       <td class="${va!=null?(va>=0?'pos':'neg'):''}">${va!=null?fC(va):'—'}</td>
       <td class="${vp!=null?(va>=0?'pos':'neg'):''}">${vp!=null?(va>=0?'+':'')+vp+'%':'—'}</td>
       <td>${r.done&&r.eA?fC(r.eA):'—'}</td><td>${fC(r.eF)}</td>
-      <td class="${evar!=null?(evar<=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
-      <td class="${evarp!=null?(evar<=0?'pos':'neg'):''}">${evarp!=null?(evar<=0?'+':'')+evarp+'%':'—'}</td>
+      <td class="${evar!=null?(evar>=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
+      <td class="${evarp!=null?(evar>=0?'pos':'neg'):''}">${evarp!=null?(evar>=0?'+':'')+evarp+'%':'—'}</td>
       <td class="${r.done?(r.pA>=0?'pos':'neg'):''}">${r.done&&r.pA?fC(r.pA):'—'}</td>
       <td>${pF!=null?fC(pF):'—'}</td>
       <td class="${pvar!=null?(pvar>=0?'pos':'neg'):''}">${pvar!=null?fC(pvar):'—'}</td>
@@ -1781,8 +1793,8 @@ function buildVarTable(s26){
     <td class="${totVA>=0?'pos':'neg'}"><strong>${fC(totVA)}</strong></td>
     <td class="${totVA>=0?'pos':'neg'}"><strong>${tRF?(totVA/Math.abs(tRF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td>${fC(tEA)}</td><td>${fC(tEF)}</td>
-    <td class="${totEVar<=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
-    <td class="${totEVar<=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
+    <td class="${totEVar>=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
+    <td class="${totEVar>=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td class="${tPA>=0?'pos':'neg'}"><strong>${fC(tPA)}</strong></td>
     <td><strong>${fC(tPF)}</strong></td>
     <td class="${totPVar>=0?'pos':'neg'}"><strong>${fC(totPVar)}</strong></td>
@@ -1803,16 +1815,16 @@ function buildAvfChart(){
   const showProfit = document.getElementById('avf_profit')?.checked;
   const datasets = [];
   if(showRev){
-    datasets.push({label:'Revenue (Actual)', data:s26.map(r=>r.done?r.rA:null), borderColor:teal, backgroundColor:teal, borderWidth:2, pointRadius:2, fill:false, tension:0.25});
-    datasets.push({label:'Revenue (Forecast)', data:s26.map(r=>r.rF), borderColor:teal, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
+    datasets.push({label:'Revenue (Actual)', data:s26.map(r=>r.done?r.rA:null), borderColor:green, backgroundColor:green, borderWidth:2, pointRadius:3, pointStyle:'circle', fill:false, tension:0.25});
+    datasets.push({label:'Revenue (Forecast)', data:s26.map(r=>r.rF), borderColor:amber, backgroundColor:amber, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
   }
   if(showExp){
-    datasets.push({label:'Expenses (Actual)', data:s26.map(r=>r.done?Math.abs(r.eA):null), borderColor:coral, backgroundColor:coral, borderWidth:2, pointRadius:2, fill:false, tension:0.25});
-    datasets.push({label:'Expenses (Forecast)', data:s26.map(r=>Math.abs(r.eF)), borderColor:coral, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
+    datasets.push({label:'Expenses (Actual)', data:s26.map(r=>r.done?Math.abs(r.eA):null), borderColor:green, backgroundColor:green, borderWidth:2, pointRadius:3, pointStyle:'rect', fill:false, tension:0.25});
+    datasets.push({label:'Expenses (Forecast)', data:s26.map(r=>Math.abs(r.eF)), borderColor:amber, backgroundColor:amber, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
   }
   if(showProfit){
-    datasets.push({label:'Op Profit (Actual)', data:s26.map(r=>r.done?r.pA:null), borderColor:green, backgroundColor:green, borderWidth:2, pointRadius:2, fill:false, tension:0.25});
-    datasets.push({label:'Op Profit (Forecast)', data:s26.map(r=>r.pFp), borderColor:green, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
+    datasets.push({label:'Op Profit (Actual)', data:s26.map(r=>r.done?r.pA:null), borderColor:green, backgroundColor:green, borderWidth:2, pointRadius:3, pointStyle:'triangle', fill:false, tension:0.25});
+    datasets.push({label:'Op Profit (Forecast)', data:s26.map(r=>r.pFp), borderColor:amber, backgroundColor:amber, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
   }
   destroyChart('avf_chart');
   charts['avf_chart'] = new Chart(document.getElementById('avf_chart'), {type:'line',
