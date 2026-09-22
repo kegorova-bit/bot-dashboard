@@ -173,7 +173,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .out-table-wrap{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;}
 .out-table-wrap table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
 .out-table-wrap th{background:var(--bg3);color:var(--text3);padding:9px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+.out-table-wrap th.sortable{cursor:pointer;user-select:none;}
+.out-table-wrap th.sortable:hover{color:var(--text2);}
+.out-table-wrap th.sortable .sort-arrow{margin-left:4px;opacity:0.5;font-size:9px;}
+.out-table-wrap th.sortable.sort-active .sort-arrow{opacity:1;color:var(--teal);}
 .out-table-wrap th:nth-child(1),.out-table-wrap td:nth-child(1){width:38px;}
+.out-table-wrap th:nth-child(3),.out-table-wrap td:nth-child(3){width:240px;}
+.out-table-wrap td:nth-child(3){white-space:normal;overflow:visible;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.35;max-height:2.7em;}
 .out-table-wrap th:nth-child(4),.out-table-wrap td:nth-child(4){width:160px;text-align:right;font-family:var(--mono);}
 .out-table-wrap th:nth-child(5),.out-table-wrap td:nth-child(5){width:140px;text-align:right;}
 .out-table-wrap td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -314,8 +320,72 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="cw"><canvas id="c2026f"></canvas></div>
   </div>
   <div class="card mb">
+    <div class="ch"><div><div class="ctitle">YTD Actual vs Forecast — Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Revenue</div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
+          <span>Actual: <strong id="ytdv_rev_actual" style="font-family:var(--mono);">—</strong></span>
+          <span>Forecast: <strong id="ytdv_rev_forecast" style="font-family:var(--mono);">—</strong></span>
+        </div>
+        <div id="ytdv_rev_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
+        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
+          <div id="ytdv_rev_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
+        </div>
+        <div id="ytdv_rev_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Expenses</div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
+          <span>Actual: <strong id="ytdv_exp_actual" style="font-family:var(--mono);">—</strong></span>
+          <span>Forecast: <strong id="ytdv_exp_forecast" style="font-family:var(--mono);">—</strong></span>
+        </div>
+        <div id="ytdv_exp_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
+        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
+          <div id="ytdv_exp_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
+        </div>
+        <div id="ytdv_exp_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Operating Profit</div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
+          <span>Actual: <strong id="ytdv_profit_actual" style="font-family:var(--mono);">—</strong></span>
+          <span>Forecast: <strong id="ytdv_profit_forecast" style="font-family:var(--mono);">—</strong></span>
+        </div>
+        <div id="ytdv_profit_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
+        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
+          <div id="ytdv_profit_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
+        </div>
+        <div id="ytdv_profit_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb">
     <div class="ch"><div><div class="ctitle">Monthly Revenue Variance</div><div class="csub">Completed months · Future months forecast only</div></div></div>
     <table class="vt" id="vt"></table>
+  </div>
+
+  <!-- Actual vs Forecast — toggle-able by variable -->
+  <div class="card mb">
+    <div class="ch">
+      <div><div class="ctitle">Actual vs Forecast</div><div class="csub">Solid = actual · Dashed = forecast · toggle which variables to show</div></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="avf_rev" checked onchange="buildAvfChart()" style="accent-color:#0fb8b8;"> Revenue
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="avf_exp" onchange="buildAvfChart()" style="accent-color:#ff6b6b;"> Expenses
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="avf_profit" checked onchange="buildAvfChart()" style="accent-color:#2ECC8F;"> Operating Profit
+        </label>
+      </div>
+    </div>
+    <div class="cw"><canvas id="avf_chart"></canvas></div>
   </div>
 </div>
 
@@ -849,20 +919,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="page" id="page-dso">
   <div class="slabel"><span>Collections & DSO</span> — Invoice to Cash Lag Analysis</div>
 
-  <!-- YTD Collected — unchanged, kept above the redesigned grid -->
-  <div class="cm g" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <div><div class="cml">YTD Collected</div><div class="cmv g" id="col_ytd" style="font-size:24px;">—</div><div class="cms">Actual cash in Jan–today</div></div>
-  </div>
-
-  <!-- ═══ Row 1: Cash In Forecast | Total Forecast + Pipeline — identical padding, identical internal grid, identical height ═══ -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;align-items:stretch;">
+  <!-- ═══ Row 1: Cash In Forecast | YTD Collected | Total Forecast + Pipeline — identical padding, identical height ═══ -->
+  <div style="display:grid;grid-template-columns:1fr 0.7fr 1fr;gap:20px;margin-bottom:20px;align-items:stretch;">
 
     <!-- Cash In Forecast -->
     <div style="background:linear-gradient(180deg,rgba(15,184,184,.08),rgba(15,184,184,.02));border:1px solid rgba(15,184,184,.20);border-radius:14px;padding:28px;display:grid;grid-template-columns:1fr auto;column-gap:24px;align-items:start;">
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Cash In Forecast</div>
         <div id="col_fcst_np" style="font-family:var(--mono);font-size:32px;font-weight:700;color:var(--teal);line-height:1.15;margin-top:10px;">—</div>
-        <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:280px;min-height:34px;">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
+        <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:280px;min-height:38px;">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:stretch;gap:10px;width:132px;">
         <div style="height:44px;width:132px;position:relative;"><canvas id="base_fcst_spark"></canvas></div>
@@ -874,6 +939,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <button onclick="saveCashInForecastPeriodDefault()" style="font-size:9px;padding:4px 8px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:5px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save the current period as the default for future visits">📌 Set as default</button>
         <div id="colTbiPeriodDefaultNote" style="font-size:8px;color:var(--text3);text-align:center;"></div>
       </div>
+    </div>
+
+    <!-- YTD Collected -->
+    <div style="background:linear-gradient(180deg,rgba(46,204,143,.08),rgba(46,204,143,.02));border:1px solid rgba(46,204,143,.20);border-radius:14px;padding:28px;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">YTD Collected</div>
+      <div id="col_ytd" style="font-family:var(--mono);font-size:32px;font-weight:700;color:var(--green);line-height:1.15;margin-top:10px;">—</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;">Actual cash in Jan–today</div>
     </div>
 
     <!-- Total Forecast + Pipeline -->
@@ -1031,7 +1103,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="out-table-wrap mb">
     <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
     <table>
-      <thead><tr><th>#</th><th>Customer</th><th>Project</th><th>Expected Collection Month</th><th>Amount Outstanding</th><th>% of Total</th></tr></thead>
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" onclick="sortCustomerTable('out','customer')">Customer<span class="sort-arrow" id="out_sort_customer">↕</span></th>
+        <th>Project</th>
+        <th class="sortable" onclick="sortCustomerTable('out','expMonth')">Expected Collection Month<span class="sort-arrow" id="out_sort_expMonth">↕</span></th>
+        <th class="sortable" onclick="sortCustomerTable('out','amount')">Amount Outstanding<span class="sort-arrow" id="out_sort_amount">↕</span></th>
+        <th>% of Total</th>
+      </tr></thead>
       <tbody id="out_tbody"></tbody>
       <tfoot><tr><td></td><td colspan="3"><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
     </table>
@@ -1040,7 +1119,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="out-table-wrap">
     <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
     <table>
-      <thead><tr><th>#</th><th>Customer</th><th>Project</th><th>Expected Invoice Month</th><th>Amount to be invoiced (no VAT)</th><th>% of Total</th></tr></thead>
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" onclick="sortCustomerTable('ni','customer')">Customer<span class="sort-arrow" id="ni_sort_customer">↕</span></th>
+        <th>Project</th>
+        <th class="sortable" onclick="sortCustomerTable('ni','expMonth')">Expected Invoice Month<span class="sort-arrow" id="ni_sort_expMonth">↕</span></th>
+        <th class="sortable" onclick="sortCustomerTable('ni','amount')">Amount to be invoiced (no VAT)<span class="sort-arrow" id="ni_sort_amount">↕</span></th>
+        <th>% of Total</th>
+      </tr></thead>
       <tbody id="not_inv_tbody"></tbody>
       <tfoot><tr><td></td><td colspan="3"><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
     </table>
@@ -1315,7 +1401,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v116Sep-prelim-policy-defaults · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v119Sep-variance-dash-avf · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1504,6 +1590,7 @@ function processStaging(rows){
   window._sAll=sAll;  // extended array incl. 2027, for the Full Year Forecast chart's period toggle
   updateF();
   buildVarTable(s26);
+  buildAvfChart();
   buildVarTable25(s25);
 
   // ── Q1 tab
@@ -1659,17 +1746,20 @@ function updateF(){
 
 function buildVarTable(s26){
   const vt=document.getElementById('vt');
-  vt.innerHTML='<thead><tr><th>Month</th><th>Revenue (A)</th><th>Revenue (F)</th><th>Rev Var $</th><th>Rev Var %</th><th>Expenses (A)</th><th>Expenses (F)</th><th>Exp Var $</th><th>Exp Var %</th><th>Op Profit (A)</th></tr></thead>';
+  vt.innerHTML='<thead><tr><th>Month</th><th>Revenue (A)</th><th>Revenue (F)</th><th>Rev Var $</th><th>Rev Var %</th><th>Expenses (A)</th><th>Expenses (F)</th><th>Exp Var $</th><th>Exp Var %</th><th>Op Profit (A)</th><th>Op Profit (F)</th><th>Op Profit Var $</th><th>Op Profit Var %</th></tr></thead>';
   const vb=document.createElement('tbody');
-  let tRA=0,tRF=0,tEA=0,tEF=0,tPA=0;
+  let tRA=0,tRF=0,tEA=0,tEF=0,tPA=0,tPF=0;
   s26.forEach((r,i)=>{
     const va=r.done?(r.rA-r.rF):null,vp=r.done&&r.rF?(va/Math.abs(r.rF)*100).toFixed(0):null;
-    if(r.done){tRA+=r.rA;tRF+=r.rF;tEA+=r.eA;tEF+=r.eF;tPA+=r.pA;}
+    if(r.done){tRA+=r.rA;tRF+=r.rF;tEA+=r.eA;tEF+=r.eF;tPA+=r.pA;tPF+=(r.pFp||0);}
     const tr=document.createElement('tr');
     const evA=r.done?r.eA:null;
     const evF=r.eF;
     const evar=evA!==null&&evF?(evA-evF):null;
     const evarp=evA!==null&&evF?(evar/Math.abs(evF)*100).toFixed(0):null;
+    const pF = r.pFp; // Op Profit Forecast, base incl pipeline — matches Revenue(F)'s own "incl pipeline" basis
+    const pvar = r.done&&pF!=null?(r.pA-pF):null;
+    const pvarp = r.done&&pF?(pvar/Math.abs(pF)*100).toFixed(0):null;
     tr.innerHTML=`<td>${MN[i]||i}'26${r.done?'':' <span style="color:var(--text3);font-size:10px">(F)</span>'}</td>
       <td>${r.done&&r.rA?fC(r.rA):'—'}</td><td>${fC(r.rF)}</td>
       <td class="${va!=null?(va>=0?'pos':'neg'):''}">${va!=null?fC(va):'—'}</td>
@@ -1677,20 +1767,91 @@ function buildVarTable(s26){
       <td>${r.done&&r.eA?fC(r.eA):'—'}</td><td>${fC(r.eF)}</td>
       <td class="${evar!=null?(evar<=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
       <td class="${evarp!=null?(evar<=0?'pos':'neg'):''}">${evarp!=null?(evar<=0?'+':'')+evarp+'%':'—'}</td>
-      <td class="${r.done?(r.pA>=0?'pos':'neg'):''}">${r.done&&r.pA?fC(r.pA):'—'}</td>`;
+      <td class="${r.done?(r.pA>=0?'pos':'neg'):''}">${r.done&&r.pA?fC(r.pA):'—'}</td>
+      <td>${pF!=null?fC(pF):'—'}</td>
+      <td class="${pvar!=null?(pvar>=0?'pos':'neg'):''}">${pvar!=null?fC(pvar):'—'}</td>
+      <td class="${pvarp!=null?(pvar>=0?'pos':'neg'):''}">${pvarp!=null?(pvar>=0?'+':'')+pvarp+'%':'—'}</td>`;
     vb.appendChild(tr);
   });
   const totVA=tRA-tRF;
   const tf=document.createElement('tfoot');
   const totEVar=tEA-tEF;
+  const totPVar=tPA-tPF;
   tf.innerHTML=`<tr><td><strong>YTD Total</strong></td><td>${fC(tRA)}</td><td>${fC(tRF)}</td>
     <td class="${totVA>=0?'pos':'neg'}"><strong>${fC(totVA)}</strong></td>
     <td class="${totVA>=0?'pos':'neg'}"><strong>${tRF?(totVA/Math.abs(tRF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td>${fC(tEA)}</td><td>${fC(tEF)}</td>
     <td class="${totEVar<=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
     <td class="${totEVar<=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
-    <td class="${tPA>=0?'pos':'neg'}"><strong>${fC(tPA)}</strong></td></tr>`;
+    <td class="${tPA>=0?'pos':'neg'}"><strong>${fC(tPA)}</strong></td>
+    <td><strong>${fC(tPF)}</strong></td>
+    <td class="${totPVar>=0?'pos':'neg'}"><strong>${fC(totPVar)}</strong></td>
+    <td class="${totPVar>=0?'pos':'neg'}"><strong>${tPF?(totPVar/Math.abs(tPF)*100).toFixed(1)+'%':'—'}</strong></td></tr>`;
   vt.appendChild(vb);vt.appendChild(tf);
+  // Cache for the YTD variance dashboard scorecards / progress line (item 3)
+  window._ytdVarData = {tRA,tRF,tEA,tEF,tPA,tPF};
+  updateYtdVarianceDash();
+}
+
+// Actual vs Forecast chart — toggle-able by variable (Revenue / Expenses / Operating Profit).
+// Solid line = actual (done months only), dashed = forecast (all months, so the forecast line runs the
+// full year even where actual has already taken over).
+function buildAvfChart(){
+  const s26 = window._s26; if(!s26) return;
+  const showRev = document.getElementById('avf_rev')?.checked;
+  const showExp = document.getElementById('avf_exp')?.checked;
+  const showProfit = document.getElementById('avf_profit')?.checked;
+  const datasets = [];
+  if(showRev){
+    datasets.push({label:'Revenue (Actual)', data:s26.map(r=>r.done?r.rA:null), borderColor:teal, backgroundColor:teal, borderWidth:2, pointRadius:2, fill:false, tension:0.25});
+    datasets.push({label:'Revenue (Forecast)', data:s26.map(r=>r.rF), borderColor:teal, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
+  }
+  if(showExp){
+    datasets.push({label:'Expenses (Actual)', data:s26.map(r=>r.done?Math.abs(r.eA):null), borderColor:coral, backgroundColor:coral, borderWidth:2, pointRadius:2, fill:false, tension:0.25});
+    datasets.push({label:'Expenses (Forecast)', data:s26.map(r=>Math.abs(r.eF)), borderColor:coral, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
+  }
+  if(showProfit){
+    datasets.push({label:'Op Profit (Actual)', data:s26.map(r=>r.done?r.pA:null), borderColor:green, backgroundColor:green, borderWidth:2, pointRadius:2, fill:false, tension:0.25});
+    datasets.push({label:'Op Profit (Forecast)', data:s26.map(r=>r.pFp), borderColor:green, borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:0.25});
+  }
+  destroyChart('avf_chart');
+  charts['avf_chart'] = new Chart(document.getElementById('avf_chart'), {type:'line',
+    data:{labels:L26.slice(0,12), datasets},
+    options:{...bO(true),
+      plugins:{...bO(true).plugins,
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fN(c.parsed.y)}}}}});
+}
+
+// YTD (to last actual/closed month) Actual vs Forecast variance — dashboard scorecards + progress line.
+// "Progress" = Actual as a % of what was forecast for the same YTD window — a value near 100% means
+// actuals are tracking the forecast; below 100% means under-forecast (for expenses, under is favorable).
+function updateYtdVarianceDash(){
+  const d = window._ytdVarData; if(!d) return;
+  const setCard = (prefix, actual, forecast, favorableWhenActualLower) => {
+    const variance = actual - forecast;
+    const variancePct = forecast ? (variance/Math.abs(forecast)*100) : null;
+    const progressPct = forecast ? Math.max(0, Math.min(150, (actual/Math.abs(forecast))*100)) : 0;
+    const favorable = favorableWhenActualLower ? variance <= 0 : variance >= 0;
+    const aEl = document.getElementById('ytdv_'+prefix+'_actual');
+    const fEl = document.getElementById('ytdv_'+prefix+'_forecast');
+    const vEl = document.getElementById('ytdv_'+prefix+'_var');
+    const barEl = document.getElementById('ytdv_'+prefix+'_bar');
+    const pctLabelEl = document.getElementById('ytdv_'+prefix+'_pctlabel');
+    if(aEl) aEl.textContent = fC(actual);
+    if(fEl) fEl.textContent = fC(forecast);
+    if(vEl){
+      vEl.textContent = (variance>=0?'+':'')+fC(variance)+(variancePct!=null?' ('+(variancePct>=0?'+':'')+variancePct.toFixed(1)+'%)':'');
+      vEl.style.color = favorable ? 'var(--green)' : 'var(--coral)';
+    }
+    if(barEl){
+      barEl.style.width = Math.min(100, (progressPct/150)*100)+'%';
+      barEl.style.background = favorable ? 'var(--green)' : 'var(--coral)';
+    }
+    if(pctLabelEl) pctLabelEl.textContent = progressPct.toFixed(0)+'% of forecast';
+  };
+  setCard('rev', d.tRA, d.tRF, false);      // revenue: actual above forecast is favorable
+  setCard('exp', Math.abs(d.tEA), Math.abs(d.tEF), true);  // expenses: actual below forecast is favorable
+  setCard('profit', d.tPA, d.tPF, false);   // op profit: actual above forecast is favorable
 }
 
 // ─── Q1 TAB ───────────────────────────────────────────────────────
@@ -3594,6 +3755,67 @@ function build6MFcst(){
 
 
 
+// Sortable customer tables (Outstanding Invoices by Customer / To Be Invoiced by Customer) — shared
+// render logic so both tables sort identically. Data is cached on window by processInvoices() each time
+// it runs; these two functions only re-render from that cache, no need to re-run the full data pipeline.
+function renderCustomerTable(key){
+  const data  = key==='out' ? window._outTableData  : window._niTableData;
+  const state = key==='out' ? window._outSortState  : window._niSortState;
+  const total = key==='out' ? window._outTableTotal : window._niTableTotal;
+  const tbodyId   = key==='out' ? 'out_tbody' : 'not_inv_tbody';
+  const barColor  = key==='out' ? 'rgba(15,184,184,0.6)' : 'rgba(245,166,35,0.6)';
+  const ym2label  = window._ym2label || (x=>x);
+  if(!data || !state) return;
+  const tbody = document.getElementById(tbodyId);
+  if(!tbody) return;
+  const sorted = [...data].sort((a,b)=>{
+    let av, bv;
+    if(state.field==='customer'){ av=(a.customer||'').toLowerCase(); bv=(b.customer||'').toLowerCase(); }
+    else if(state.field==='expMonth'){ av=a.expMonth||''; bv=b.expMonth||''; }
+    else { av=a.amount||0; bv=b.amount||0; }
+    if(av<bv) return state.dir==='asc' ? -1 : 1;
+    if(av>bv) return state.dir==='asc' ? 1 : -1;
+    return 0;
+  });
+  tbody.innerHTML = '';
+  sorted.forEach(({customer, project, amount, expMonth}, i)=>{
+    const pct = total > 0 ? (amount/total*100).toFixed(1) : 0;
+    const barW = Math.max(2, Math.min(180, pct*1.8));
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="rn">'+(i+1)+'.</td>'+
+      '<td>'+customer+'</td>'+
+      '<td style="color:var(--text2)" title="'+((project||'').replace(/"/g,'&quot;'))+'">'+(project||'—')+'</td>'+
+      '<td style="color:var(--text2)">'+(ym2label(expMonth)||'—')+'</td>'+
+      '<td>'+fC(amount)+'</td>'+
+      '<td><div style="display:flex;align-items:center;gap:8px;">'+
+        '<div style="height:6px;width:'+barW+'px;background:'+barColor+';border-radius:3px;min-width:2px"></div>'+
+        '<span style="font-family:var(--mono);font-size:11px">'+pct+'%</span>'+
+      '</div></td>';
+    tbody.appendChild(tr);
+  });
+  // Update sort-arrow indicators on the clicked headers
+  ['customer','expMonth','amount'].forEach(f=>{
+    const el = document.getElementById(key+'_sort_'+f);
+    if(!el) return;
+    const active = f===state.field;
+    if(el.parentElement) el.parentElement.classList.toggle('sort-active', active);
+    el.textContent = active ? (state.dir==='asc' ? '↑' : '↓') : '↕';
+  });
+}
+
+function sortCustomerTable(key, field){
+  const state = key==='out' ? window._outSortState : window._niSortState;
+  if(!state) return; // table hasn't loaded data yet
+  if(state.field===field){
+    state.dir = state.dir==='asc' ? 'desc' : 'asc';
+  } else {
+    state.field = field;
+    state.dir = field==='amount' ? 'desc' : 'asc'; // amount defaults biggest-first; text fields default A-Z
+  }
+  renderCustomerTable(key);
+}
+
 function processInvoices(rows){
   window._invRowsCache = rows;  // cached so the Cash In Forecast Display Period toggle can re-invoke this function
   // Resolve columns from header row using invoiceSchema — resilient to column shifts
@@ -3608,6 +3830,7 @@ function processInvoices(rows){
     const mo = parseInt(p[1])-1;
     return (mn[mo]||'') + " '" + p[0].slice(2);
   };
+  window._ym2label = ym2label; // exposed globally so sortCustomerTable/renderCustomerTable can use it outside this function's scope
   // Log live headers and col map for debugging
   console.log('Invoice tracker live headers:', rows[0] ? rows[0].slice(0,25).join(' | ') : 'NO HEADER ROW');
   console.log('Invoice COL map:', JSON.stringify(C));
@@ -3781,7 +4004,7 @@ function processInvoices(rows){
     const notInvoicedPeriod = monthlyTBI.slice(0,_tbiMonths).reduce((s,v)=>s+v,0);
     window._notInvoicedPeriod = notInvoicedPeriod;
     window._tbiPeriodMonths = _tbiMonths;
-    const periodLabelText = _tbiPeriodSel==='2026' ? ('next '+_tbiMonths+' months (through Dec 2026)') : ('next '+_tbiMonths+' months');
+    const periodLabelText = _tbiPeriodSel==='2026' ? 'through Dec 2026' : ('next '+_tbiMonths+' months');
     const wtbiLabelEl = document.getElementById('col_wtbi_label');
     if(wtbiLabelEl) wtbiLabelEl.textContent = '↳ Won — To Be Invoiced ('+periodLabelText+')';
     const fcstNpSubEl = document.getElementById('col_fcst_np_sub');
@@ -3863,21 +4086,12 @@ function processInvoices(rows){
           scales:{x:{display:false}, y:{display:false}}}});
     })();
     const niSorted=notInvRows.sort((a,b)=>b.amount-a.amount);
-    const niTbody=document.getElementById('not_inv_tbody');
+    window._niTableData = niSorted;
+    window._niTableTotal = notInvoicedTotal;
+    if(!window._niSortState) window._niSortState = {field:'amount', dir:'desc'};
     const niTotEl=document.getElementById('not_inv_total');
-    if(niTbody){
-      niTbody.innerHTML='';
-      niSorted.forEach(({customer:cust,project:proj,amount:amt,expMonth},i)=>{
-        const pct=notInvoicedTotal>0?(amt/notInvoicedTotal*100).toFixed(1):0;
-        const tr=document.createElement('tr');
-        tr.innerHTML='<td class="rn">'+(i+1)+'.</td><td>'+cust+'</td><td style="color:var(--text2)">'+(proj||'—')+'</td><td style="color:var(--text2)">'+(ym2label(expMonth)||'—')+'</td><td>'+fC(amt)+'</td>'
-          +'<td><div style="display:flex;align-items:center;gap:8px;">'
-          +'<div style="height:6px;width:'+Math.max(2,pct*1.8)+'px;background:rgba(245,166,35,0.6);border-radius:3px"></div>'
-          +'<span style="font-family:var(--mono);font-size:11px">'+pct+'%</span></div></td>';
-        niTbody.appendChild(tr);
-      });
-    }
     if(niTotEl) niTotEl.textContent=fC(notInvoicedTotal);
+    renderCustomerTable('ni');
 
     // Sort by amount desc
     const sorted = byCustomerProject.sort((a,b)=>b.amount-a.amount);
@@ -3930,25 +4144,10 @@ function processInvoices(rows){
     if(dsoEl) dsoEl.textContent = fC(grandTotal);
 
     // Build table
-    const tbody = document.getElementById('out_tbody');
-    if(!tbody) return;
-    tbody.innerHTML = '';
-    sorted.forEach(({customer, project, amount, expMonth}, i)=>{
-      const pct = grandTotal > 0 ? (amount/grandTotal*100).toFixed(1) : 0;
-      const barW = Math.max(2, Math.min(180, pct*1.8));
-      const tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td class="rn">'+(i+1)+'.</td>'+
-        '<td>'+customer+'</td>'+
-        '<td style="color:var(--text2)">'+(project||'—')+'</td>'+
-        '<td style="color:var(--text2)">'+(ym2label(expMonth)||'—')+'</td>'+
-        '<td>'+fC(amount)+'</td>'+
-        '<td><div style="display:flex;align-items:center;gap:8px;">'+
-          '<div style="height:6px;width:'+barW+'px;background:rgba(15,184,184,0.6);border-radius:3px;min-width:2px"></div>'+
-          '<span style="font-family:var(--mono);font-size:11px">'+pct+'%</span>'+
-        '</div></td>';
-      tbody.appendChild(tr);
-    });
+    window._outTableData = sorted;
+    window._outTableTotal = grandTotal;
+    if(!window._outSortState) window._outSortState = {field:'amount', dir:'desc'};
+    renderCustomerTable('out');
 
     window._invoicesOutstanding = grandTotal;
     window._invOutstanding = grandTotal;
