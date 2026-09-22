@@ -233,7 +233,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <button class="sub-tab active" id="st_fin26" onclick="switchSubTab('fin26',this)">📊 2026 Financials</button>
     <button class="sub-tab" id="st_q1"    onclick="switchSubTab('q1',this)">🏁 Q1 Results</button>
     <button class="sub-tab" id="st_q2"    onclick="switchSubTab('q2',this)">🏁 Q2 Results</button>
-    <button class="sub-tab" id="st_h1"    onclick="switchSubTab('h1',this)">📋 H1 Results</button>
+    <button class="sub-tab" id="st_ytd"   onclick="switchSubTab('ytd',this)">📈 YTD Analysis</button>
     <button class="sub-tab" id="st_6mfcst" onclick="switchSubTab('6mfcst',this)">🔀 6M Forecast</button>
     <button class="sub-tab" id="st_fin25" onclick="switchSubTab('fin25',this)">📋 2025 Financials</button>
   </div>
@@ -241,13 +241,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div id="sv-fin26" class="sub-view active">
 
   <div class="slabel"><span>2026 Financials</span> — Revenue & Profitability</div>
-  <div class="card mb">
-    <div class="yyy" style="margin-bottom:16px">2026 — <span>YTD Actuals vs Full Year Target</span></div>
-    <div class="ycg" id="yc2026"></div>
-  </div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only · lighter/hatched bars = preliminary (posted, not yet finalized — confirmed on the 15th of the following month)</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only · lighter/hatched bars = preliminary (posted, not yet finalized — confirmed on the 15th of the following month) · No incentives</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc t"><div class="slb" id="sc_rA_label">Revenue YTD</div><div class="sv t" id="sc_rA">—</div></div>
@@ -318,74 +314,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
     <div class="cw"><canvas id="c2026f"></canvas></div>
-  </div>
-  <div class="card mb">
-    <div class="ch"><div><div class="ctitle">YTD Actual vs Forecast — Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period</div></div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;">
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Revenue</div>
-        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
-          <span>Actual: <strong id="ytdv_rev_actual" style="font-family:var(--mono);">—</strong></span>
-          <span>Forecast: <strong id="ytdv_rev_forecast" style="font-family:var(--mono);">—</strong></span>
-        </div>
-        <div id="ytdv_rev_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
-        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
-          <div id="ytdv_rev_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
-        </div>
-        <div id="ytdv_rev_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Expenses</div>
-        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
-          <span>Actual: <strong id="ytdv_exp_actual" style="font-family:var(--mono);">—</strong></span>
-          <span>Forecast: <strong id="ytdv_exp_forecast" style="font-family:var(--mono);">—</strong></span>
-        </div>
-        <div id="ytdv_exp_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
-        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
-          <div id="ytdv_exp_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
-        </div>
-        <div id="ytdv_exp_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
-      </div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Operating Profit</div>
-        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
-          <span>Actual: <strong id="ytdv_profit_actual" style="font-family:var(--mono);">—</strong></span>
-          <span>Forecast: <strong id="ytdv_profit_forecast" style="font-family:var(--mono);">—</strong></span>
-        </div>
-        <div id="ytdv_profit_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
-        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
-          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
-          <div id="ytdv_profit_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
-        </div>
-        <div id="ytdv_profit_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Monthly Revenue Variance</div><div class="csub">Completed months · Future months forecast only</div></div></div>
-    <table class="vt" id="vt"></table>
-  </div>
-
-  <!-- Actual vs Forecast — toggle-able by variable -->
-  <div class="card mb">
-    <div class="ch">
-      <div><div class="ctitle">Actual vs Forecast</div><div class="csub">Green = actual · Yellow (dashed) = forecast · circle/square/triangle markers distinguish Revenue/Expenses/Op Profit</div></div>
-      <div style="display:flex;gap:14px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
-          <input type="checkbox" id="avf_rev" checked onchange="buildAvfChart()" style="accent-color:#0fb8b8;"> Revenue
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
-          <input type="checkbox" id="avf_exp" onchange="buildAvfChart()" style="accent-color:#ff6b6b;"> Expenses
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
-          <input type="checkbox" id="avf_profit" checked onchange="buildAvfChart()" style="accent-color:#2ECC8F;"> Operating Profit
-        </label>
-      </div>
-    </div>
-    <div class="cw"><canvas id="avf_chart"></canvas></div>
   </div>
 </div>
 
@@ -482,51 +410,89 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 </div>
-  <!-- H1 Results sub-view -->
-  <div id="sv-h1" class="sub-view" style="display:none;">
-  <div class="slabel"><span>H1 Results</span> — January · February · March · April · May · June 2026</div>
+  <!-- YTD Analysis sub-view -->
+  <div id="sv-ytd" class="sub-view" style="display:none;">
+  <div class="slabel"><span>YTD Analysis</span> — Year to Date, Through the Last Confirmed Month</div>
 
-  <!-- Hero KPIs with progress bars -->
-  <div class="q1-hero">
-    <div class="hero-card hc-teal">
-      <div class="hero-label">H1 Revenue</div>
-      <div class="hero-val teal" id="h1_rev">—</div>
-      <div class="hero-sub" id="h1_rev_sub">vs target</div>
-      <div id="h1_rev_prog" style="margin-top:10px;"></div>
-      <div class="hero-badge" id="h1_rev_badge"></div>
-    </div>
-    <div class="hero-card hc-teal">
-      <div class="hero-label">Revenue vs H1 Target</div>
-      <div class="hero-val" id="h1_var" style="font-size:28px;">—</div>
-      <div class="hero-sub" id="h1_var_sub">Variance</div>
-      <div class="hero-badge" id="h1_var_badge"></div>
-    </div>
-    <div class="hero-card hc-amber">
-      <div class="hero-label">H1 Total Expenses</div>
-      <div class="hero-val amber" id="h1_exp">—</div>
-      <div class="hero-sub">Jan–Jun confirmed</div>
-      <div id="h1_exp_prog" style="margin-top:10px;"></div>
-    </div>
-    <div class="hero-card hc-green">
-      <div class="hero-label">H1 Operating Profit</div>
-      <div class="hero-val green" id="h1_profit">—</div>
-      <div class="hero-sub" id="h1_margin_sub">Operating margin</div>
-      <div id="h1_profit_prog" style="margin-top:10px;"></div>
-      <div class="hero-badge hb-teal" id="h1_margin_badge"></div>
+  <div class="card mb">
+    <div class="yyy" style="margin-bottom:16px">2026 — <span>YTD Actuals vs Full Year Target</span></div>
+    <div class="ycg" id="yc2026"></div>
+  </div>
+
+  <div class="card mb">
+    <div class="ch"><div><div class="ctitle">YTD Actual vs Forecast — Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Revenue</div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
+          <span>Actual: <strong id="ytdv_rev_actual" style="font-family:var(--mono);">—</strong></span>
+          <span>Forecast: <strong id="ytdv_rev_forecast" style="font-family:var(--mono);">—</strong></span>
+        </div>
+        <div id="ytdv_rev_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
+        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
+          <div id="ytdv_rev_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
+        </div>
+        <div id="ytdv_rev_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Expenses</div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
+          <span>Actual: <strong id="ytdv_exp_actual" style="font-family:var(--mono);">—</strong></span>
+          <span>Forecast: <strong id="ytdv_exp_forecast" style="font-family:var(--mono);">—</strong></span>
+        </div>
+        <div id="ytdv_exp_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
+        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
+          <div id="ytdv_exp_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
+        </div>
+        <div id="ytdv_exp_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Operating Profit</div>
+        <div style="display:flex;gap:14px;margin-top:8px;font-size:12px;color:var(--text2);">
+          <span>Actual: <strong id="ytdv_profit_actual" style="font-family:var(--mono);">—</strong></span>
+          <span>Forecast: <strong id="ytdv_profit_forecast" style="font-family:var(--mono);">—</strong></span>
+        </div>
+        <div id="ytdv_profit_var" style="font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;">—</div>
+        <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
+          <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
+          <div id="ytdv_profit_bar" style="height:100%;width:0%;border-radius:4px;transition:width .3s;"></div>
+        </div>
+        <div id="ytdv_profit_pctlabel" style="font-size:10px;color:var(--text3);margin-top:5px;">—</div>
+      </div>
     </div>
   </div>
 
-  <!-- Sales breakdown progress bars -->
-  <div class="card mb" id="h1_breakdown_card">
-    <div class="ch"><div><div class="ctitle">Revenue by Category — Actual vs Target</div><div class="csub">H1 2026 · Jan–Jun confirmed months</div></div></div>
-    <div id="h1_breakdown_bars" style="padding:4px 0;"></div>
+  <div class="card mb">
+    <div class="ch"><div><div class="ctitle">Monthly Revenue Variance</div><div class="csub">Completed months · Future months forecast only</div></div></div>
+    <table class="vt" id="vt"></table>
+  </div>
+
+  <!-- Actual vs Forecast — toggle-able by variable -->
+  <div class="card mb">
+    <div class="ch">
+      <div><div class="ctitle">Actual vs Forecast</div><div class="csub">Green = actual · Yellow (dashed) = forecast · circle/square/triangle markers distinguish Revenue/Expenses/Op Profit</div></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="avf_rev" checked onchange="buildAvfChart()" style="accent-color:#0fb8b8;"> Revenue
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="avf_exp" onchange="buildAvfChart()" style="accent-color:#ff6b6b;"> Expenses
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;">
+          <input type="checkbox" id="avf_profit" checked onchange="buildAvfChart()" style="accent-color:#2ECC8F;"> Operating Profit
+        </label>
+      </div>
+    </div>
+    <div class="cw"><canvas id="avf_chart"></canvas></div>
   </div>
 
   <!-- Expenses by Category — variance-focused redesign -->
   <div class="mb">
     <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
       <div><div class="ctitle" style="font-size:15px;">Expenses by Category — Actual vs Budget</div>
-      <div class="csub">H1 2026 · Jan–Jun · Source: Budget 2026A / Budget 2026F_v0, as of Jul 7 2026 (static snapshot, not yet live-linked)</div></div>
+      <div class="csub">H1 2026 · Jan–Jun · Source: Budget 2026A / Budget 2026F_v0, as of Jul 7 2026 (static snapshot, not yet live-linked — does not extend to the full YTD period above)</div></div>
     </div>
 
     <!-- Summary KPI cards -->
@@ -560,15 +526,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="ch"><div><div class="ctitle">Insights</div><div class="csub">Auto-generated from current variance data</div></div></div>
       <div id="h1_exp_insights" style="font-size:14px;line-height:1.8;color:var(--text2);padding:6px 2px;"></div>
     </div>
-  </div>
-
-  <!-- Mirror chart: revenue above x, expenses below x -->
-  <div class="card accent mb">
-    <div class="ch"><div>
-      <div class="ctitle">Revenue & Expenses — Actual vs Target · H1 2026</div>
-      <div class="csub">Per month: solid bar = Actual · transparent bar = Forecast · green line = Op Profit</div>
-    </div></div>
-    <div class="cw tall"><canvas id="h1chart"></canvas></div>
   </div>
 </div>
 
@@ -1401,7 +1358,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v120Sep-colorfix-progressbars · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v121Sep-ytd-analysis-tab · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -3178,138 +3135,25 @@ function processBudget(baseRows, fcstRows){
     window._budH1cols = [33,34,35,36,37,38]; // Jan-Jun
     window._budH2cols = [39,40,41,42,43,44]; // Jul-Dec
     // Rebuild visible sub-tab if open
-    const sv = document.getElementById('sv-h1');
-    if(sv && sv.style.display !== 'none') buildH1();
+    const sv = document.getElementById('sv-ytd');
+    if(sv && sv.style.display !== 'none') buildYtdExpenseCategory();
     const sv2 = document.getElementById('sv-6mfcst');
     if(sv2 && sv2.style.display !== 'none') build6MFcst();
   } catch(e){ console.warn('Budget parse failed', e); }
 }
 
-// ── H1 RESULTS ────────────────────────────────────────────────────────────────
-function buildH1(){
-  const sv = document.getElementById('sv-h1');
+// ── YTD ANALYSIS: Expenses by Category ──────────────────────────────────────
+// Relocated from the former H1 Results tab. NOTE: this data is a STATIC snapshot (Budget 2026A /
+// Budget 2026F_v0, as of Jul 7 2026), scoped to H1 (Jan-Jun) — it does NOT extend to the full YTD
+// period the rest of this tab covers, since no fresher category-level breakdown was available.
+function buildYtdExpenseCategory(){
+  const sv = document.getElementById('sv-ytd');
   if(!sv || sv.style.display==='none') return;
-  const s26 = window._s26 || [];
-  if(!s26.length) return;
-
-  const h1all  = s26.slice(0,6);
-  const h1done = h1all.filter(r=>r.done);
-  const h1rev    = h1done.reduce((s,r)=>s+r.rA,0);
-  const h1exp    = h1done.reduce((s,r)=>s+r.eA,0);
-  const h1profit = h1done.reduce((s,r)=>s+r.pA,0);
-  const h1sales  = h1done.reduce((s,r)=>s+r.sA,0);
-  const h1grants = h1done.reduce((s,r)=>s+r.gA,0);
-  const h1dc     = h1done.reduce((s,r)=>s+(r.dcA||0),0);
-  const h1haivo  = h1done.reduce((s,r)=>s+(r.haivoA||0),0);
-  const h1target = h1all.reduce((s,r)=>s+r.rF,0);   // H1 target = actual sum of Jan-Jun base forecast (not full-year/2)
-  const h1var    = h1rev - h1target;
-  const h1margin = h1rev > 0 ? h1profit/h1rev*100 : 0;
-  const h1expTarget = h1all.reduce((s,r)=>s+(r.eF||0),0);
-  const h1profitTarget = h1target + h1expTarget;
-
-  // Progress bar helper — thick pill for hero cards
-  const progBar = (actual, target, color, id) => {
-    const e2 = document.getElementById(id); if(!e2) return;
-    const pct = target ? Math.min(100, Math.abs(actual)/Math.abs(target)*100) : 0;
-    const over = actual > Math.abs(target);
-    const barCol = over ? 'var(--green)' : color;
-    e2.innerHTML = `
-      <div style="height:12px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden;margin-bottom:5px;">
-        <div style="height:100%;width:${pct.toFixed(0)}%;background:${barCol};border-radius:6px;transition:width .6s;"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);">
-        <span style="font-weight:600;color:${barCol}">${pct.toFixed(0)}%</span>
-        <span>of ${fC(Math.abs(target))}</span>
-      </div>`;
-  };
-
   const el = id => document.getElementById(id);
-  if(el('h1_rev')){ el('h1_rev').textContent=fC(h1rev); }
-  if(el('h1_rev_sub')) el('h1_rev_sub').textContent=fPct(h1rev,h1target)+' of '+fC(h1target)+' H1 target';
-  if(el('h1_rev_badge')){ el('h1_rev_badge').textContent=h1rev>=h1target?'✓ Above target':'Below target'; el('h1_rev_badge').className='hero-badge '+(h1rev>=h1target?'hb-green':'hb-red'); }
-  progBar(h1rev, h1target, 'var(--teal)', 'h1_rev_prog');
-
-  if(el('h1_profit')){ el('h1_profit').textContent=fC(h1profit); el('h1_profit').style.color=h1profit>=0?'var(--green)':'var(--coral)'; }
-  if(el('h1_margin_sub')) el('h1_margin_sub').textContent='Margin: '+h1margin.toFixed(1)+'%  ·  Target: '+fC(h1profitTarget);
-  if(el('h1_margin_badge')) el('h1_margin_badge').textContent=h1margin.toFixed(1)+'% margin';
-  progBar(Math.abs(h1profit), Math.abs(h1profitTarget), 'var(--green)', 'h1_profit_prog');
-
-  if(el('h1_exp')) el('h1_exp').textContent=fC(Math.abs(h1exp));
-  progBar(Math.abs(h1exp), Math.abs(h1expTarget), 'var(--amber)', 'h1_exp_prog');
-
-  if(el('h1_var')){ el('h1_var').textContent=fmt(h1var); el('h1_var').style.color=h1var>=0?'var(--green)':'var(--coral)'; }
-  if(el('h1_var_sub')) el('h1_var_sub').textContent='vs H1 target of '+fC(h1target);
-  if(el('h1_var_badge')){ el('h1_var_badge').textContent=(h1var>=0?'+':'')+fPct(h1var,h1target); el('h1_var_badge').className='hero-badge '+(h1var>=0?'hb-green':'hb-red'); }
-
-  // Proportionally-scaled hierarchical bar — length reflects actual $ amount relative to a SHARED
-  // scale (not each row's own target), so categories can be visually compared by true magnitude.
-  // Target is shown as a marker line on the same scale. Supports indentation for parent/child rows.
-  // Bar keeps its assigned hue (barColor) regardless of over/under — variance color only affects the $ variance text.
-  const hierBar = (label, actual, target, barColor, scale, indent, isTotal) => {
-    const pctActual = scale ? Math.min(100, actual/scale*100) : 0;
-    const pctTarget = scale ? Math.min(100, Math.abs(target)/scale*100) : 0;
-    const favorable = actual >= Math.abs(target);
-    const vc = favorable ? 'var(--green)' : 'var(--coral)';
-    const varV = actual - Math.abs(target);
-    const barH = isTotal ? 28 : 22;
-    const fw = isTotal ? '700' : '600';
-    const fs = isTotal ? '13px' : '12px';
-    const labelInside = pctActual > 22; // enough room to fit the value text inside the fill
-    // Keep the target label from clipping off the left/right edge of the track
-    const targetLabelPct = Math.min(92, Math.max(8, pctTarget));
-    return `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;align-items:center;gap:14px;padding:${isTotal?'16px 0 12px':'13px 0 9px'};${isTotal?'':'border-bottom:1px solid var(--border);'}">
-      <span style="font-size:${fs};font-weight:${fw};color:${isTotal?'var(--text)':'var(--text2)'};padding-left:${indent||0}px;white-space:nowrap;">${indent?'↳ ':''}${label}</span>
-      <div style="position:relative;height:${barH}px;background:rgba(255,255,255,.06);border-radius:6px;overflow:visible;">
-        <div style="position:absolute;top:0;left:0;height:100%;width:${pctActual.toFixed(1)}%;background:${barColor};border-radius:6px;transition:width .6s;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;">
-          ${labelInside?`<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#0b0d12;white-space:nowrap;">${fC(actual)}</span>`:''}
-        </div>
-        ${!labelInside?`<span style="position:absolute;top:50%;left:calc(${pctActual.toFixed(1)}% + 8px);transform:translateY(-50%);font-family:var(--mono);font-size:11px;font-weight:700;color:${barColor};white-space:nowrap;">${fC(actual)}</span>`:''}
-        <div title="Target: ${fC(Math.abs(target))}" style="position:absolute;top:-3px;left:${pctTarget.toFixed(1)}%;width:2px;height:${barH+6}px;background:rgba(255,255,255,.75);"></div>
-        <span style="position:absolute;top:-15px;left:${targetLabelPct.toFixed(1)}%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;font-weight:700;color:var(--text3);white-space:nowrap;">🎯${fC(Math.abs(target))}</span>
-      </div>
-      <div style="text-align:right;font-size:${isTotal?'16px':'15px'};font-weight:700;font-family:var(--mono);color:${barColor}">${fC(actual)}</div>
-      <div style="text-align:right;font-size:11px;color:var(--text3)">${fC(Math.abs(target))}</div>
-      <div style="text-align:right;font-size:12px;font-weight:700;color:${vc}">${varV>=0?'+':''}${fC(varV)}</div>
-    </div>`;
-  };
-
-
-
-  // Category breakdown bars
-  // 1. Targets from Staging s26 (col U=sF, AA=dcF, AB=haivoF, AD=gF)
-  const h1SalesTarget  = h1all.reduce((s,r)=>s+(r.sF||0),0);
-  const h1DCTarget     = h1all.reduce((s,r)=>s+(r.dcF||0),0);
-  const h1HaivoTarget  = h1all.reduce((s,r)=>s+(r.haivoF||0),0);
-  const h1GrantTarget  = h1all.reduce((s,r)=>s+(r.gF||0),0);
-
-  // Distinct hues per hierarchy level so Revenue/Sales/children read as visually separate tiers
-  const HUE_REVENUE = '#0fb8b8';  // teal
-  const HUE_SALES    = '#3b82f6'; // blue
-  const HUE_GRANTS   = 'var(--amber)';
-  const HUE_DC       = '#60a5fa'; // lighter blue (child of Sales)
-  const HUE_HAIVO    = '#22d3ee'; // cyan (child of Sales)
-
-  const barsEl = el('h1_breakdown_bars');
-  if(barsEl){
-    const hdr = `<div style="display:grid;grid-template-columns:170px 1fr 110px 90px 80px;gap:14px;padding:6px 0 8px;border-bottom:2px solid var(--border2);">
-      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Category</span>
-      <span style="font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Progress · | = target</span>
-      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;">Actual</span>
-      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Target</span>
-      <span style="text-align:right;font-size:9px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Variance</span>
-    </div>`;
-    const revScale = Math.max(h1rev, h1target) || 1;
-    barsEl.innerHTML = hdr +
-      hierBar('Revenue',         h1rev,    h1target,       HUE_REVENUE, revScale, 0,  true) +
-      (h1grants > 0 ? hierBar('Grants', h1grants, h1GrantTarget || h1grants, HUE_GRANTS, revScale, 16, false) : '') +
-      hierBar('Sales',           h1sales,  h1SalesTarget,  HUE_SALES,   revScale, 16, false) +
-      hierBar('Data Collection', h1dc,     h1DCTarget,     HUE_DC,      revScale, 34, false) +
-      hierBar('HAIVO',           h1haivo,  h1HaivoTarget,  HUE_HAIVO,   revScale, 34, false);
-  }
 
   // Expenses by Category — H1 2026, from Budget 2026A (actual) / Budget 2026F_v0 (base forecast)
   // Static snapshot as of Jul 7 2026 — reconciles exactly with the Staging-derived H1 Total Expenses
-  // card above ($220,207 actual / $294,281 base forecast). Excludes Incentives per profitability convention;
+  // card ($220,207 actual / $294,281 base forecast). Excludes Incentives per profitability convention;
   // Non-Opex was $0 for H1 actual and not part of the base-forecast subtotal either, so no adjustment needed.
   // "neutral" categories: underspend here is informational (may reflect delayed execution), not
   // automatically favorable — so they get a neutral blue instead of green/red regardless of direction.
@@ -3421,21 +3265,14 @@ function buildH1(){
       running = to;
     });
     labels.push('Actual');
-    data.push([0, running]);
-    bg.push('rgba(245,166,35,0.85)');
+    data.push([0, expTotalActual]);
+    bg.push('rgba(15,184,184,0.85)');
     charts['h1_exp_waterfall'] = new Chart(wfEl, {type:'bar',
-      data:{labels, datasets:[{data, backgroundColor:bg, borderRadius:3, borderWidth:0}]},
+      data:{labels, datasets:[{data, backgroundColor:bg, borderRadius:3}]},
       options:{responsive:true, maintainAspectRatio:false,
-        plugins:{legend:{display:false},
-          tooltip:{callbacks:{label:c2=>{
-            const idx=c2.dataIndex;
-            if(idx===0) return ' Budget: '+fC(expTotalTarget);
-            if(idx===labels.length-1) return ' Actual: '+fC(running);
-            const cat=expSorted[idx-1];
-            return ' '+cat.label+': '+(cat.variance>=0?'+':'')+fC(cat.variance);
-          }}}},
-        scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#b3c1d1'}},
-                y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
+        plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+fC(c.raw[1]-c.raw[0])}}},
+        scales:{x:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#b3c1d1'}},
+                y:{grid:{color:'rgba(255,255,255,0.04)'}, ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
   })();
 
   // ── 5. Insights panel ──
@@ -3474,37 +3311,14 @@ function buildH1(){
 
     insEl.innerHTML = pts.map(p=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);">• ${p}</div>`).join('');
   })();
-
-
-  // Fix 3: grouped — actual pair (rev+exp stacked) | forecast pair (rev+exp stacked) per month
-  destroyChart('h1chart');
-  const h1cEl = el('h1chart'); if(!h1cEl) return;
-  const labels = ["Jan","Feb","Mar","Apr","May","Jun"];
-  charts['h1chart'] = new Chart(h1cEl, {type:'bar',
-    data:{labels, datasets:[
-      {label:'Revenue (Actual)',   data:h1all.map(r=>r.done?r.rA:null),      backgroundColor:'rgba(15,184,184,0.85)', borderColor:teal,  borderWidth:1, borderRadius:3, stack:'actual',   order:2},
-      {label:'Expenses (Actual)',  data:h1all.map(r=>r.done&&r.eA?r.eA:null), backgroundColor:'rgba(255,107,107,0.75)', borderColor:coral, borderWidth:1, borderRadius:3, stack:'actual',   order:2},
-      {label:'Revenue (Forecast)', data:h1all.map(r=>r.rF||null),              backgroundColor:'rgba(15,184,184,0.28)', borderColor:teal,  borderWidth:1.5, borderRadius:3, stack:'forecast', order:3},
-      {label:'Expenses (Forecast)',data:h1all.map(r=>r.eF||null),              backgroundColor:'rgba(255,107,107,0.25)', borderColor:coral, borderWidth:1.5, borderRadius:3, stack:'forecast', order:3},
-      {label:'Op Profit (Actual)', type:'line', data:h1all.map(r=>r.done?r.pA:null),
-       borderColor:green, borderWidth:2.5, pointRadius:h1all.map(r=>r.done?6:0),
-       pointBackgroundColor:h1all.map(r=>r.pA>=0?green:coral), fill:false, tension:0.3, order:1},
-    ]},
-    options:{responsive:true, maintainAspectRatio:false,
-      plugins:{
-        legend:{position:'top',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true,pointStyleWidth:8}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}
-      },
-      scales:{
-        x:{stacked:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{color:'#b3c1d1'}},
-        y:{stacked:true,
-           grid:{color:ctx=>ctx.tick.value===0?'rgba(255,255,255,0.3)':'rgba(255,255,255,0.04)',lineWidth:ctx=>ctx.tick.value===0?2:1},
-           ticks:{callback:v=>fN(v),color:'#b3c1d1'}
-        }
-      }
-    }});
 }
 
+function buildYtdAnalysis(){
+  buildYtdExpenseCategory();
+  updateYtdVarianceDash();
+  buildAvfChart();
+  if(window._s26) buildVarTable(window._s26);
+}
 
 // ── 6M FORECAST VARIANCE ──────────────────────────────────────────────────────
 function build6MFcst(){
@@ -4631,7 +4445,7 @@ function switchSubTab(view, btn){
     if(view==='fin25'){ /* charts already built */ }
     if(view==='q1')   { buildQ1(); }
     if(view==='q2')   { buildQ2(); }
-    if(view==='h1')   { buildH1(); }
+    if(view==='ytd')  { buildYtdAnalysis(); }
     if(view==='6mfcst'){ build6MFcst(); }
     Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}});
   },50);
