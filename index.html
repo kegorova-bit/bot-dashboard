@@ -415,12 +415,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="slabel"><span>YTD Analysis</span> — Year to Date, Through the Last Confirmed Month</div>
 
   <div class="card mb">
-    <div class="yyy" style="margin-bottom:16px">2026 — <span>YTD Actuals vs Full Year Target</span></div>
-    <div class="ycg" id="yc2026"></div>
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;">2026 — <span style="color:var(--teal)">YTD Actuals vs Full Year Target</span></div>
+    <div id="yc2026" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;"></div>
   </div>
 
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle">YTD Actual vs Forecast — Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period</div></div></div>
+    <div class="ch"><div><div class="ctitle" style="font-size:16px;">2026 YTD Actuals vs YTD Forecast - Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period</div></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;">
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Revenue</div>
@@ -1358,7 +1358,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v121Sep-ytd-analysis-tab · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v122Sep-ytd-card-restyle · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1498,12 +1498,24 @@ function processStaging(rows){
     </div><div style="font-size:10px;color:var(--text3);margin-top:4px;">${pct.toFixed(0)}% of full-year target</div>`;
   };
   document.getElementById('yc2026').innerHTML=`
-    <div><div class="ycl">Revenue (A) YTD</div><div class="ycv" style="color:var(--teal)">${fC(t26.rA)}</div><div class="ycs">${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} target</div>${progBar(t26.rA,totRF26,false)}</div>
-    <div><div class="ycl">Expenses (A) YTD</div><div class="ycv" style="color:var(--coral)">${fC(t26.eA)}</div><div class="ycs">${fPct(Math.abs(t26.eA),Math.abs(totEF26))} of ${fmt(Math.abs(totEF26))} target</div>${progBar(t26.eA,totEF26,true)}</div>
-    <div><div class="ycl">Op Profit (A) YTD</div><div class="ycv" style="color:${t26.pA>=0?'var(--green)':'var(--coral)'}">${fC(t26.pA)}</div><div class="ycs">Margin: ${fPct(t26.pA,t26.rA)}</div>${progBar(t26.pA,totPF26,false)}</div>
-    <div><div class="ycl">Sales (A) YTD</div><div class="ycv" style="color:${t26.sA>=0?'var(--text)':'var(--coral)'}">${fC(t26.sA)}</div></div>
-    <div><div class="ycl">Grants (A) YTD</div><div class="ycv" style="color:var(--green)">${fC(t26.gA)}</div></div>
-    <div></div>`;
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Revenue</div>
+      <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--teal);margin-top:6px;">${fC(t26.rA)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px;">${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} full-year target</div>
+      ${progBar(t26.rA,totRF26,false)}
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Expenses</div>
+      <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:var(--coral);margin-top:6px;">${fC(t26.eA)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px;">${fPct(Math.abs(t26.eA),Math.abs(totEF26))} of ${fmt(Math.abs(totEF26))} full-year target</div>
+      ${progBar(t26.eA,totEF26,true)}
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Operating Profit</div>
+      <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:${t26.pA>=0?'var(--green)':'var(--coral)'};margin-top:6px;">${fC(t26.pA)}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:4px;">Margin: ${fPct(t26.pA,t26.rA)}</div>
+      ${progBar(t26.pA,totPF26,false)}
+    </div>`;
   const sc=document.getElementById('sc_pA');sc.textContent=fmt(t26.pA);sc.className='sv '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_pA_wrap').className='sc '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_mA').textContent=fPct(t26.pA,t26.rA);
