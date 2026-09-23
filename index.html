@@ -1319,7 +1319,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v126Sep-declutter-single-pct · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v128Sep-rd-fix-actuals-added · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1770,13 +1770,15 @@ function renderYtdKpiColumn(opts){
   const pct = Math.max(0, opts.progressPct||0);
   const barWidth = Math.min(100, (pct/150)*100);
   const varSign = opts.varAmt>=0 ? '+' : '';
-  const varPct = opts.base ? (opts.varAmt/Math.abs(opts.base)*100) : null;
   return `<div>
     <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;min-height:14px;">${opts.label}</div>
     <div style="font-size:12px;color:var(--text2);margin-top:8px;min-height:17px;">${opts.topLine||'&nbsp;'}</div>
-    <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:${opts.mainColor};margin-top:4px;min-height:32px;">${opts.mainValue}</div>
+    <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px;min-height:32px;">
+      <span style="font-family:var(--mono);font-size:26px;font-weight:700;color:${opts.mainColor};">${opts.mainValue}</span>
+      <span style="font-family:var(--mono);font-size:15px;font-weight:700;color:${favColor};">${pct.toFixed(1)}%</span>
+    </div>
     <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text2);margin-top:6px;min-height:18px;">${opts.secondaryText||'&nbsp;'}</div>
-    <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${favColor};margin-top:6px;min-height:20px;">${varSign}${fC(opts.varAmt)}${varPct!=null?' ('+varSign+varPct.toFixed(1)+'%)':''} ${opts.varLabel}</div>
+    <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${favColor};margin-top:6px;min-height:20px;">${varSign}${fC(opts.varAmt)} ${opts.varLabel}</div>
     <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
       <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
       <div style="height:100%;width:${barWidth}%;border-radius:4px;background:${favColor};"></div>
@@ -3153,7 +3155,20 @@ function buildYtdExpenseCategory(){
   const fcstRows = window._budFcst || [];  // Budget 2026F_v0 — forecast, category name col J (idx 9), full-year total col T (idx 19)
   const AH = 33; // col AH = Jan-2026, first of 12 consecutive monthly columns
 
-  const findRow = (rows, nameColIdx, name) => rows.find(r => r && norm(r[nameColIdx])===norm(name));
+  // Both sheets have EARLIER department-header rows (e.g. "II, R&D") that coincidentally also match a
+  // category name in the same column, but with blank or wrong values (confirmed live — this was
+  // silently returning $0 for R&D actual and a wrong figure for R&D forecast). The real category rows
+  // live in the "Expenses Categories" table near the bottom of each sheet, so anchor the search to only
+  // look at rows AFTER that section's own header row, never matching an earlier false positive.
+  const findRow = (rows, nameColIdx, name) => {
+    const anchorIdx = rows.findIndex(r => r && norm(r[nameColIdx])==='expenses categories');
+    const searchFrom = anchorIdx>=0 ? anchorIdx+1 : 0;
+    for(let i=searchFrom;i<rows.length;i++){
+      const r = rows[i];
+      if(r && norm(r[nameColIdx])===norm(name)) return r;
+    }
+    return null;
+  };
 
   const h1ExpCategories = CATEGORY_NAMES.map(name=>{
     const aRow = findRow(baseRows, 10, name); // col K
@@ -3211,7 +3226,10 @@ function buildYtdExpenseCategory(){
       const sign = c.variance>=0?'+':'−';
       const label = c.neutral ? (isOver?'Above plan':'Below plan') : (isOver?'Over':'Under');
       return `<div style="display:grid;grid-template-columns:160px 1fr 200px;align-items:center;gap:14px;padding:11px 0;border-bottom:1px solid var(--border);">
-        <span style="font-size:12px;font-weight:600;color:var(--text2);">${c.label}</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text2);">${c.label}</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;">Actual: ${fmt(c.actual)}</div>
+        </div>
         <div style="position:relative;height:22px;">
           <div style="position:absolute;top:0;left:0;right:0;height:100%;background:rgba(255,255,255,.04);border-radius:5px;"></div>
           <div style="position:absolute;top:0;bottom:0;left:50%;width:2px;background:rgba(255,255,255,.35);"></div>
