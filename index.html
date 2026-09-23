@@ -1245,7 +1245,7 @@ const URLS = {
   db1:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1289407979&single=true&output=csv',
   invoices: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1097401785&single=true&output=csv',
   cff:      'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1467204008&single=true&output=csv',
-  budBase:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=983623975&single=true&output=csv',
+  budBase:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=444496913&single=true&output=csv',
   budFcst:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vRecJwmZ37UJBcjtITDI-Robu7NJXObhXUIkFSncXPfgaKKyWIwd21lLH3U9GtfVBmxr7iCTcUI3FVo/pub?gid=1352150871&single=true&output=csv',
 };
 
@@ -1319,7 +1319,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v124Sep-live-expense-categories · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v126Sep-declutter-single-pct · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1451,23 +1451,23 @@ function processStaging(rows){
 
   document.getElementById('yc2026').innerHTML =
     renderYtdKpiColumn({
-      label:'Revenue', topLine:'&nbsp;',
+      label:'Revenue', topLine:'YTD Actual',
       mainValue:fC(t26.rA), mainColor:'var(--teal)',
-      secondaryText:`${fPct(t26.rA,totRF26)} of ${fmt(totRF26)} full-year target`,
+      secondaryText:`Target: ${fmt(totRF26)}`,
       varLabel:'to target', varAmt:t26.rA-totRF26, base:totRF26, favorable:t26.rA>=totRF26,
       progressPct: totRF26?(t26.rA/totRF26*100):0, pctSuffix:'of full-year target'
     }) +
     renderYtdKpiColumn({
-      label:'Expenses', topLine:'&nbsp;',
+      label:'Expenses', topLine:'YTD Actual',
       mainValue:fC(Math.abs(t26.eA)), mainColor: Math.abs(t26.eA)<=Math.abs(totEF26)?'var(--green)':'var(--coral)',
-      secondaryText:`${fPct(Math.abs(t26.eA),Math.abs(totEF26))} of ${fmt(Math.abs(totEF26))} full-year target`,
+      secondaryText:`Target: ${fmt(Math.abs(totEF26))}`,
       varLabel:'to target', varAmt:Math.abs(totEF26)-Math.abs(t26.eA), base:totEF26, favorable:Math.abs(t26.eA)<=Math.abs(totEF26),
       progressPct: totEF26?(Math.abs(t26.eA)/Math.abs(totEF26)*100):0, pctSuffix:'of full-year target'
     }) +
     renderYtdKpiColumn({
-      label:'Operating Profit', topLine:'&nbsp;',
+      label:'Operating Profit', topLine:'YTD Actual',
       mainValue:fC(t26.pA), mainColor: t26.pA>=0?'var(--green)':'var(--coral)',
-      secondaryText:`Margin: ${fPct(t26.pA,t26.rA)}`,
+      secondaryText:`Target: ${fmt(totPF26)}`,
       varLabel:'to target', varAmt:t26.pA-totPF26, base:totPF26, favorable:t26.pA>=totPF26,
       progressPct: totPF26?(t26.pA/totPF26*100):0, pctSuffix:'of full-year target'
     });
@@ -1775,7 +1775,7 @@ function renderYtdKpiColumn(opts){
     <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;min-height:14px;">${opts.label}</div>
     <div style="font-size:12px;color:var(--text2);margin-top:8px;min-height:17px;">${opts.topLine||'&nbsp;'}</div>
     <div style="font-family:var(--mono);font-size:26px;font-weight:700;color:${opts.mainColor};margin-top:4px;min-height:32px;">${opts.mainValue}</div>
-    <div style="font-size:12px;color:var(--text3);margin-top:6px;min-height:16px;">${opts.secondaryText||'&nbsp;'}</div>
+    <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text2);margin-top:6px;min-height:18px;">${opts.secondaryText||'&nbsp;'}</div>
     <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${favColor};margin-top:6px;min-height:20px;">${varSign}${fC(opts.varAmt)}${varPct!=null?' ('+varSign+varPct.toFixed(1)+'%)':''} ${opts.varLabel}</div>
     <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
       <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
@@ -1793,23 +1793,23 @@ function updateYtdVarianceDash(){
   // still separately shows favorable/unfavorable vs forecast in its own color.
   grid.innerHTML =
     renderYtdKpiColumn({
-      label:'Revenue', topLine:`Actual: ${fC(d.tRA)}&nbsp;&nbsp;&nbsp;Forecast: ${fC(d.tRF)}`,
+      label:'Revenue', topLine:'YTD Actual',
       mainValue:fC(d.tRA), mainColor:'var(--teal)',
-      secondaryText: d.tRF?`${(d.tRA/d.tRF*100).toFixed(1)}% of ${fmt(d.tRF)} forecast`:'—',
+      secondaryText: d.tRF?`Forecast: ${fmt(d.tRF)}`:'—',
       varLabel:'vs forecast', varAmt:d.tRA-d.tRF, base:d.tRF, favorable:d.tRA>=d.tRF,
       progressPct: d.tRF?Math.max(0,(d.tRA/Math.abs(d.tRF))*100):0, pctSuffix:'of forecast'
     }) +
     renderYtdKpiColumn({
-      label:'Expenses', topLine:`Actual: ${fC(Math.abs(d.tEA))}&nbsp;&nbsp;&nbsp;Forecast: ${fC(Math.abs(d.tEF))}`,
+      label:'Expenses', topLine:'YTD Actual',
       mainValue:fC(Math.abs(d.tEA)), mainColor: Math.abs(d.tEA)<=Math.abs(d.tEF)?'var(--green)':'var(--coral)',
-      secondaryText: d.tEF?`${(Math.abs(d.tEA)/Math.abs(d.tEF)*100).toFixed(1)}% of ${fmt(Math.abs(d.tEF))} forecast`:'—',
+      secondaryText: d.tEF?`Forecast: ${fmt(Math.abs(d.tEF))}`:'—',
       varLabel:'vs forecast', varAmt:Math.abs(d.tEF)-Math.abs(d.tEA), base:d.tEF, favorable:Math.abs(d.tEA)<=Math.abs(d.tEF),
       progressPct: d.tEF?Math.max(0,(Math.abs(d.tEA)/Math.abs(d.tEF))*100):0, pctSuffix:'of forecast'
     }) +
     renderYtdKpiColumn({
-      label:'Operating Profit', topLine:`Actual: ${fC(d.tPA)}&nbsp;&nbsp;&nbsp;Forecast: ${fC(d.tPF)}`,
+      label:'Operating Profit', topLine:'YTD Actual',
       mainValue:fC(d.tPA), mainColor: d.tPA>=0?'var(--green)':'var(--coral)',
-      secondaryText: d.tPF?`${(d.tPA/d.tPF*100).toFixed(1)}% of ${fmt(d.tPF)} forecast`:'—',
+      secondaryText: d.tPF?`Forecast: ${fmt(d.tPF)}`:'—',
       varLabel:'vs forecast', varAmt:d.tPA-d.tPF, base:d.tPF, favorable:d.tPA>=d.tPF,
       progressPct: d.tPF?Math.max(0,(d.tPA/Math.abs(d.tPF))*100):0, pctSuffix:'of forecast'
     });
