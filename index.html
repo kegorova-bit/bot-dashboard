@@ -415,12 +415,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="slabel"><span>YTD Analysis</span> — Year to Date, Through the Last Confirmed Month</div>
 
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle" style="font-size:16px;">2026 — YTD Actuals vs Full Year Target</div><div class="csub">Full-year pacing · progress = YTD actual as % of full-year target</div></div></div>
+    <div class="ch"><div><div class="ctitle" style="font-size:16px;">2026 YTD Actuals vs Full Year Target</div><div class="csub">YTD actuals as a % of full-year target. Based on static budget forecast (v0)</div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text2);background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;">YTD 2026</div>
+    </div>
     <div id="yc2026" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;"></div>
   </div>
 
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle" style="font-size:16px;">2026 YTD Actuals vs YTD Forecast - Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period</div></div></div>
+    <div class="ch"><div><div class="ctitle" style="font-size:16px;">2026 YTD Actuals vs YTD Forecast – Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period. Based on adjusted budget forecast (BudgetF)</div></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text2);background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;">YTD 2026</div>
+    </div>
     <div id="ytdv_grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;"></div>
   </div>
 
@@ -1320,7 +1324,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v129Sep-apples-to-apples · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v130Sep-mockup-match · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1766,15 +1770,26 @@ function buildAvfChart(){
 // Forecast - Variance" — guarantees the two sections are structurally identical (not just visually
 // similar) since they're built from the exact same template function. Six fixed-height rows: label,
 // top line, main value, secondary text, variance line, progress bar + % label.
+const YTD_ICONS = {
+  'Revenue':          {icon:'📊', bg:'rgba(15,184,184,.18)'},
+  'Expenses':         {icon:'🪙', bg:'rgba(46,204,143,.18)'},
+  'Operating Profit': {icon:'📈', bg:'rgba(46,204,143,.18)'}
+};
 function renderYtdKpiColumn(opts){
   const favColor = opts.favorable ? 'var(--green)' : 'var(--coral)';
   const pct = Math.max(0, opts.progressPct||0);
   const barWidth = Math.min(100, (pct/150)*100);
   const varSign = opts.varAmt>=0 ? '+' : '';
-  return `<div>
-    <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;min-height:14px;">${opts.label}</div>
-    <div style="font-size:12px;color:var(--text2);margin-top:8px;min-height:17px;">${opts.topLine||'&nbsp;'}</div>
-    <div style="display:flex;align-items:baseline;gap:10px;margin-top:4px;min-height:32px;">
+  const iconInfo = YTD_ICONS[opts.label] || {icon:'●', bg:'rgba(255,255,255,.08)'};
+  return `<div style="border:1px solid var(--border2);border-radius:12px;padding:20px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:44px;height:44px;border-radius:50%;background:${iconInfo.bg};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">${iconInfo.icon}</div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;">${opts.label}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px;">${opts.topLine||'&nbsp;'}</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:10px;min-height:32px;">
       <span style="font-family:var(--mono);font-size:26px;font-weight:700;color:${opts.mainColor};">${opts.mainValue}</span>
       <span style="font-family:var(--mono);font-size:15px;font-weight:700;color:${favColor};">${pct.toFixed(1)}%</span>
     </div>
