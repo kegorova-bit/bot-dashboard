@@ -451,9 +451,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Expenses by Category — variance-focused redesign -->
   <div class="mb">
     <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-      <div><div class="ctitle" style="font-size:15px;">Expenses by Category — Actual vs Budget</div>
-      <div class="csub">YTD Actual (2026, live) vs Full-Year Budget · Source: Budget 2026A (actual, col K + monthly cols AH onward) / Budget 2026F_v0 (full-year target, col J + col T)</div></div>
+      <div><div class="ctitle" style="font-size:15px;">Expenses by Category — Actual vs YTD Target</div>
+      <div class="csub">Both sides scoped to the same months · Source: Budget 2026A (actual, col K + monthly cols AH onward) / Budget 2026F_v0 (forecast, col J + monthly cols AH onward)</div></div>
     </div>
+    <div id="h1_exp_methodnote" style="background:rgba(15,184,184,.08);border:1px solid rgba(15,184,184,.25);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.5;"></div>
     <div id="h1_exp_datawarning" style="display:none;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--coral);"></div>
 
     <!-- Summary KPI cards -->
@@ -1319,7 +1320,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v128Sep-rd-fix-actuals-added · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v129Sep-apples-to-apples · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -3152,7 +3153,7 @@ function buildYtdExpenseCategory(){
   const norm = s => (s||'').toString().trim().toLowerCase();
 
   const baseRows = window._budBase || [];  // Budget 2026A — actual, category name col K (idx 10)
-  const fcstRows = window._budFcst || [];  // Budget 2026F_v0 — forecast, category name col J (idx 9), full-year total col T (idx 19)
+  const fcstRows = window._budFcst || [];  // Budget 2026F_v0 — forecast, category name col J (idx 9)
   const AH = 33; // col AH = Jan-2026, first of 12 consecutive monthly columns
 
   // Both sheets have EARLIER department-header rows (e.g. "II, R&D") that coincidentally also match a
@@ -3170,12 +3171,22 @@ function buildYtdExpenseCategory(){
     return null;
   };
 
+  // Apples-to-apples fix: comparing YTD actual (through the last confirmed month) against a FULL-YEAR
+  // budget total systematically understates spend against target for every category, every month of the
+  // year except December — it's not a real variance, just an artifact of comparing a partial year to a
+  // whole year. Target is now summed from the forecast sheet's own monthly columns, capped to the SAME
+  // number of months actual data covers, using the same "last confirmed month" cutoff as the rest of
+  // this YTD Analysis tab (window._s26's done-month count) — so both sides cover Jan through the same
+  // month, e.g. Jan-Aug actual vs Jan-Aug forecast, not Jan-Aug actual vs full Jan-Dec forecast.
+  const s26ForYtd = window._s26 || [];
+  const ytdMonths = Math.max(1, Math.min(12, s26ForYtd.filter(r=>r.done).length));
+
   const h1ExpCategories = CATEGORY_NAMES.map(name=>{
     const aRow = findRow(baseRows, 10, name); // col K
     const fRow = findRow(fcstRows, 9, name);  // col J
-    let actual = 0;
-    if(aRow){ for(let i=0;i<12;i++) actual += pv(aRow[AH+i]); }
-    const target = fRow ? pv(fRow[19]) : 0; // col T — "2026 F" full-year total, already summed in the sheet
+    let actual = 0, target = 0;
+    if(aRow){ for(let i=0;i<ytdMonths;i++) actual += pv(aRow[AH+i]); }
+    if(fRow){ for(let i=0;i<ytdMonths;i++) target += pv(fRow[AH+i]); }
     return {label:name, actual, target, neutral:NEUTRAL_SET.has(name), found:!!(aRow&&fRow)};
   });
 
@@ -3193,6 +3204,12 @@ function buildYtdExpenseCategory(){
     warnEl.textContent = notFound.length ? `⚠ Could not match these categories in Budget 2026A / 2026F_v0 — check for a label or column shift: ${notFound.join(', ')}` : '';
   }
 
+  const methodNoteEl = el('h1_exp_methodnote');
+  if(methodNoteEl){
+    const lastMonthLabel = MN[Math.min(11, ytdMonths-1)] || '';
+    methodNoteEl.innerHTML = `<strong>Note on methodology:</strong> Actual and Target are both summed over the same Jan–${lastMonthLabel} window (${ytdMonths} month${ytdMonths===1?'':'s'} — however many months are confirmed as actual). Comparing a partial-year actual against a full-year budget would understate spend against target every month except December, since 8 months of real spending will always look "under" a 12-month total regardless of whether spending is actually on pace. Target is calculated by summing the forecast sheet's own monthly columns for the same months, not by using its pre-built full-year total.`;
+  }
+
   const expTotalActual = h1ExpCategories.reduce((s,c)=>s+c.actual,0);
   const expTotalTarget = h1ExpCategories.reduce((s,c)=>s+c.target,0);
   const expTotalVar    = expTotalActual - expTotalTarget;
@@ -3208,7 +3225,7 @@ function buildYtdExpenseCategory(){
       ${sub?`<div class="hero-sub">${sub}</div>`:''}
     </div>`;
     expKpiGrid.innerHTML =
-      kpiCard2('Total Budget', fmt(expTotalTarget), 'var(--text)') +
+      kpiCard2('YTD Target', fmt(expTotalTarget), 'var(--text)') +
       kpiCard2('Total Actual Spend', fmt(expTotalActual), 'var(--amber)') +
       kpiCard2('Total Variance', (expTotalVar>=0?'+':'')+fmt(expTotalVar), expTotalVar<=0?'var(--green)':'var(--coral)', (expTotalPct>=0?'+':'')+expTotalPct.toFixed(1)+'%') +
       kpiCard2('Budget Utilization', expUtilization.toFixed(0)+'%', expUtilization<=100?'var(--green)':'var(--coral)');
@@ -3306,7 +3323,7 @@ function buildYtdExpenseCategory(){
     const neutralCats = h1ExpCategories.filter(c=>c.neutral);
 
     const pts = [];
-    pts.push(`Total expenses are <b style="color:${expTotalVar<=0?'var(--green)':'var(--coral)'}">${fmt(Math.abs(expTotalVar))} (${Math.abs(expTotalPct).toFixed(0)}%) ${expTotalVar<=0?'below':'above'} budget</b>, YTD actual vs full-year target.`);
+    pts.push(`Total expenses are <b style="color:${expTotalVar<=0?'var(--green)':'var(--coral)'}">${fmt(Math.abs(expTotalVar))} (${Math.abs(expTotalPct).toFixed(0)}%) ${expTotalVar<=0?'below':'above'} target</b>, YTD actual vs YTD target (same months on both sides).`);
 
     if(overCats.length===1){
       const c=overCats[0];
