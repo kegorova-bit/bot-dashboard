@@ -178,8 +178,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .out-table-wrap th.sortable .sort-arrow{margin-left:4px;opacity:0.5;font-size:9px;}
 .out-table-wrap th.sortable.sort-active .sort-arrow{opacity:1;color:var(--teal);}
 .out-table-wrap th:nth-child(1),.out-table-wrap td:nth-child(1){width:38px;}
-.out-table-wrap th:nth-child(3),.out-table-wrap td:nth-child(3){width:240px;}
-.out-table-wrap td:nth-child(3){white-space:normal;overflow:visible;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.35;max-height:2.7em;}
+.out-table-wrap th:nth-child(3),.out-table-wrap td:nth-child(3){width:340px;}
+.out-table-wrap td:nth-child(3){white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.35;max-height:2.7em;}
 .out-table-wrap th:nth-child(4),.out-table-wrap td:nth-child(4){width:160px;text-align:right;font-family:var(--mono);}
 .out-table-wrap th:nth-child(5),.out-table-wrap td:nth-child(5){width:140px;text-align:right;}
 .out-table-wrap td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -1040,7 +1040,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
   <!-- To be invoiced by customer -->
   <div class="out-table-wrap">
-    <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
+    <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--text3);">Show</span>
+        <select class="ts" id="ni_period_filter" onchange="renderCustomerTable('ni')" style="font-size:11px;">
+          <option value="eoy">End of Year</option>
+          <option value="6mo">Next 6 Months</option>
+          <option value="12mo">Next 12 Months</option>
+        </select>
+      </div>
+    </div>
     <table>
       <thead><tr>
         <th>#</th>
@@ -1324,7 +1334,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v133Sep-pct-of-revenue · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v135Sep-project-overlap-period-filter · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1785,21 +1795,19 @@ function renderYtdKpiColumn(opts){
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
       <div style="width:44px;height:44px;border-radius:50%;background:${iconInfo.bg};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">${iconInfo.icon}</div>
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;">${opts.label}</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;">${opts.label}</div>
         <div style="font-size:12px;color:var(--text3);margin-top:2px;">${opts.topLine||'&nbsp;'}</div>
       </div>
     </div>
-    <div style="display:flex;align-items:baseline;gap:10px;min-height:32px;">
-      <span style="font-family:var(--mono);font-size:26px;font-weight:700;color:${opts.mainColor};">${opts.mainValue}</span>
-      <span style="font-family:var(--mono);font-size:15px;font-weight:700;color:${favColor};">${pct.toFixed(1)}%</span>
+    <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--text);min-height:34px;">${opts.mainValue}</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:14px;">
+      <div style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;">
+        <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
+        <div style="height:100%;width:${barWidth}%;border-radius:4px;background:${favColor};"></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:13px;font-weight:600;color:var(--text3);white-space:nowrap;flex-shrink:0;">${opts.secondaryText||''}</div>
     </div>
-    <div style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text2);margin-top:6px;min-height:18px;">${opts.secondaryText||'&nbsp;'}</div>
-    <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${favColor};margin-top:6px;min-height:20px;">${varSign}${fC(opts.varAmt)} ${opts.varLabel}</div>
-    <div style="height:8px;background:var(--bg3);border-radius:4px;margin-top:10px;overflow:hidden;position:relative;">
-      <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
-      <div style="height:100%;width:${barWidth}%;border-radius:4px;background:${favColor};"></div>
-    </div>
-    <div style="font-size:10px;color:var(--text3);margin-top:6px;">${pct.toFixed(0)}% ${opts.pctSuffix}</div>
+    <div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${favColor};margin-top:8px;min-height:18px;">${pct.toFixed(1)}% · ${varSign}${fC(opts.varAmt)} ${opts.varLabel}</div>
   </div>`;
 }
 
@@ -3661,10 +3669,36 @@ function renderCustomerTable(key){
   const tbodyId   = key==='out' ? 'out_tbody' : 'not_inv_tbody';
   const barColor  = key==='out' ? 'rgba(15,184,184,0.6)' : 'rgba(245,166,35,0.6)';
   const ym2label  = window._ym2label || (x=>x);
+  const parseYM   = window._parseYM || (x=>null);
   if(!data || !state) return;
   const tbody = document.getElementById(tbodyId);
   if(!tbody) return;
-  const sorted = [...data].sort((a,b)=>{
+
+  // Period filter — "To Be Invoiced by Customer" only. Filters by Expected Invoice Month relative to today.
+  let filtered = data;
+  let filteredTotal = total;
+  if(key==='ni'){
+    const periodSel = document.getElementById('ni_period_filter')?.value || 'eoy';
+    const curKey = window._curKey!=null ? window._curKey : (new Date().getFullYear()*12 + new Date().getMonth());
+    let maxKey = Infinity;
+    if(periodSel==='eoy'){
+      const curYear = Math.floor(curKey/12);
+      maxKey = curYear*12 + 11; // December of the current year
+    } else if(periodSel==='6mo'){
+      maxKey = curKey + 5;
+    } else if(periodSel==='12mo'){
+      maxKey = curKey + 11;
+    }
+    filtered = data.filter(row=>{
+      const k = parseYM(row.expMonth);
+      return k==null ? true : (k>=curKey && k<=maxKey); // keep undated rows visible rather than silently dropping them
+    });
+    filteredTotal = filtered.reduce((s,r)=>s+(r.amount||0),0);
+    const totEl = document.getElementById('not_inv_total');
+    if(totEl) totEl.textContent = fC(filteredTotal);
+  }
+
+  const sorted = [...filtered].sort((a,b)=>{
     let av, bv;
     if(state.field==='customer'){ av=(a.customer||'').toLowerCase(); bv=(b.customer||'').toLowerCase(); }
     else if(state.field==='expMonth'){ av=a.expMonth||''; bv=b.expMonth||''; }
@@ -3675,7 +3709,7 @@ function renderCustomerTable(key){
   });
   tbody.innerHTML = '';
   sorted.forEach(({customer, project, amount, expMonth}, i)=>{
-    const pct = total > 0 ? (amount/total*100).toFixed(1) : 0;
+    const pct = filteredTotal > 0 ? (amount/filteredTotal*100).toFixed(1) : 0;
     const barW = Math.max(2, Math.min(180, pct*1.8));
     const tr = document.createElement('tr');
     tr.innerHTML =
@@ -3745,6 +3779,8 @@ function processInvoices(rows){
       if(isNaN(yr)||isNaN(mo)) return null;
       return yr*12 + mo;
     };
+    window._parseYM = _parseYM; // exposed globally so the "To Be Invoiced" period filter can reuse it
+    window._curKey = _curKey;
     // True day-level date parser — the source columns (Invoice_Date, Expected_Collection_Date,
     // Actual_collection_Date) DO carry full dates (verified against a live export, e.g. "2026-05-07"),
     // not just year-month. Returns a Date at local midnight, or null if unparseable.
