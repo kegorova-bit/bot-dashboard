@@ -178,11 +178,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .out-table-wrap th.sortable .sort-arrow{margin-left:4px;opacity:0.5;font-size:9px;}
 .out-table-wrap th.sortable.sort-active .sort-arrow{opacity:1;color:var(--teal);}
 .out-table-wrap th:nth-child(1),.out-table-wrap td:nth-child(1){width:38px;}
-.out-table-wrap th:nth-child(3),.out-table-wrap td:nth-child(3){width:340px;}
-.out-table-wrap td:nth-child(3){white-space:normal;overflow:hidden;text-overflow:clip;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.35;max-height:2.7em;}
+.out-table-wrap th:nth-child(3),.out-table-wrap td:nth-child(3){width:420px;vertical-align:top;white-space:normal;overflow:visible;text-overflow:clip;}
+.proj-clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;max-height:2.7em;word-break:break-word;}
 .out-table-wrap th:nth-child(4),.out-table-wrap td:nth-child(4){width:160px;text-align:right;font-family:var(--mono);}
 .out-table-wrap th:nth-child(5),.out-table-wrap td:nth-child(5){width:140px;text-align:right;}
-.out-table-wrap td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.out-table-wrap td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top;}
 .out-table-wrap tr:hover td{background:rgba(255,255,255,.02);}
 .out-table-wrap tfoot td{font-weight:700;color:var(--teal);background:var(--bg3);border-top:1px solid var(--border2);}
 .out-table-wrap tfoot td:nth-child(3){text-align:right;font-family:var(--mono);}
@@ -1045,9 +1045,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:11px;color:var(--text3);">Show</span>
         <select class="ts" id="ni_period_filter" onchange="renderCustomerTable('ni')" style="font-size:11px;">
-          <option value="eoy">End of Year</option>
-          <option value="6mo">Next 6 Months</option>
-          <option value="12mo">Next 12 Months</option>
+          <option value="eoy">2026 (Full Year)</option>
+          <option value="6mo">6-Month Forecast</option>
+          <option value="12mo">12-Month Forecast</option>
+          <option value="all">ALL</option>
         </select>
       </div>
     </div>
@@ -1334,7 +1335,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v135Sep-project-overlap-period-filter · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v137Sep-toggle-wording-match · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -3679,20 +3680,24 @@ function renderCustomerTable(key){
   let filteredTotal = total;
   if(key==='ni'){
     const periodSel = document.getElementById('ni_period_filter')?.value || 'eoy';
-    const curKey = window._curKey!=null ? window._curKey : (new Date().getFullYear()*12 + new Date().getMonth());
-    let maxKey = Infinity;
-    if(periodSel==='eoy'){
-      const curYear = Math.floor(curKey/12);
-      maxKey = curYear*12 + 11; // December of the current year
-    } else if(periodSel==='6mo'){
-      maxKey = curKey + 5;
-    } else if(periodSel==='12mo'){
-      maxKey = curKey + 11;
+    if(periodSel==='all'){
+      filtered = data; // no date restriction at all
+    } else {
+      const curKey = window._curKey!=null ? window._curKey : (new Date().getFullYear()*12 + new Date().getMonth());
+      let maxKey = Infinity;
+      if(periodSel==='eoy'){
+        const curYear = Math.floor(curKey/12);
+        maxKey = curYear*12 + 11; // December of the current year
+      } else if(periodSel==='6mo'){
+        maxKey = curKey + 5;
+      } else if(periodSel==='12mo'){
+        maxKey = curKey + 11;
+      }
+      filtered = data.filter(row=>{
+        const k = parseYM(row.expMonth);
+        return k==null ? true : (k>=curKey && k<=maxKey); // keep undated rows visible rather than silently dropping them
+      });
     }
-    filtered = data.filter(row=>{
-      const k = parseYM(row.expMonth);
-      return k==null ? true : (k>=curKey && k<=maxKey); // keep undated rows visible rather than silently dropping them
-    });
     filteredTotal = filtered.reduce((s,r)=>s+(r.amount||0),0);
     const totEl = document.getElementById('not_inv_total');
     if(totEl) totEl.textContent = fC(filteredTotal);
@@ -3715,7 +3720,7 @@ function renderCustomerTable(key){
     tr.innerHTML =
       '<td class="rn">'+(i+1)+'.</td>'+
       '<td>'+customer+'</td>'+
-      '<td style="color:var(--text2)" title="'+((project||'').replace(/"/g,'&quot;'))+'">'+(project||'—')+'</td>'+
+      '<td style="color:var(--text2)" title="'+((project||'').replace(/"/g,'&quot;'))+'"><div class="proj-clamp">'+(project||'—')+'</div></td>'+
       '<td style="color:var(--text2)">'+(ym2label(expMonth)||'—')+'</td>'+
       '<td>'+fC(amount)+'</td>'+
       '<td><div style="display:flex;align-items:center;gap:8px;">'+
