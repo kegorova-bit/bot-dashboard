@@ -850,7 +850,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Cash In Forecast</div>
         <div id="col_fcst_np" style="font-family:var(--mono);font-size:32px;font-weight:700;color:var(--teal);line-height:1.15;margin-top:10px;">—</div>
-        <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:280px;min-height:38px;">Invoices Outstanding + Won — To Be Invoiced (next 12 months)</div>
+        <div id="col_fcst_np_sub" style="font-size:12px;color:var(--text3);margin-top:8px;line-height:1.4;max-width:360px;min-height:52px;">Expected collections, next 12 months</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:stretch;gap:10px;width:132px;">
         <div style="height:44px;width:132px;position:relative;"><canvas id="base_fcst_spark"></canvas></div>
@@ -1336,7 +1336,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v138Sep-table-reorder · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v140Oct-calendar-current-month · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2141,6 +2141,17 @@ function processCash(rows){
   window._netYTD = netYTD;
 
   window._cash=cash;window._actualCount=actualCount;window._latestActual=latestActual;
+  // actualCount above = how many months have ANY cash postings (data-driven). That is right for the
+  // "actual performance" chart, but it is the wrong way to decide which month is "current": on Oct 6 the
+  // last month with postings is still September, so September kept being shown as the open
+  // "Actual + Forecast" month long after it closed. The clock decides which month is current; the data
+  // can only push it later (e.g. a month posted early), never earlier.
+  //   closed months  = index < effActualCount-1   → fully actual
+  //   current month  = index = effActualCount-1   → actual-to-date + forecast split
+  //   forecast       = index >= effActualCount
+  const _calToday = new Date();
+  const _calMonthIdx = Math.max(0, Math.min(cash.length-1, (_calToday.getFullYear()-2026)*12 + _calToday.getMonth()));
+  window._effActualCount = Math.max(actualCount, _calMonthIdx+1);
   window._ytdCashIn=ytdCashIn;window._ytdCashOut=ytdCashOut;
   buildCashChart();
   // buildScenChart called at end of loadAllData
@@ -2207,7 +2218,7 @@ function updateCashChart(){buildCashChart();buildScenChart();}
 
 function buildScenChart(){
   const cash=window._cash||[];if(!cash.length)return;
-  const actualCount = window._actualCount||0;
+  const actualCount = window._effActualCount||window._actualCount||0;  // calendar-aware — see processCash()
 
   // ── Display window — computed early so the loan/tax/pipeline spread windows below can be scoped to
   // whatever period is currently selected (2026 / 6-Month Forecast / 12-Month Forecast), instead of a
@@ -2337,7 +2348,10 @@ function buildScenChart(){
 
   cash.forEach((c,i)=>{
     if(i < actualCount){
-      scenBal.push(c.balA||c.balF2);
+      // A month with no postings at all yet (e.g. the first days of a new month) hasn't moved the balance,
+      // so its actual-to-date balance is the prior month's closing balance — not a blank/zero from the sheet.
+      const _hasPostings = (c.cIA||0)!==0 || (c.cOA_op||0)!==0;
+      scenBal.push(_hasPostings ? (c.balA||c.balF2) : runBal);
       scenRevIn.push(c.cIA||null);
       scenPipeIn.push(null);
       scenHighIn.push(null);
@@ -2617,8 +2631,8 @@ function buildScenChart(){
           if(mIdxWin<0){sTip.style.display='none';return;}
           const mIdx=mIdxWin+winStart;  // true absolute index — tooltip.dataPoints is relative to the windowed/sliced chart data
           const label=L26[mIdx]||'';
-          const isActM=mIdx<(window._actualCount||0);
-          const isCurrentM=mIdx===(window._actualCount||0)-1;
+          const isActM=mIdx<(window._effActualCount||window._actualCount||0);
+          const isCurrentM=mIdx===(window._effActualCount||window._actualCount||0)-1;
           const mo=((window._scenMonthly||[])[mIdx])||{};
           const byColl=window._invByCollMonth||{};
           const byExp =window._invByExpMonth||{};
@@ -2801,23 +2815,28 @@ function buildScenChart(){
       tTax+=taxV||0; tLoan+=loanV||0; tPayroll+=payV||0; tWork+=workV||0; tWorkBase+=((isCurrentMo&&mo_fcst)?(mo_fcst.workforceBase||0):(ia?(c_cash.wfAct||0):(wfBaseTbl||0)));
       var tr=document.createElement('tr');
       var td=function(v,cls,sty){return '<td'+(cls?' class="'+cls+'"':'')+(sty?' style="'+sty+'"':'')+'>'+v+'</td>';};
+      // Current-month split cell: ACTUAL is the headline (larger, bold, full-contrast); FORECAST is the
+      // secondary reference line (smaller, lighter, colour-coded) — what has really happened matters more
+      // than what was projected, so it carries the visual weight.
+      var splitCell = function(actualTxt, fcstTxt, fcstColor, actualColor){
+        return '<div style="line-height:1.45;">'
+          +'<div><span style="font-size:9px;color:var(--text3);">Actual: </span>'
+          +'<span style="font-size:14px;font-weight:700;color:'+(actualColor||'var(--text)')+';">'+actualTxt+'</span></div>'
+          +'<div><span style="font-size:9px;color:var(--text3);">Forecast: </span>'
+          +'<span style="font-size:10.5px;font-weight:500;color:'+(fcstColor||'var(--teal)')+';opacity:.85;">'+fcstTxt+'</span></div>'
+          +'</div>';
+      };
       var typeLabel = isCurrentMo ? 'ACTUAL + SCEN' : (ia?'ACTUAL':'FORECAST');
       var typeColor = isCurrentMo ? 'var(--amber)' : (ia?'var(--teal)':'var(--amber)');
       tr.innerHTML=td(t_L26[i]||i,'','text-align:left;font-family:var(--font)')
         +td(typeLabel,'','font-size:10px;color:'+typeColor)
         +td(isCurrentMo && mo_fcst
-              ? '<div style="line-height:1.5;">'
-                +'<div style="font-size:9px;color:var(--text3);">Actual: <span style="color:var(--text2);font-weight:600;">'+fC(ri)+'</span></div>'
-                +'<div style="font-weight:700;color:var(--teal);">Forecast: '+fC(mo_fcst.baseIn)+'</div>'
-                +'</div>'
+              ? splitCell(fC(ri), fC(mo_fcst.baseIn))
               : fC(ri))
         +td(hi?fC(hi):'—','','color:#63b3ed')
         +td(mi?fC(mi):'—','','color:#3f83f8')
         +td(isCurrentMo && mo_fcst
-              ? '<div style="line-height:1.5;">'
-                +'<div style="font-size:9px;color:var(--text3);">Actual: <span style="color:var(--text2);font-weight:600;">'+fC(ti)+'</span></div>'
-                +'<div style="font-weight:700;color:var(--teal);">Forecast: '+fC(mo_fcst.totalIn)+'</div>'
-                +'</div>'
+              ? splitCell(fC(ti), fC(mo_fcst.totalIn))
               : fC(ti),'','font-weight:600')
         +td(ia?fC(c_cash.cOA_op||0):fC(baseOutV),'neg')
         +td(loanV?'-'+fC(Math.abs(loanV)):'—','','color:var(--coral)')
@@ -2828,10 +2847,7 @@ function buildScenChart(){
         +td(fC(coDisplay),'neg')
         +td(fC(ntDisplay),ntDisplay>=0?'pos':'neg')
         +td(isCurrentMo
-              ? '<div style="line-height:1.5;">'
-                +'<div style="font-size:9px;color:var(--text3);">Actual: <span style="color:var(--text2);font-weight:600;">'+fC(bv)+'</span></div>'
-                +'<div style="font-weight:700;color:'+(bvDisplay<0?'var(--coral)':'var(--teal)')+';">Forecast: '+fC(bvDisplay)+'</div>'
-                +'</div>'
+              ? splitCell(fC(bv), fC(bvDisplay), (bvDisplay<0?'var(--coral)':'var(--teal)'), (bv<0?'var(--coral)':'var(--text)'))
               : fC(bvDisplay),
             isCurrentMo?'':(bvDisplay<0?'neg':'pos'),
             isCurrentMo?'':'font-weight:700');
@@ -2967,7 +2983,7 @@ function buildDSO(){
   window._colL26_c    = L26_LABELS;
 
   // Pipeline spread: dynamic — start at actualCount-1 + 2 months from current
-  const _actC = window._actualCount || 0;
+  const _actC = window._effActualCount || window._actualCount || 0;  // calendar-aware current month — see processCash()
   const _pipeStart = Math.min(L26_LABELS.length-1, (_actC - 1) + 2); // current month index + 2
   const _pipeMos   = Math.max(1, L26_LABELS.length - _pipeStart);
   const HIGH_TOTAL  = window._pipeHigh || 0;
@@ -2980,11 +2996,15 @@ function buildDSO(){
   // Update scorecards
   const ytdCollected   = colActualInv.reduce((s,v)=>s+v,0);
   const invOutstanding = window._invoicesOutstanding || 0;
-  const notInvoiced12mo = window._notInvoicedPeriod || 0;  // Won-To-Be-Invoiced capped to the selected Cash In Forecast period — see processInvoices()
+  const notInvoiced12mo = window._notInvoicedPeriod || 0;  // INVOICING clock: Won — To Be Invoiced by Invoice Date (col A), capped to the selected period — see processInvoices()
+  // COLLECTION clock: cash expected to land in the selected period, by Expected Collection Date (col N). This — not
+  // outstanding + to-be-invoiced — is what Cash In Forecast means. Falls back to the old sum only if the invoice
+  // data hasn't been processed yet.
+  const cashInPeriod = (window._cashInPeriod!=null) ? window._cashInPeriod : (invOutstanding + notInvoiced12mo);
   const pipelineHM     = HIGH_TOTAL + MED_TOTAL;
   const fcstPipelinePct = parseFloat(document.getElementById('colFcstPipelinePct')?.value || 0);  // Total Forecast + Pipeline's own Pipeline % toggle, default 0% — independent of the Scenario Builder's Pipeline % slider
   const pipelineHM_scaled = pipelineHM * fcstPipelinePct;
-  const totalFcst      = invOutstanding + notInvoiced12mo + pipelineHM_scaled;
+  const totalFcst      = cashInPeriod + pipelineHM_scaled;
   const c_ytd  = document.getElementById('col_ytd');
   const c_inv  = document.getElementById('col_inv_out');
   const c_ni   = document.getElementById('col_not_inv');
@@ -2993,11 +3013,11 @@ function buildDSO(){
   if(c_ytd)  c_ytd.textContent  = fC(ytdCollected);
   if(c_inv)  c_inv.textContent  = fC(invOutstanding);
   if(c_ni)   c_ni.textContent   = fC(notInvoiced12mo);
-  if(c_fnp)  c_fnp.textContent  = fC(invOutstanding + notInvoiced12mo);
-  if(c_fp)   c_fp.textContent   = fC(invOutstanding + notInvoiced12mo + pipelineHM_scaled);
+  if(c_fnp)  c_fnp.textContent  = fC(cashInPeriod);
+  if(c_fp)   c_fp.textContent   = fC(totalFcst);
   const c_fp_cashin = document.getElementById('col_fcst_p_cashin');
   const c_fp_pipeline = document.getElementById('col_fcst_p_pipeline');
-  if(c_fp_cashin)   c_fp_cashin.textContent   = fC(invOutstanding + notInvoiced12mo);
+  if(c_fp_cashin)   c_fp_cashin.textContent   = fC(cashInPeriod);
   if(c_fp_pipeline) c_fp_pipeline.textContent = fC(pipelineHM_scaled);
   const cfInvEl = document.getElementById('cm_invoices');
   if(cfInvEl) cfInvEl.textContent = fC(invOutstanding);
@@ -3802,6 +3822,22 @@ function processInvoices(rows){
     const _todayMidnight = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate());
     const _daysBetween = d => Math.round((d - _todayMidnight) / 86400000); // positive = future, negative = past
 
+    // ── Two different clocks ─────────────────────────────────────────────────────────────────────────
+    //  • INVOICING clock  — Invoice Date (col A): when a Draft gets issued. Drives "Won — To Be Invoiced",
+    //    the Invoicing Timeline chart, and the To Be Invoiced table.
+    //  • COLLECTION clock — Expected Collection Date (col N): when cash actually lands (invoice date +
+    //    payment term). THIS is what a cash forecast must use. A Draft invoiced Dec 30 on 60-day terms is
+    //    January/February cash, not December cash.
+    // Month key of when a row is expected to be collected: col N first, then col O (month label), else null.
+    const _collKeyOf = r => {
+      const k = _parseYM((r[C.expectedCollectionDate]||'').trim());
+      return k!=null ? k : _parseYM((r[C.expectedMonth]||'').trim());
+    };
+    // Expected collections by month offset from today (index 0 = current month AND anything already past
+    // its expected collection date — overdue money is still owed, so it belongs to "now", not to the past).
+    const collOutMonthly   = new Array(24).fill(0);  // Outstanding invoices (Amount_Outstanding)
+    const collDraftMonthly = new Array(24).fill(0);  // Draft / not yet invoiced (same amount basis as Won — To Be Invoiced)
+
     const byCustomerProject = [];
     let grandTotal = 0;
     let outstandingInvoiceCount = 0;  // actual invoice row count (not grouped)
@@ -3830,6 +3866,10 @@ function processInvoices(rows){
       const scheduleAmt = Math.abs(pv(r[C.amountGross]));  // col L, Amount_wVAT — Collection Schedule uses full invoice amount, not the remaining balance
       const project = (r[C.project]||'').trim();
       const expMo = (r[C.expectedMonth]||'').trim();
+      // Expected-collections timeline (feeds Cash In Forecast): overdue or undated AR is still owed → month 0.
+      { const ck = _collKeyOf(r);
+        const idx = ck==null ? 0 : Math.max(0, ck - _curKey);
+        if(idx<24) collOutMonthly[idx] += outstanding; }
       // Day-level scheduling from Expected_Collection_Date (col N) — falls back to the month-only column
       // (mid-month estimate) only for the rare row where the date column itself is blank/unparseable.
       const expDateRaw = (r[C.expectedCollectionDate]||'').trim();
@@ -3891,16 +3931,24 @@ function processInvoices(rows){
       if(!cust||amt<=0)continue;
       const key=cust+'||'+proj;
       const expMo=(r[0]||'').trim();  // Invoice Date, column A — the expected/target invoice date for draft rows
-      // Day-level bucketing from the real date
-      const invDate = _parseFullDate(expMo);
-      if(invDate){
-        const daysOut = _daysBetween(invDate);
-        if(daysOut>=0 && daysOut<=60) tbi60d += amt;
-        else if(daysOut>60 && daysOut<=180) tbi61to180d += amt;
-        else if(daysOut>180) tbi180plusd += amt;
-      }
-      // Month-level bucketing (unchanged) — feeds the period-toggle sum and sparkline specifically
       const expKey=_parseYM(expMo);
+      // ── COLLECTION clock (col N): when this draft's cash is expected to land ──
+      // Fallback chain for an undated row: col O month label → invoice month + 1 (no payment-term field mapped).
+      let collKey = _collKeyOf(r);
+      if(collKey==null && expKey!=null) collKey = expKey + 1;
+      // Month timeline → Cash In Forecast. Already-past collection dates fold into the current month.
+      { const idx = collKey==null ? 0 : Math.max(0, collKey - _curKey);
+        if(idx<24) collDraftMonthly[idx] += amt; }
+      // Day-buckets → Collection Schedule (1-60 / 61-180 / 180+), same absolute-distance rule as Outstanding.
+      { let collDate = _parseFullDate((r[C.expectedCollectionDate]||'').trim());
+        if(!collDate && collKey!=null) collDate = new Date(Math.floor(collKey/12), collKey%12, 15);
+        if(collDate){
+          const d = Math.abs(_daysBetween(collDate));
+          if(d<=60) tbi60d += amt;
+          else if(d<=180) tbi61to180d += amt;
+          else tbi180plusd += amt;
+        } }
+      // ── INVOICING clock (col A): feeds "Won — To Be Invoiced", the Invoicing Timeline chart and its period sum ──
       if(expKey!=null){
         const monthsOut = expKey - _curKey;
         if(monthsOut>=0 && monthsOut<24) monthlyTBI[monthsOut] += amt;
@@ -3939,14 +3987,24 @@ function processInvoices(rows){
     } else {
       _tbiMonths = _tbiPeriodSel==='6mo' ? 6 : 12;
     }
-    const notInvoicedPeriod = monthlyTBI.slice(0,_tbiMonths).reduce((s,v)=>s+v,0);
+    const notInvoicedPeriod = monthlyTBI.slice(0,_tbiMonths).reduce((s,v)=>s+v,0);   // INVOICING clock — "Won — To Be Invoiced" card
     window._notInvoicedPeriod = notInvoicedPeriod;
     window._tbiPeriodMonths = _tbiMonths;
+
+    // COLLECTION clock — Cash In Forecast. Cash is what lands in the bank inside the period, so both pieces
+    // (invoices already issued + drafts not yet issued) are placed by Expected Collection Date (col N).
+    const cashInOutstanding = collOutMonthly.slice(0,_tbiMonths).reduce((s,v)=>s+v,0);
+    const cashInDraft       = collDraftMonthly.slice(0,_tbiMonths).reduce((s,v)=>s+v,0);
+    window._cashInPeriod      = cashInOutstanding + cashInDraft;
+    window._cashInOutstanding = cashInOutstanding;
+    window._cashInDraft       = cashInDraft;
+    window._cashInMonthly     = collOutMonthly.map((v,i)=>v+collDraftMonthly[i]);
+
     const periodLabelText = _tbiPeriodSel==='2026' ? 'through Dec 2026' : ('next '+_tbiMonths+' months');
     const wtbiLabelEl = document.getElementById('col_wtbi_label');
     if(wtbiLabelEl) wtbiLabelEl.textContent = '↳ Won — To Be Invoiced ('+periodLabelText+')';
     const fcstNpSubEl = document.getElementById('col_fcst_np_sub');
-    if(fcstNpSubEl) fcstNpSubEl.textContent = 'Invoices Outstanding + Won — To Be Invoiced ('+periodLabelText+')';
+    if(fcstNpSubEl) fcstNpSubEl.innerHTML = 'Expected collections, '+periodLabelText+'<br><span style="font-size:11px;">Outstanding '+fmt(cashInOutstanding)+' + not yet invoiced '+fmt(cashInDraft)+' · by Expected Collection Date</span>';
     const niEl2 = document.getElementById('col_not_inv');
     if(niEl2) niEl2.textContent = fC(notInvoicedPeriod);
 
@@ -4008,15 +4066,15 @@ function processInvoices(rows){
                   y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
     })();
 
-    // Base Forecast sparkline — shows the shape of the Won-To-Be-Invoiced portion across the next 12
-    // months (the only piece of Base Forecast that's naturally month-distributed; Invoices Outstanding
-    // is a point-in-time AR balance, not a monthly series, so it isn't part of this shape).
+    // Cash In Forecast sparkline — month-by-month expected collections (Outstanding + not-yet-invoiced, both
+    // placed by Expected Collection Date, col N) over the next 12 months. Month 0 includes any overdue AR.
     (function(){
       const spEl = document.getElementById('base_fcst_spark'); if(!spEl) return;
       destroyChart('base_fcst_spark');
+      const sparkSeries = (window._cashInMonthly||[]).slice(0,12);
       charts['base_fcst_spark'] = new Chart(spEl, {type:'line',
-        data:{labels: monthlyTBI.map((_,i)=>i), datasets:[{
-          data: monthlyTBI, borderColor:'#0fb8b8', borderWidth:2, pointRadius:0,
+        data:{labels: sparkSeries.map((_,i)=>i), datasets:[{
+          data: sparkSeries, borderColor:'#0fb8b8', borderWidth:2, pointRadius:0,
           fill:true, backgroundColor:'rgba(15,184,184,0.12)', tension:0.35
         }]},
         options:{responsive:true, maintainAspectRatio:false,
@@ -4409,7 +4467,7 @@ function buildColChart(){
 
   // ── Display window — same 3-option pattern as the Cash Flow Scenario Builder, re-evaluated every
   // time this function runs (i.e. on every toggle change, not just on initial load).
-  const _actC = window._actualCount || 0;
+  const _actC = window._effActualCount || window._actualCount || 0;  // calendar-aware current month — see processCash()
   const colPeriodSel = document.getElementById('colPeriodTog')?.value || '2026';
   let colWinStart, colWinEnd;
   if(colPeriodSel==='2026'){
