@@ -962,6 +962,50 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
+  <!-- Outstanding by customer -->
+  <div class="out-table-wrap mb">
+    <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" onclick="sortCustomerTable('out','customer')">Customer<span class="sort-arrow" id="out_sort_customer">↕</span></th>
+        <th>Project</th>
+        <th class="sortable" onclick="sortCustomerTable('out','expMonth')">Expected Collection Month<span class="sort-arrow" id="out_sort_expMonth">↕</span></th>
+        <th class="sortable" onclick="sortCustomerTable('out','amount')">Amount Outstanding<span class="sort-arrow" id="out_sort_amount">↕</span></th>
+        <th>% of Total</th>
+      </tr></thead>
+      <tbody id="out_tbody"></tbody>
+      <tfoot><tr><td></td><td colspan="3"><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
+    </table>
+  </div>
+  <!-- To be invoiced by customer -->
+  <div class="out-table-wrap mb">
+    <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--text3);">Show</span>
+        <select class="ts" id="ni_period_filter" onchange="renderCustomerTable('ni')" style="font-size:11px;">
+          <option value="eoy">2026 (Full Year)</option>
+          <option value="6mo">6-Month Forecast</option>
+          <option value="12mo">12-Month Forecast</option>
+          <option value="all">ALL</option>
+        </select>
+      </div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" onclick="sortCustomerTable('ni','customer')">Customer<span class="sort-arrow" id="ni_sort_customer">↕</span></th>
+        <th>Project</th>
+        <th class="sortable" onclick="sortCustomerTable('ni','expMonth')">Expected Invoice Month<span class="sort-arrow" id="ni_sort_expMonth">↕</span></th>
+        <th class="sortable" onclick="sortCustomerTable('ni','amount')">Amount to be invoiced (no VAT)<span class="sort-arrow" id="ni_sort_amount">↕</span></th>
+        <th>% of Total</th>
+      </tr></thead>
+      <tbody id="not_inv_tbody"></tbody>
+      <tfoot><tr><td></td><td colspan="3"><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
+    </table>
+  </div>
+
   <!-- Invoicing Timeline — rolling 12 months from today -->
   <div class="card accent mb">
     <div class="ch"><div><div class="ctitle">Invoicing Timeline — 3 Months Actual + Next 12 Months (Rolling)</div><div class="csub">Grey = actual invoiced (Staging) · Teal = draft to-be-invoiced by expected Invoice Date, col A · live from Invoice Tracker</div></div></div>
@@ -1021,49 +1065,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="ch"><div><div class="ctitle">Invoice Gap — Invoiced vs Cash Received</div><div class="csub">The lag between recognising revenue and receiving cash</div></div></div>
       <div class="cw short"><canvas id="inv_gap"></canvas></div>
     </div>
-  </div>
-  <!-- Outstanding by customer -->
-  <div class="out-table-wrap mb">
-    <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
-    <table>
-      <thead><tr>
-        <th>#</th>
-        <th class="sortable" onclick="sortCustomerTable('out','customer')">Customer<span class="sort-arrow" id="out_sort_customer">↕</span></th>
-        <th>Project</th>
-        <th class="sortable" onclick="sortCustomerTable('out','expMonth')">Expected Collection Month<span class="sort-arrow" id="out_sort_expMonth">↕</span></th>
-        <th class="sortable" onclick="sortCustomerTable('out','amount')">Amount Outstanding<span class="sort-arrow" id="out_sort_amount">↕</span></th>
-        <th>% of Total</th>
-      </tr></thead>
-      <tbody id="out_tbody"></tbody>
-      <tfoot><tr><td></td><td colspan="3"><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
-    </table>
-  </div>
-  <!-- To be invoiced by customer -->
-  <div class="out-table-wrap">
-    <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:11px;color:var(--text3);">Show</span>
-        <select class="ts" id="ni_period_filter" onchange="renderCustomerTable('ni')" style="font-size:11px;">
-          <option value="eoy">2026 (Full Year)</option>
-          <option value="6mo">6-Month Forecast</option>
-          <option value="12mo">12-Month Forecast</option>
-          <option value="all">ALL</option>
-        </select>
-      </div>
-    </div>
-    <table>
-      <thead><tr>
-        <th>#</th>
-        <th class="sortable" onclick="sortCustomerTable('ni','customer')">Customer<span class="sort-arrow" id="ni_sort_customer">↕</span></th>
-        <th>Project</th>
-        <th class="sortable" onclick="sortCustomerTable('ni','expMonth')">Expected Invoice Month<span class="sort-arrow" id="ni_sort_expMonth">↕</span></th>
-        <th class="sortable" onclick="sortCustomerTable('ni','amount')">Amount to be invoiced (no VAT)<span class="sort-arrow" id="ni_sort_amount">↕</span></th>
-        <th>% of Total</th>
-      </tr></thead>
-      <tbody id="not_inv_tbody"></tbody>
-      <tfoot><tr><td></td><td colspan="3"><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
-    </table>
   </div>
 </div>
 
@@ -1335,7 +1336,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v137Sep-toggle-wording-match · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v138Sep-table-reorder · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
