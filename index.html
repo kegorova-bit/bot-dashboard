@@ -182,6 +182,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .proj-clamp{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.35;max-height:2.7em;word-break:break-word;}
 .out-table-wrap th:nth-child(4),.out-table-wrap td:nth-child(4){width:160px;text-align:right;font-family:var(--mono);}
 .out-table-wrap th:nth-child(5),.out-table-wrap td:nth-child(5){width:140px;text-align:right;}
+/* To Be Invoiced table has an extra column (Expected Collection Date), so its Amount / % columns sit one place to the right */
+.ni-table th:nth-child(5),.ni-table td:nth-child(5){width:175px;text-align:right;font-family:var(--mono);}
+.ni-table th:nth-child(6),.ni-table td:nth-child(6){width:140px;text-align:right;font-family:inherit;}
 .out-table-wrap td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top;}
 .out-table-wrap tr:hover td{background:rgba(255,255,255,.02);}
 .out-table-wrap tfoot td{font-weight:700;color:var(--teal);background:var(--bg3);border-top:1px solid var(--border2);}
@@ -899,139 +902,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
   </div>
 
-  <!-- ═══ Row 2: Collections | Collection Performance — identical padding, identical height ═══ -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;align-items:stretch;">
+  <!-- ═══ Row 2: Cash In Breakdown | Collections — Actual vs Forecast ═══ -->
+  <div style="display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;margin-bottom:20px;align-items:stretch;">
 
-    <!-- Collections: Invoices Outstanding + Won-To-Be-Invoiced, then Collection Schedule -->
-    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:24px;">
-        <div>
-          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Invoices Outstanding</div>
-          <div id="col_inv_out" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:10px;">—</div>
-        </div>
-        <div style="padding-left:24px;border-left:1px solid rgba(255,255,255,.08);">
-          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;min-height:28px;" id="col_wtbi_label">Won → To Be Invoiced</div>
-          <div id="col_not_inv" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:10px;">—</div>
+    <!-- Cash In Breakdown: what the Cash In Forecast headline is made of -->
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px;display:flex;flex-direction:column;min-width:0;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;">Cash In Breakdown</div>
+      <div style="flex:1;display:flex;flex-direction:column;justify-content:center;margin-top:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;column-gap:24px;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;min-height:28px;">Invoices Outstanding</div>
+            <div id="col_inv_out" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:10px;">—</div>
+            <div id="col_inv_out_note" style="display:none;font-size:10px;color:var(--text3);margin-top:6px;line-height:1.35;"></div>
+          </div>
+          <div style="padding-left:24px;border-left:1px solid rgba(255,255,255,.08);">
+            <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;min-height:28px;" id="col_cashin_draft_label">Collections from new invoices</div>
+            <div id="col_cashin_draft" style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);margin-top:10px;">—</div>
+            <!-- invoicing-clock reference: same value as before, now a secondary line -->
+            <div style="margin-top:12px;padding-top:10px;border-top:1px dashed rgba(255,255,255,.1);">
+              <div id="col_wtbi_label" style="font-family:var(--font);font-size:11px;color:var(--text3);line-height:1.35;">Won → To Be Invoiced</div>
+              <div id="col_not_inv" style="font-family:var(--font);font-size:15px;font-weight:600;color:var(--text2);margin-top:3px;">—</div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;">Collection Schedule — Combined (Outstanding + Won-To-Be-Invoiced)</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto;column-gap:20px;row-gap:8px;">
-          <div style="grid-row:1;grid-column:1;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">1–60 Days</div>
-          <div style="grid-row:1;grid-column:2;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">61–180 Days</div>
-          <div style="grid-row:1;grid-column:3;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">180+ Days</div>
-          <div id="col_combined_60" style="grid-row:2;grid-column:1;font-family:var(--mono);font-size:19px;font-weight:700;color:var(--amber);">—</div>
-          <div id="col_combined_61to180" style="grid-row:2;grid-column:2;font-family:var(--mono);font-size:19px;font-weight:700;color:var(--coral);">—</div>
-          <div id="col_combined_180plus" style="grid-row:2;grid-column:3;font-family:var(--mono);font-size:19px;font-weight:700;color:var(--coral);">—</div>
-        </div>
-        <div style="font-size:9px;color:var(--text3);margin-top:10px;">Always measured from today — independent of the Cash In Forecast period selected above.</div>
-      </div>
-      <!-- hidden holders for individual bucket calculations (kept so JS still computes cleanly; not displayed to avoid duplicating the combined row above) -->
+      <!-- hidden holders so the existing bucket calculations keep running without a display target -->
       <div style="display:none;">
         <span id="col_age_60"></span><span id="col_age_61to180"></span><span id="col_age_180plus"></span>
         <span id="col_tbi_2mo"></span><span id="col_tbi_6mo"></span><span id="col_tbi_180plus"></span>
       </div>
     </div>
 
-    <!-- Collection Performance: Avg DSO | Median DSO | Payment Term, explicit shared grid rows -->
-    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px;">
-      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;">Collection Performance</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto auto;column-gap:20px;row-gap:8px;">
-        <!-- Row 1: labels -->
-        <div style="grid-row:1;grid-column:1;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Avg DSO</div>
-        <div style="grid-row:1;grid-column:2;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Median DSO</div>
-        <div style="grid-row:1;grid-column:3;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Payment Term</div>
-        <!-- Row 2: values -->
-        <div id="dso_avg" style="grid-row:2;grid-column:1;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);white-space:nowrap;">—</div>
-        <div id="dso_med" style="grid-row:2;grid-column:2;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--amber);white-space:nowrap;">—</div>
-        <div style="grid-row:2;grid-column:3;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--amber);white-space:nowrap;">1 month</div>
-        <!-- Row 3: subtitles -->
-        <div style="grid-row:3;grid-column:1;font-size:11px;color:var(--text3);">Days to collect</div>
-        <div style="grid-row:3;grid-column:2;font-size:11px;color:var(--text3);">50th percentile</div>
-        <div style="grid-row:3;grid-column:3;font-size:11px;color:var(--text3);">Most common (not yet calculated)</div>
-        <!-- Row 4: mini charts (Payment Term has none — cell intentionally empty, still occupies the shared row) -->
-        <div style="grid-row:4;grid-column:1;height:26px;margin-top:8px;position:relative;"><canvas id="dso_avg_spark"></canvas></div>
-        <div style="grid-row:4;grid-column:2;height:26px;margin-top:8px;position:relative;"><canvas id="dso_med_spark"></canvas></div>
-        <div style="grid-row:4;grid-column:3;"></div>
-        <!-- Row 5: trend text -->
-        <div id="dso_avg_trend" style="grid-row:5;grid-column:1;font-size:9px;margin-top:5px;color:var(--text3);">—</div>
-        <div id="dso_med_trend" style="grid-row:5;grid-column:2;font-size:9px;margin-top:5px;color:var(--text3);">—</div>
-        <div style="grid-row:5;grid-column:3;"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Outstanding by customer -->
-  <div class="out-table-wrap mb">
-    <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
-    <table>
-      <thead><tr>
-        <th>#</th>
-        <th class="sortable" onclick="sortCustomerTable('out','customer')">Customer<span class="sort-arrow" id="out_sort_customer">↕</span></th>
-        <th>Project</th>
-        <th class="sortable" onclick="sortCustomerTable('out','expMonth')">Expected Collection Month<span class="sort-arrow" id="out_sort_expMonth">↕</span></th>
-        <th class="sortable" onclick="sortCustomerTable('out','amount')">Amount Outstanding<span class="sort-arrow" id="out_sort_amount">↕</span></th>
-        <th>% of Total</th>
-      </tr></thead>
-      <tbody id="out_tbody"></tbody>
-      <tfoot><tr><td></td><td colspan="3"><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
-    </table>
-  </div>
-  <!-- To be invoiced by customer -->
-  <div class="out-table-wrap mb">
-    <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:11px;color:var(--text3);">Show</span>
-        <select class="ts" id="ni_period_filter" onchange="renderCustomerTable('ni')" style="font-size:11px;">
-          <option value="eoy">2026 (Full Year)</option>
-          <option value="6mo">6-Month Forecast</option>
-          <option value="12mo">12-Month Forecast</option>
-          <option value="all">ALL</option>
-        </select>
-      </div>
-    </div>
-    <table>
-      <thead><tr>
-        <th>#</th>
-        <th class="sortable" onclick="sortCustomerTable('ni','customer')">Customer<span class="sort-arrow" id="ni_sort_customer">↕</span></th>
-        <th>Project</th>
-        <th class="sortable" onclick="sortCustomerTable('ni','expMonth')">Expected Invoice Month<span class="sort-arrow" id="ni_sort_expMonth">↕</span></th>
-        <th class="sortable" onclick="sortCustomerTable('ni','amount')">Amount to be invoiced (no VAT)<span class="sort-arrow" id="ni_sort_amount">↕</span></th>
-        <th>% of Total</th>
-      </tr></thead>
-      <tbody id="not_inv_tbody"></tbody>
-      <tfoot><tr><td></td><td colspan="3"><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
-    </table>
-  </div>
-
-  <!-- Invoicing Timeline — rolling 12 months from today -->
-  <div class="card accent mb">
-    <div class="ch"><div><div class="ctitle">Invoicing Timeline — 3 Months Actual + Next 12 Months (Rolling)</div><div class="csub">Grey = actual invoiced (Staging) · Teal = draft to-be-invoiced by expected Invoice Date, col A · live from Invoice Tracker</div></div></div>
-    <div class="cw tall"><canvas id="tbi_timeline_chart"></canvas></div>
-  </div>
-
-  <div class="two">
-    <div class="card accent mb">
-      <div class="ch">
-        <div><div class="ctitle">DSO Trend — Days to Collect by Month</div><div class="csub">Average days from invoice to payment · Live from Invoice Tracker</div></div>
-        <div class="scr">
-          <div class="sc a"><div class="slb">Avg DSO</div><div class="sv a" id="dso_avg_sc">—</div></div>
-          <div class="sc"><div class="slb">Target</div><div class="sv w">30d</div></div>
-        </div>
-      </div>
-      <div class="cw"><canvas id="dso_trend"></canvas></div>
-    </div>
-    <div class="card accent mb">
-      <div class="ch">
-        <div><div class="ctitle">Invoiced vs Collected — Monthly</div><div class="csub">Revenue recognised vs cash received</div></div>
-      </div>
-      <div class="cw"><canvas id="inv_vs_col"></canvas></div>
-    </div>
-  </div>
-  <div class="two">
-    <div class="card mb">
+    <!-- Collections — Actual vs Forecast (moved here from the chart section below) -->
+    <div class="card" style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px;margin:0;min-width:0;">
       <div class="ch">
         <div><div class="ctitle">Collections — Actual vs Forecast</div><div class="csub" id="col_chart_subtitle">Line = actual · Bars = forecast</div></div>
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
@@ -1061,10 +964,107 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div id="col-tooltip" class="inv-tip" style="display:none;opacity:0;"></div>
       </div>
     </div>
-    <div class="card mb">
-      <div class="ch"><div><div class="ctitle">Invoice Gap — Invoiced vs Cash Received</div><div class="csub">The lag between recognising revenue and receiving cash</div></div></div>
-      <div class="cw short"><canvas id="inv_gap"></canvas></div>
+  </div>
+
+  <!-- Outstanding by customer -->
+  <div class="out-table-wrap mb">
+    <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" onclick="sortCustomerTable('out','customer')">Customer<span class="sort-arrow" id="out_sort_customer">↕</span></th>
+        <th>Project</th>
+        <th class="sortable" onclick="sortCustomerTable('out','expMonth')">Expected Collection Month<span class="sort-arrow" id="out_sort_expMonth">↕</span></th>
+        <th class="sortable" onclick="sortCustomerTable('out','amount')">Amount Outstanding<span class="sort-arrow" id="out_sort_amount">↕</span></th>
+        <th>% of Total</th>
+      </tr></thead>
+      <tbody id="out_tbody"></tbody>
+      <tfoot><tr><td></td><td colspan="3"><strong>Total Outstanding</strong></td><td><strong id="out_total_val">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
+    </table>
+  </div>
+  <!-- To be invoiced by customer -->
+  <div class="out-table-wrap ni-table mb">
+    <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--text3);">Show</span>
+        <select class="ts" id="ni_period_filter" onchange="renderCustomerTable('ni')" style="font-size:11px;">
+          <option value="eoy">2026 (Full Year)</option>
+          <option value="6mo">6-Month Forecast</option>
+          <option value="12mo">12-Month Forecast</option>
+          <option value="all">ALL</option>
+        </select>
+      </div>
     </div>
+    <table>
+      <thead><tr>
+        <th>#</th>
+        <th class="sortable" onclick="sortCustomerTable('ni','customer')">Customer<span class="sort-arrow" id="ni_sort_customer">↕</span></th>
+        <th>Project</th>
+        <th class="sortable" onclick="sortCustomerTable('ni','expMonth')">Expected Invoice Month<span class="sort-arrow" id="ni_sort_expMonth">↕</span></th>
+        <th class="sortable" onclick="sortCustomerTable('ni','collDate')">Expected Collection Date<span class="sort-arrow" id="ni_sort_collDate">↕</span></th>
+        <th class="sortable" onclick="sortCustomerTable('ni','amount')">Amount to be invoiced (no VAT)<span class="sort-arrow" id="ni_sort_amount">↕</span></th>
+        <th>% of Total</th>
+      </tr></thead>
+      <tbody id="not_inv_tbody"></tbody>
+      <tfoot><tr><td></td><td colspan="4"><strong>Total Not Yet Invoiced</strong></td><td><strong id="not_inv_total">—</strong></td><td><strong>100%</strong></td></tr></tfoot>
+    </table>
+  </div>
+
+  <!-- Collection Performance: Avg DSO | Median DSO | Payment Term, explicit shared grid rows -->
+  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px;margin-bottom:20px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px;">Collection Performance</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto auto auto auto;column-gap:20px;row-gap:8px;">
+        <!-- Row 1: labels -->
+        <div style="grid-row:1;grid-column:1;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Avg DSO</div>
+        <div style="grid-row:1;grid-column:2;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Median DSO</div>
+        <div style="grid-row:1;grid-column:3;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;">Payment Term</div>
+        <!-- Row 2: values -->
+        <div id="dso_avg" style="grid-row:2;grid-column:1;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--teal);white-space:nowrap;">—</div>
+        <div id="dso_med" style="grid-row:2;grid-column:2;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--amber);white-space:nowrap;">—</div>
+        <div style="grid-row:2;grid-column:3;font-family:var(--mono);font-size:22px;font-weight:700;color:var(--amber);white-space:nowrap;">1 month</div>
+        <!-- Row 3: subtitles -->
+        <div style="grid-row:3;grid-column:1;font-size:11px;color:var(--text3);">Days to collect</div>
+        <div style="grid-row:3;grid-column:2;font-size:11px;color:var(--text3);">50th percentile</div>
+        <div style="grid-row:3;grid-column:3;font-size:11px;color:var(--text3);">Most common (not yet calculated)</div>
+        <!-- Row 4: mini charts (Payment Term has none — cell intentionally empty, still occupies the shared row) -->
+        <div style="grid-row:4;grid-column:1;height:26px;margin-top:8px;position:relative;"><canvas id="dso_avg_spark"></canvas></div>
+        <div style="grid-row:4;grid-column:2;height:26px;margin-top:8px;position:relative;"><canvas id="dso_med_spark"></canvas></div>
+        <div style="grid-row:4;grid-column:3;"></div>
+        <!-- Row 5: trend text -->
+        <div id="dso_avg_trend" style="grid-row:5;grid-column:1;font-size:9px;margin-top:5px;color:var(--text3);">—</div>
+        <div id="dso_med_trend" style="grid-row:5;grid-column:2;font-size:9px;margin-top:5px;color:var(--text3);">—</div>
+        <div style="grid-row:5;grid-column:3;"></div>
+      </div>
+    </div>
+
+  <!-- Invoicing Timeline — rolling 12 months from today -->
+  <div class="card accent mb">
+    <div class="ch"><div><div class="ctitle">Invoicing Timeline — 3 Months Actual + Next 12 Months (Rolling)</div><div class="csub">Grey = actual invoiced (Staging) · Teal = draft to-be-invoiced by expected Invoice Date, col A · live from Invoice Tracker</div></div></div>
+    <div class="cw tall"><canvas id="tbi_timeline_chart"></canvas></div>
+  </div>
+
+  <div class="two">
+    <div class="card accent mb">
+      <div class="ch">
+        <div><div class="ctitle">DSO Trend — Days to Collect by Month</div><div class="csub">Average days from invoice to payment · Live from Invoice Tracker</div></div>
+        <div class="scr">
+          <div class="sc a"><div class="slb">Avg DSO</div><div class="sv a" id="dso_avg_sc">—</div></div>
+          <div class="sc"><div class="slb">Target</div><div class="sv w">30d</div></div>
+        </div>
+      </div>
+      <div class="cw"><canvas id="dso_trend"></canvas></div>
+    </div>
+    <div class="card accent mb">
+      <div class="ch">
+        <div><div class="ctitle">Invoiced vs Collected — Monthly</div><div class="csub">Revenue recognised vs cash received</div></div>
+      </div>
+      <div class="cw"><canvas id="inv_vs_col"></canvas></div>
+    </div>
+  </div>
+  <div class="card mb">
+    <div class="ch"><div><div class="ctitle">Invoice Gap — Invoiced vs Cash Received</div><div class="csub">The lag between recognising revenue and receiving cash</div></div></div>
+    <div class="cw short"><canvas id="inv_gap"></canvas></div>
   </div>
 </div>
 
@@ -1336,7 +1336,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v140Oct-calendar-current-month · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v141Oct-cashin-breakdown-layout · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -3692,6 +3692,15 @@ function renderCustomerTable(key){
   const barColor  = key==='out' ? 'rgba(15,184,184,0.6)' : 'rgba(245,166,35,0.6)';
   const ym2label  = window._ym2label || (x=>x);
   const parseYM   = window._parseYM || (x=>null);
+  // Expected collection date helpers (To Be Invoiced table). A customer+project row can combine several
+  // drafts with different collection dates, so show the EARLIEST and flag how many more there are.
+  const earliestColl = row => { const d=(row.collDates||[]).slice().sort(); return d.length ? d[0] : null; };
+  const fmtColl = iso => {
+    const m = (iso||'').match(/^(\d{4})-(\d{2})(?:-(\d{2}))?$/);
+    if(!m) return '—';
+    const mon = MN[parseInt(m[2],10)-1] || '';
+    return (m[3] ? parseInt(m[3],10)+' ' : '') + mon + " '" + m[1].slice(2);
+  };
   if(!data || !state) return;
   const tbody = document.getElementById(tbodyId);
   if(!tbody) return;
@@ -3728,13 +3737,15 @@ function renderCustomerTable(key){
     let av, bv;
     if(state.field==='customer'){ av=(a.customer||'').toLowerCase(); bv=(b.customer||'').toLowerCase(); }
     else if(state.field==='expMonth'){ av=a.expMonth||''; bv=b.expMonth||''; }
+    else if(state.field==='collDate'){ av=earliestColl(a)||'9999'; bv=earliestColl(b)||'9999'; }  // undated rows sort last
     else { av=a.amount||0; bv=b.amount||0; }
     if(av<bv) return state.dir==='asc' ? -1 : 1;
     if(av>bv) return state.dir==='asc' ? 1 : -1;
     return 0;
   });
   tbody.innerHTML = '';
-  sorted.forEach(({customer, project, amount, expMonth}, i)=>{
+  sorted.forEach((row, i)=>{
+    const {customer, project, amount, expMonth} = row;
     const pct = filteredTotal > 0 ? (amount/filteredTotal*100).toFixed(1) : 0;
     const barW = Math.max(2, Math.min(180, pct*1.8));
     const tr = document.createElement('tr');
@@ -3743,6 +3754,16 @@ function renderCustomerTable(key){
       '<td>'+customer+'</td>'+
       '<td style="color:var(--text2)" title="'+((project||'').replace(/"/g,'&quot;'))+'"><div class="proj-clamp">'+(project||'—')+'</div></td>'+
       '<td style="color:var(--text2)">'+(ym2label(expMonth)||'—')+'</td>'+
+      (key==='ni' ? (function(){
+          // A customer+project row can bundle several drafts that are collected on different dates — show the
+          // first date and the last, so a $42K row spread over three months doesn't read as one December receipt.
+          const all = [...new Set((row.collDates||[]))].sort();
+          if(!all.length) return '<td style="color:var(--text3)">—</td>';
+          const range = all.length>1
+            ? '<div style="font-size:10px;color:var(--text3);" title="'+all.map(fmtColl).join(' · ')+'">to '+fmtColl(all[all.length-1])+' · '+all.length+' dates</div>'
+            : '';
+          return '<td style="color:var(--text2)"><div>'+fmtColl(all[0])+'</div>'+range+'</td>';
+        })() : '')+
       '<td>'+fC(amount)+'</td>'+
       '<td><div style="display:flex;align-items:center;gap:8px;">'+
         '<div style="height:6px;width:'+barW+'px;background:'+barColor+';border-radius:3px;min-width:2px"></div>'+
@@ -3751,7 +3772,7 @@ function renderCustomerTable(key){
     tbody.appendChild(tr);
   });
   // Update sort-arrow indicators on the clicked headers
-  ['customer','expMonth','amount'].forEach(f=>{
+  ['customer','expMonth','collDate','amount'].forEach(f=>{
     const el = document.getElementById(key+'_sort_'+f);
     if(!el) return;
     const active = f===state.field;
@@ -3953,11 +3974,18 @@ function processInvoices(rows){
         const monthsOut = expKey - _curKey;
         if(monthsOut>=0 && monthsOut<24) monthlyTBI[monthsOut] += amt;
       }
+      // Expected collection date for the table column: full date from col N when present, else the month
+      // we already derived (so it never shows blank when the cash timing is known). ISO strings sort correctly.
+      let collIso = null;
+      { const m = (r[C.expectedCollectionDate]||'').trim().match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+        if(m) collIso = m[1]+'-'+m[2].padStart(2,'0')+'-'+m[3].padStart(2,'0');
+        else if(collKey!=null) collIso = Math.floor(collKey/12)+'-'+String(collKey%12+1).padStart(2,'0'); }
       const existing=notInvRows.find(x=>x.key===key);
       if(existing){
         existing.amount+=amt;
         if(expMo && (!existing.expMonth || expMo < existing.expMonth)) existing.expMonth = expMo;
-      } else { notInvRows.push({key,customer:cust,project:proj,amount:amt,expMonth:expMo||null}); }
+        if(collIso) existing.collDates.push(collIso);
+      } else { notInvRows.push({key,customer:cust,project:proj,amount:amt,expMonth:expMo||null,collDates:collIso?[collIso]:[]}); }
     }
     const tbi2El = document.getElementById('col_tbi_2mo');
     const tbi6El = document.getElementById('col_tbi_6mo');
@@ -4004,7 +4032,23 @@ function processInvoices(rows){
     const wtbiLabelEl = document.getElementById('col_wtbi_label');
     if(wtbiLabelEl) wtbiLabelEl.textContent = '↳ Won — To Be Invoiced ('+periodLabelText+')';
     const fcstNpSubEl = document.getElementById('col_fcst_np_sub');
-    if(fcstNpSubEl) fcstNpSubEl.innerHTML = 'Expected collections, '+periodLabelText+'<br><span style="font-size:11px;">Outstanding '+fmt(cashInOutstanding)+' + not yet invoiced '+fmt(cashInDraft)+' · by Expected Collection Date</span>';
+    if(fcstNpSubEl) fcstNpSubEl.innerHTML = 'Expected collections, '+periodLabelText+'<br><span style="font-size:11px;">Outstanding '+fmt(cashInOutstanding)+' + collections from new invoices '+fmt(cashInDraft)+' · by Expected Collection Date</span>';
+
+    // Cash In Breakdown card — the two pieces the headline is made of.
+    const cashInDraftLblEl = document.getElementById('col_cashin_draft_label');
+    if(cashInDraftLblEl) cashInDraftLblEl.textContent = 'Collections from new invoices ('+periodLabelText+')';
+    const cashInDraftEl = document.getElementById('col_cashin_draft');
+    if(cashInDraftEl) cashInDraftEl.textContent = fC(cashInDraft);
+    // The card shows the FULL AR balance. If any of it isn't expected until after the selected period, say so —
+    // otherwise Outstanding + Collections wouldn't visibly add up to the headline.
+    const arBeyondPeriod = grandTotal - cashInOutstanding;
+    const invOutNoteEl = document.getElementById('col_inv_out_note');
+    if(invOutNoteEl){
+      if(Math.abs(arBeyondPeriod) > 1){
+        invOutNoteEl.style.display = 'block';
+        invOutNoteEl.textContent = fC(arBeyondPeriod)+' of this is expected after the selected period';
+      } else { invOutNoteEl.style.display = 'none'; invOutNoteEl.textContent = ''; }
+    }
     const niEl2 = document.getElementById('col_not_inv');
     if(niEl2) niEl2.textContent = fC(notInvoicedPeriod);
 
