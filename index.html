@@ -139,14 +139,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .cash-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
 .cash-grid-2{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
 .cm{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
-.cm.t,.cm.r,.cm.g,.cm.a{border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 20px -12px rgba(0,0,0,.55);}
-.cm.t{background:linear-gradient(155deg,#2fd3d3,#0fb8b8 60%,#0c9d9d);}
-.cm.r{background:linear-gradient(155deg,#ff8f8f,#ff6b6b 60%,#ee5757);}
-.cm.g{background:linear-gradient(155deg,#55e0a8,#2ECC8F 60%,#25b07a);}
-.cm.a{background:linear-gradient(155deg,#ffc25c,#f5a623 60%,#df9214);}
-.cm.t .cml,.cm.r .cml,.cm.g .cml,.cm.a .cml{color:rgba(11,18,32,.65);}
-.cm.t .cms,.cm.r .cms,.cm.g .cms,.cm.a .cms{color:rgba(11,18,32,.72);}
-.cm.t .cmv,.cm.r .cmv,.cm.g .cmv,.cm.a .cmv{color:#0b1220!important;}
+.cm.t{border-color:rgba(15,184,184,.4);background:var(--tDim);}
+.cm.r{border-color:rgba(255,107,107,.4);background:var(--cDim);}
+.cm.g{border-color:rgba(46,204,143,.4);background:var(--gDim);}
+.cm.a{border-color:rgba(245,166,35,.4);background:var(--aDim);}
+.cm.solid{border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 20px -12px rgba(0,0,0,.55);}
+.cm.solid.a{background:linear-gradient(155deg,#ffc25c,#f5a623 60%,#df9214);}
+.cm.solid.g{background:linear-gradient(155deg,#55e0a8,#2ECC8F 60%,#25b07a);}
+.cm.solid.r{background:linear-gradient(155deg,#ff8f8f,#ff6b6b 60%,#ee5757);}
+.cm.solid .cml{color:rgba(11,18,32,.65);}.cm.solid .cms{color:rgba(11,18,32,.72);}.cm.solid .cmv{color:#0b1220!important;}
+.cm.frame-r{background:var(--bg2);border:1.5px solid var(--coral);}
+.cm.frame-r .cmv{color:var(--coral);}
 .cml{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
 .cmv{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
 .cmv.t{color:var(--teal);}.cmv.r{color:var(--coral);}.cmv.g{color:var(--green);}.cmv.a{color:var(--amber);}.cmv.w{color:var(--text);}
@@ -462,43 +465,39 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="alert-bar critical" id="cashAlert" style="display:none">
     <span style="font-size:18px">🚨</span><span id="cashAlertText"></span>
   </div>
-  <!-- ── Total Cash Position — hero card ── -->
-  <div class="cm-hero" style="background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.25);border-radius:10px;padding:14px 20px;margin-bottom:14px;display:flex;align-items:center;gap:0;">
-    <!-- Total -->
-    <div style="flex:0 0 auto;padding-right:24px;border-right:1px solid rgba(255,255,255,.07);">
-      <div style="font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:2px;">Total Cash</div>
-      <div id="cm_total_cash" style="font-size:28px;font-weight:700;font-family:var(--mono);color:var(--teal);line-height:1.1;">—</div>
-      <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:2px;">—</div>
+  <!-- ── Total Cash Position — 4 separate scorecards: Total (solid teal) + Banks / Safe / Projects (teal frame, faded teal fill) ── -->
+  <div style="display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div style="background:linear-gradient(155deg,#2fd3d3 0%,#0fb8b8 60%,#0c9d9d 100%);border:1px solid transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 20px -12px rgba(0,0,0,.55);border-radius:12px;padding:16px 20px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:rgba(11,18,32,.65);text-transform:uppercase;margin-bottom:6px;">Total Cash</div>
+      <div id="cm_total_cash" style="font-size:28px;font-weight:700;font-family:var(--mono);color:#0b1220;line-height:1.1;">—</div>
+      <div class="ref-date" style="font-size:10px;color:rgba(11,18,32,.7);margin-top:4px;">—</div>
     </div>
-    <!-- Breakdown -->
-    <div style="display:flex;flex:1;padding-left:20px;gap:0;">
-      <div style="flex:1;padding:0 16px;border-right:1px solid rgba(255,255,255,.07);">
-        <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-bottom:2px;">Banks</div>
-        <div id="cm_banks" style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text);">—</div>
-        <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:1px;">—</div>
-      </div>
-      <div style="flex:1;padding:0 16px;border-right:1px solid rgba(255,255,255,.07);">
-        <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-bottom:2px;">Safe</div>
-        <div id="cm_safe" style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text);">—</div>
-        <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:1px;">—</div>
-      </div>
-      <div style="flex:1;padding:0 16px;">
-        <div style="font-size:10px;color:var(--text3);letter-spacing:.05em;margin-bottom:2px;">Projects</div>
-        <div id="cm_projects" style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text);">—</div>
-        <div class="cms ref-date" style="font-size:10px;color:var(--text3);margin-top:1px;">—</div>
-      </div>
+    <div style="background:rgba(15,184,184,.10);border:1.5px solid var(--teal);border-radius:12px;padding:16px 20px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Banks</div>
+      <div id="cm_banks" style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1.1;">—</div>
+      <div class="ref-date" style="font-size:10px;color:var(--text3);margin-top:4px;">—</div>
+    </div>
+    <div style="background:rgba(15,184,184,.10);border:1.5px solid var(--teal);border-radius:12px;padding:16px 20px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Safe</div>
+      <div id="cm_safe" style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1.1;">—</div>
+      <div class="ref-date" style="font-size:10px;color:var(--text3);margin-top:4px;">—</div>
+    </div>
+    <div style="background:rgba(15,184,184,.10);border:1.5px solid var(--teal);border-radius:12px;padding:16px 20px;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Projects</div>
+      <div id="cm_projects" style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1.1;">—</div>
+      <div class="ref-date" style="font-size:10px;color:var(--text3);margin-top:4px;">—</div>
     </div>
   </div>
   <!-- ── Secondary metrics row ── -->
   <div class="cash-grid">
-    <div class="cm a" id="cm_inv_wrap"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices">—</div><div class="cms">From Invoice Tracker · live</div></div>
+    <div class="cm solid a" id="cm_inv_wrap"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices">—</div><div class="cms">From Invoice Tracker · live</div></div>
   </div>
   <div class="cash-grid-2">
-    <div class="cm g"><div class="cml">Cash In YTD</div><div class="cmv g" id="cm_ytd_in">—</div><div class="cms">Jan–today actual</div></div>
-    <div class="cm r"><div class="cml">Cash Out YTD</div><div class="cmv r" id="cm_ytd_out">—</div><div class="cms">Jan–today actual</div></div>
-    <div class="cm g" id="cm_net_wrap"><div class="cml">Net Cash YTD</div><div class="cmv g" id="cm_net_ytd">—</div><div class="cms">In + Out combined</div></div>
-    <div class="cm r"><div class="cml">Loans Due</div><div class="cmv r" id="cm_loans">—</div><div class="cms">Outstanding balance</div></div>
-    <div class="cm r"><div class="cml">Taxes Due</div><div class="cmv r" id="cm_taxes">—</div><div class="cms">Outstanding balance</div></div>
+    <div class="cm solid g"><div class="cml">Cash In YTD</div><div class="cmv g" id="cm_ytd_in">—</div><div class="cms">Jan–today actual</div></div>
+    <div class="cm frame-r"><div class="cml">Cash Out YTD</div><div class="cmv r" id="cm_ytd_out">—</div><div class="cms">Jan–today actual</div></div>
+    <div class="cm solid g" id="cm_net_wrap"><div class="cml">Net Cash YTD</div><div class="cmv g" id="cm_net_ytd">—</div><div class="cms">In + Out combined</div></div>
+    <div class="cm frame-r"><div class="cml">Loans Due</div><div class="cmv r" id="cm_loans">—</div><div class="cms">Outstanding balance</div></div>
+    <div class="cm frame-r"><div class="cml">Taxes Due</div><div class="cmv r" id="cm_taxes">—</div><div class="cms">Outstanding balance</div></div>
   </div>
   <div class="card accent mb">
     <div class="ch">
@@ -655,9 +654,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div id="scen_runway_sub" style="font-size:11px;color:var(--text3);margin-top:2px;">balance hits zero in —</div>
       </div>
       <div style="flex:1;min-width:200px;">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Monthly balance projection</div>
-        <div id="scen_runway_bars" style="display:flex;align-items:flex-end;gap:3px;height:48px;"></div>
-        <div id="scen_runway_mo_labels" style="display:flex;gap:3px;margin-top:3px;"></div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;">Projected cash balance at month-end — next 12 months</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--teal);margin-right:4px;"></span>2+ months of runway</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--amber);margin-right:4px;"></span>under 2 months of runway (balance &lt; 2× avg monthly outflow)</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--coral);margin-right:4px;"></span>balance at or below $0</span>
+        </div>
+        <div id="scen_runway_bars" style="display:flex;align-items:flex-end;gap:4px;height:104px;"></div>
+        <div id="scen_runway_mo_labels" style="display:flex;gap:4px;margin-top:3px;"></div>
       </div>
       <div style="text-align:right;">
         <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">End balance</div>
@@ -778,30 +782,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         </div>
       </div>
 
-      <!-- Pipeline (High + Medium) with its % toggle — shared with the chart's Forecast toggle -->
-      <div class="solid-card b" style="border-radius:14px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;min-width:0;">
-        <div style="min-width:0;">
-          <div class="k">Pipeline (High + Medium)</div>
-          <div id="col_fcst_p_pipeline" class="v" style="font-size:22px;margin-top:8px;white-space:nowrap;">—</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
-          <span class="tl" style="color:rgba(11,18,32,.7);">Pipeline %</span>
-          <select class="ts" id="colFcstPipelinePct" onchange="setPipelinePct(this.value);" style="font-size:11px;">
-            <option value="0" selected>0%</option>
-            <option value="0.10">10%</option>
-            <option value="0.25">25%</option>
-            <option value="0.50">50%</option>
-            <option value="0.75">75%</option>
-            <option value="1.00">100%</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Cash In Forecast + Pipeline (after the Pipeline toggle) -->
-      <div class="solid-card t" style="border-radius:14px;padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0;">
+      <!-- Cash In Forecast + Pipeline — one blue scorecard; the Pipeline % toggle is shared with the chart's Forecast toggle -->
+      <div class="solid-card b" style="border-radius:14px;padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0;">
         <div class="k">Cash In Forecast + Pipeline</div>
         <div id="col_fcst_p" class="v" style="font-size:32px;margin-top:10px;">—</div>
-        <div id="col_fcst_p_sub" class="s" style="font-size:12px;margin-top:8px;line-height:1.4;">Cash In Forecast + Pipeline (High + Medium)</div>
+        <div id="col_fcst_p_sub" class="s" style="font-size:12px;margin-top:8px;line-height:1.4;">Cash In Forecast + Pipeline (High + Medium) at the chosen %</div>
+        <div style="margin-top:22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;border-top:1px dashed rgba(11,18,32,.3);padding-top:14px;">
+            <div style="min-width:0;">
+              <div class="k" style="font-size:10px;">Pipeline (High + Medium)</div>
+              <div id="col_fcst_p_pipeline" class="v" style="font-size:20px;margin-top:5px;white-space:nowrap;">—</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+              <span class="tl" style="color:rgba(11,18,32,.7);">Pipeline %</span>
+              <select class="ts" id="colFcstPipelinePct" onchange="setPipelinePct(this.value);" style="font-size:11px;">
+                <option value="0" selected>0%</option>
+                <option value="0.10">10%</option>
+                <option value="0.25">25%</option>
+                <option value="0.50">50%</option>
+                <option value="0.75">75%</option>
+                <option value="1.00">100%</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- hidden holders so the existing bucket calculations keep running without a display target -->
@@ -814,12 +818,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <!-- Collections — Actual vs Forecast (moved here from the chart section below) -->
     <div class="card" style="background:var(--bg2);border:1px solid var(--border2);border-radius:14px;padding:28px;margin:0;min-width:0;grid-column:2 / span 2;">
       <div class="ch">
-        <div><div class="csub" id="col_chart_subtitle">Line = actual · Bars = forecast</div></div>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <div class="scr">
-            <div class="sc g"><div class="slb">YTD Actual</div><div class="sv g" id="col_sc_actual">—</div></div>
-            <div class="sc t"><div class="slb" id="col_sc_fcst_label">Period Forecast</div><div class="sv t" id="col_sc_fcst">—</div></div>
+        <div><div class="csub" id="col_chart_subtitle">Solid bars = collected · Light bars = forecast</div></div>
+        <div style="display:flex;flex-direction:column;gap:12px;width:100%;">
+         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div class="scr" style="flex-wrap:nowrap;gap:8px;">
+            <div class="sc g" style="min-width:104px;padding:8px 12px;"><div class="slb">YTD Actual</div><div class="sv g" id="col_sc_actual">—</div></div>
+            <div class="sc t" style="min-width:104px;padding:8px 12px;" title="Planned (static) cash-in forecast for the same months that already have actual collections"><div class="slb">YTD Forecast</div><div class="sv t" id="col_sc_ytdfcst">—</div></div>
           </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="tl">Forecast</span>
+              <select class="ts" id="colFcstTog" onchange="setPipelinePct(this.value);" style="font-size:11px;">
+                <option value="0" selected>Pipeline 0%</option>
+                <option value="0.10">Pipeline 10%</option>
+                <option value="0.25">Pipeline 25%</option>
+                <option value="0.50">Pipeline 50%</option>
+                <option value="0.75">Pipeline 75%</option>
+                <option value="1.00">Pipeline 100%</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="saveColChartDefault()" style="font-size:9px;padding:4px 8px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:5px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save the current Display period and Pipeline % as the default view">📌 Set as default</button>
+              <span id="colChartDefaultNote" style="font-size:8px;color:var(--text3);min-width:34px;"></span>
+            </div>
+          </div>
+         </div>
+         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="tl">Display period</span>
             <select class="ts" id="colPeriodTog" style="font-size:11px;">
@@ -828,21 +852,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <option value="12mo">12-Month Forecast (+3 actual)</option>
             </select>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="tl">Forecast</span>
-            <select class="ts" id="colFcstTog" onchange="setPipelinePct(this.value);" style="font-size:11px;">
-              <option value="0" selected>Pipeline 0%</option>
-              <option value="0.10">Pipeline 10%</option>
-              <option value="0.25">Pipeline 25%</option>
-              <option value="0.50">Pipeline 50%</option>
-              <option value="0.75">Pipeline 75%</option>
-              <option value="1.00">Pipeline 100%</option>
-            </select>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="saveColChartDefault()" style="font-size:9px;padding:4px 8px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:5px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save the current Display period and Pipeline % as the default view">📌 Set as default</button>
-            <span id="colChartDefaultNote" style="font-size:8px;color:var(--text3);min-width:34px;"></span>
-          </div>
+          <div class="scr"><div class="sc t" style="min-width:150px;padding:8px 12px;" title="Expected collections from today to the end of the chosen display period (incl. the selected pipeline %)"><div class="slb" id="col_sc_fcst_label">Forecast to period end</div><div class="sv t" id="col_sc_fcst">—</div></div></div>
+         </div>
         </div>
       </div>
       <div style="position:relative;">
@@ -1228,7 +1239,7 @@ async function loadAllData(){
     loadScenDefaults();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v147solid-all-pipeline-colours · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v148cashflow-collections-rework · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1776,6 +1787,7 @@ function processCash(rows){
 
   const COL = {
     cIF  : _ci('Cash in (F)'),
+    cIFs : _ci('Cash in (F) - static'),
     cIA  : _ci('Cash In (A) (op)'),
     cOA  : _ci('Cash Out (A) (Op+fin)'),
     cOF2 : _cOF2,
@@ -1793,7 +1805,7 @@ function processCash(rows){
 
   // Use found indices; fallbacks based on live COL map confirmed against Aug 26 2026 export:
   // K=10 (base cash out), M=12 (workforce base), N=13 (workforce actual), balA=15, balF2=16, balF3=17, rwyT=20, rwyU=21
-  const LIVE_FB = {cIF:5,cIA:6,cOA:8,cOF2:10,wfBase:12,wfAct:13,balA:15,balF2:16,balF3:17,burn:17,rwyT:20,rwyU:21};
+  const LIVE_FB = {cIF:5,cIFs:3,cIA:6,cOA:8,cOF2:10,wfBase:12,wfAct:13,balA:15,balF2:16,balF3:17,burn:17,rwyT:20,rwyU:21};
   const col = (key) => COL[key] > -1 ? COL[key] : LIVE_FB[key];
 
   const cash=[];
@@ -1803,6 +1815,7 @@ function processCash(rows){
     cash.push({
       date:r[0].trim(),
       cIF:    pv(r[col('cIF')]),
+      cIFs:   pv(r[col('cIFs')]),   // static planned cash-in forecast
       cIA:    pv(r[col('cIA')]),
       cOA_op: pv(r[col('cOA')]),
       cOutF2: pv(r[col('cOF2')]),  // col K — base cash out, no tax no loans
@@ -1836,7 +1849,7 @@ function processCash(rows){
   if(netYTDel){
     netYTDel.textContent = fC(netYTD);
     netYTDel.className = 'cmv '+(netYTD >= 0 ? 'g' : 'r');
-    const nw=document.getElementById('cm_net_wrap'); if(nw) nw.className='cm '+(netYTD >= 0 ? 'g' : 'r');
+    const nw=document.getElementById('cm_net_wrap'); if(nw) nw.className='cm solid '+(netYTD >= 0 ? 'g' : 'r');
   }
   window._netYTD = netYTD;
 
@@ -2208,13 +2221,19 @@ function buildScenChart(){
   // Mini bar chart — one bar per forecast month, now bounded to the selected Display Period's end
   // (was previously unbounded, silently showing the full underlying array regardless of the period toggle).
   if(rBars){
-    const fcastBals = scenBal.slice(actualCount, winEndClamped+1);
+    // Fixed 12-month projection from the first forecast month (independent of the Display Period toggle).
+    // Each bar = projected month-end cash balance, with its value printed above it.
+    const fcastBals = scenBal.slice(actualCount, actualCount+12);
     const maxAbs = Math.max(1, ...fcastBals.map(Math.abs));
+    const twoMo  = avgMonthlyOutflow * 2;            // 2 months of runway at the average monthly outflow
+    const fK = v => (v<0?'-':'')+'$'+(Math.abs(v)>=1000? (Math.abs(v)/1000).toFixed(0)+'K' : Math.abs(v).toFixed(0));
     rBars.innerHTML = fcastBals.map((b, i) => {
-      const pct  = Math.min(100, Math.abs(b) / maxAbs * 100);
-      const col  = b < 0 ? 'var(--coral)' : b < startBal * 0.3 ? 'var(--amber)' : 'var(--teal)';
-      const mo   = L26[actualCount + i];
-      return `<div title="${mo}: ${fC(b)}" style="flex:1;background:${col};height:${Math.max(4,pct*0.48)}px;border-radius:2px 2px 0 0;opacity:${b<0?1:0.7};cursor:default;"></div>`;
+      const h   = Math.max(4, Math.abs(b) / maxAbs * 78);
+      const col = b <= 0 ? 'var(--coral)' : b < twoMo ? 'var(--amber)' : 'var(--teal)';
+      const mo  = L26[actualCount + i];
+      return `<div title="${mo}: ${fC(b)}" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;">
+        <div style="font-size:9px;font-weight:700;font-family:var(--mono);color:${col};margin-bottom:2px;white-space:nowrap;">${fK(b)}</div>
+        <div style="width:100%;height:${h}px;background:${col};border-radius:2px 2px 0 0;"></div></div>`;
     }).join('');
     if(rMoLabels){
       rMoLabels.innerHTML = fcastBals.map((b,i) => {
@@ -4000,9 +4019,9 @@ function buildColChart(){
     colWinEnd = colPeriodSel==='6mo' ? Math.min(colL26_cFull.length-1, base+8) : Math.min(colL26_cFull.length-1, base+14);
   }
   const colSubEl = document.getElementById('col_chart_subtitle');
-  if(colSubEl) colSubEl.textContent = 'Line = actual · Bars = forecast · '+(colL26_cFull[colWinStart]||'')+' – '+(colL26_cFull[colWinEnd]||'');
+  if(colSubEl) colSubEl.textContent = 'Solid bars = collected · Light bars = forecast · '+(colL26_cFull[colWinStart]||'')+' – '+(colL26_cFull[colWinEnd]||'');
   const colFcstLabelEl = document.getElementById('col_sc_fcst_label');
-  if(colFcstLabelEl) colFcstLabelEl.textContent = 'Forecast ('+(colL26_cFull[colWinEnd]||'')+')';
+  if(colFcstLabelEl) colFcstLabelEl.textContent = 'Forecast to '+(colL26_cFull[colWinEnd]||'');
 
   // Slice every array to the selected window for both scorecards and the chart below
   const colActual      = colActualFull.slice(colWinStart, colWinEnd+1);
@@ -4019,6 +4038,13 @@ function buildColChart(){
   const fcstFull= colOutstanding.reduce((s,v)=>s+v,0) + colDraft.reduce((s,v)=>s+v,0) + (HIGH_TOTAL+MED_TOTAL)*pipePct;
   const scAct   = document.getElementById('col_sc_actual');
   const scFcst  = document.getElementById('col_sc_fcst');
+  // YTD Forecast = the static (planned) cash-in forecast for the same months that already have actual collections —
+  // fixed, does not move with the Display period.
+  const _cashRows = window._cash || [];
+  let ytdFcstPlan = 0, ytdFcstOk = false;
+  colActualFull.forEach((v,i)=>{ if(v>0 && _cashRows[i] && _cashRows[i].cIFs!=null){ ytdFcstPlan += _cashRows[i].cIFs; ytdFcstOk = true; } });
+  const scYtdF = document.getElementById('col_sc_ytdfcst');
+  if(scYtdF) scYtdF.textContent = ytdFcstOk ? fC(ytdFcstPlan) : '—';
   if(scAct)  scAct.textContent  = fC(ytdAct);
   if(scFcst) scFcst.textContent = fC(fcstFull);
 
