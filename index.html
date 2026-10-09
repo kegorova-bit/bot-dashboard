@@ -150,6 +150,41 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .cm.solid .cml{color:rgba(11,18,32,.65);}.cm.solid .cms{color:rgba(11,18,32,.72);}.cm.solid .cmv{color:#0b1220!important;}
 .cm.frame-r{background:var(--bg2);border:1.5px solid var(--coral);}
 .cm.frame-r .cmv{color:var(--coral);}
+.cf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+.cf-title{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.3px;line-height:1.15;}
+.cf-subtitle{font-size:14px;color:var(--text3);margin-top:4px;}
+.cf-asof{display:flex;align-items:center;gap:8px;border:1px solid var(--border2);background:var(--bg2);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:600;color:var(--text2);white-space:nowrap;}
+.cf-asof svg{width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.cf-sec{border:1px solid var(--border);border-radius:16px;padding:18px 20px 20px;margin-bottom:18px;background:rgba(255,255,255,.012);}
+.cf-sec-h{display:flex;align-items:baseline;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.cf-sec-t{font-size:16px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.2px;}
+.cf-sec-s{font-size:12px;color:var(--text3);}
+.cf-card{display:flex;align-items:center;gap:16px;border:1px solid var(--border2);background:var(--bg2);border-radius:12px;padding:18px 20px;min-width:0;}
+.cf-ic{width:52px;height:52px;border-radius:50%;background:rgba(148,163,184,.14);display:flex;align-items:center;justify-content:center;flex:none;}
+.cf-ic svg{width:24px;height:24px;stroke:var(--text2);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.cf-lbl{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);}
+.cf-val{font-size:30px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1.15;margin-top:3px;}
+.cf-cap{font-size:13px;color:var(--text3);margin-top:2px;}
+.cf-card.total{background:linear-gradient(135deg,#0a7a82 0%,#0d9ea3 100%);border-color:rgba(15,184,184,.8);}
+.cf-card.total .cf-ic{background:rgba(0,0,0,.25);}.cf-card.total .cf-ic svg{stroke:#9ff3ee;}
+.cf-card.total .cf-lbl,.cf-card.total .cf-cap{color:rgba(255,255,255,.85);}.cf-card.total .cf-val{color:#fff;}
+.cf-card.pos{border-color:rgba(46,204,143,.5);background:rgba(46,204,143,.07);}
+.cf-card.pos .cf-ic{background:rgba(46,204,143,.2);}.cf-card.pos .cf-ic svg{stroke:var(--green);}
+.cf-card.pos .cf-lbl,.cf-card.pos .cf-val{color:var(--green);}
+.cf-card.neg{border-color:rgba(255,107,107,.5);background:rgba(255,107,107,.07);}
+.cf-card.neg .cf-ic{background:rgba(255,107,107,.2);}.cf-card.neg .cf-ic svg{stroke:var(--coral);}
+.cf-card.neg .cf-lbl,.cf-card.neg .cf-val{color:var(--coral);}
+.cf-card.amb{border-color:rgba(245,166,35,.55);background:rgba(245,166,35,.07);}
+.cf-card.amb .cf-ic{background:rgba(245,166,35,.2);}.cf-card.amb .cf-ic svg{stroke:var(--amber);}
+.cf-card.amb .cf-lbl,.cf-card.amb .cf-val{color:var(--amber);}
+.cf-panel{border:1px solid var(--border2);background:var(--bg2);border-radius:12px;padding:16px 20px;min-width:0;}
+.cf-panel-t{font-size:12px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text2);margin-bottom:14px;}
+.cf-hb{display:grid;grid-template-columns:62px 1fr 92px;align-items:center;gap:14px;margin-bottom:14px;font-size:14px;color:var(--text2);}
+.cf-hb-track{height:12px;border-radius:6px;background:rgba(148,163,184,.14);overflow:hidden;}
+.cf-hb-fill{height:100%;border-radius:6px;width:0;transition:width .4s;}
+.cf-hb-v{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);text-align:right;}
+.cf-foot{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--border);margin-top:12px;padding-top:10px;font-size:12px;color:var(--text3);}
+.cf-foot>div+div{border-left:1px solid var(--border);padding-left:16px;}
 .cml{font-size:12px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
 .cmv{font-size:22px;font-weight:700;font-family:var(--mono);line-height:1;}
 .cmv.t{color:var(--teal);}.cmv.r{color:var(--coral);}.cmv.g{color:var(--green);}.cmv.a{color:var(--amber);}.cmv.w{color:var(--text);}
@@ -461,55 +496,87 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <!-- ══════════ CASH FLOW ══════════ -->
 <div class="page active" id="page-cash">
-  <div class="slabel"><span>Cash Flow</span> — Position & Forecast · 2026</div>
+  <div class="cf-head">
+    <div>
+      <div class="cf-title">Treasury &amp; Cash Position</div>
+      <div class="cf-subtitle">Cash balances, year-to-date movements and outstanding financial obligations</div>
+    </div>
+    <div class="cf-asof"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="cf_asof">As of —</span></div>
+  </div>
   <div class="alert-bar critical" id="cashAlert" style="display:none">
     <span style="font-size:18px">🚨</span><span id="cashAlertText"></span>
   </div>
-  <!-- ── Total Cash Position — 4 separate scorecards: Total (solid teal) + Banks / Safe / Projects (teal frame, faded teal fill) ── -->
-  <div style="display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
-    <div style="background:linear-gradient(155deg,#2fd3d3 0%,#0fb8b8 60%,#0c9d9d 100%);border:1px solid transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 20px -12px rgba(0,0,0,.55);border-radius:12px;padding:16px 20px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:rgba(11,18,32,.65);text-transform:uppercase;margin-bottom:6px;">Total Cash</div>
-      <div id="cm_total_cash" style="font-size:28px;font-weight:700;font-family:var(--mono);color:#0b1220;line-height:1.1;">—</div>
-      <div class="ref-date" style="font-size:10px;color:rgba(11,18,32,.7);margin-top:4px;">—</div>
-    </div>
-    <div style="background:rgba(15,184,184,.10);border:1.5px solid var(--teal);border-radius:12px;padding:16px 20px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Banks</div>
-      <div id="cm_banks" style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1.1;">—</div>
-      <div class="ref-date" style="font-size:10px;color:var(--text3);margin-top:4px;">—</div>
-    </div>
-    <div style="background:rgba(15,184,184,.10);border:1.5px solid var(--teal);border-radius:12px;padding:16px 20px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Safe</div>
-      <div id="cm_safe" style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1.1;">—</div>
-      <div class="ref-date" style="font-size:10px;color:var(--text3);margin-top:4px;">—</div>
-    </div>
-    <div style="background:rgba(15,184,184,.10);border:1.5px solid var(--teal);border-radius:12px;padding:16px 20px;">
-      <div style="font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Projects</div>
-      <div id="cm_projects" style="font-size:22px;font-weight:700;font-family:var(--mono);color:var(--text);line-height:1.1;">—</div>
-      <div class="ref-date" style="font-size:10px;color:var(--text3);margin-top:4px;">—</div>
+  <!-- ── 1. Current cash position ── -->
+  <div class="cf-sec">
+    <div class="cf-sec-h"><span class="cf-sec-t">Current Cash Position</span><span class="cf-sec-s">Total available cash and breakdown by source</span></div>
+    <div style="display:grid;grid-template-columns:1.25fr 1fr 1fr 1fr;gap:16px;">
+      <div class="cf-card total"><div class="cf-ic"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></div><div><div class="cf-lbl">Total Cash</div><div class="cf-val" id="cm_total_cash">—</div><div class="cf-cap">Total available cash</div></div></div>
+      <div class="cf-card"><div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg></div><div><div class="cf-lbl">Banks</div><div class="cf-val" id="cm_banks" style="font-size:26px;">—</div><div class="cf-cap">Bank account balances</div></div></div>
+      <div class="cf-card"><div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h12v3M3 7v10a2 2 0 002 2h14a1 1 0 001-1V9a1 1 0 00-1-1H5a2 2 0 01-2-1zM16 13.5h2"/></svg></div><div><div class="cf-lbl">Safe</div><div class="cf-val" id="cm_safe" style="font-size:26px;">—</div><div class="cf-cap">Physical cash on hand</div></div></div>
+      <div class="cf-card"><div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><div><div class="cf-lbl">Projects</div><div class="cf-val" id="cm_projects" style="font-size:26px;">—</div><div class="cf-cap">Project-held cash</div></div></div>
     </div>
   </div>
-  <!-- ── Secondary metrics row ── -->
-  <div class="cash-grid">
-    <div class="cm solid a" id="cm_inv_wrap"><div class="cml">Invoices Outstanding</div><div class="cmv a" id="cm_invoices">—</div><div class="cms">From Invoice Tracker · live</div></div>
-  </div>
-  <div class="cash-grid-2">
-    <div class="cm solid g"><div class="cml">Cash In YTD</div><div class="cmv g" id="cm_ytd_in">—</div><div class="cms">Jan–today actual</div></div>
-    <div class="cm frame-r"><div class="cml">Cash Out YTD</div><div class="cmv r" id="cm_ytd_out">—</div><div class="cms">Jan–today actual</div></div>
-    <div class="cm solid g" id="cm_net_wrap"><div class="cml">Net Cash YTD</div><div class="cmv g" id="cm_net_ytd">—</div><div class="cms">In + Out combined</div></div>
-    <div class="cm frame-r"><div class="cml">Loans Due</div><div class="cmv r" id="cm_loans">—</div><div class="cms">Outstanding balance</div></div>
-    <div class="cm frame-r"><div class="cml">Taxes Due</div><div class="cmv r" id="cm_taxes">—</div><div class="cms">Outstanding balance</div></div>
-  </div>
-  <div class="card accent mb">
-    <div class="ch">
-      <div><div class="ctitle">Cash In vs Out — Actual Performance</div><div class="csub">Confirmed months · Balance as line on right axis</div></div>
-      <div class="scr">
-        <div class="sc g"><div class="slb">YTD Cash In</div><div class="sv g" id="sc_ytd_in">—</div></div>
-        <div class="sc r"><div class="slb">YTD Cash Out</div><div class="sv r" id="sc_ytd_out">—</div></div>
-        <div class="sc" id="sc_net_cf_wrap"><div class="slb">Net CF YTD</div><div class="sv" id="sc_net_cf">—</div></div>
+
+  <!-- ── 2. Year-to-date cash flow ── -->
+  <div class="cf-sec">
+    <div class="cf-sec-h"><span class="cf-sec-t">Year-to-Date Cash Flow</span><span class="cf-sec-s">Cash inflows, outflows and net movement (Jan–today)</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+      <div class="cf-card pos"><div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M8 7h9v9"/></svg></div><div><div class="cf-lbl">Cash In YTD</div><div class="cf-val" id="cm_ytd_in" style="font-size:28px;">—</div><div class="cf-cap">Cash received (Jan–today)</div></div></div>
+      <div class="cf-card"><div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div><div><div class="cf-lbl">Cash Out YTD</div><div class="cf-val" id="cm_ytd_out" style="font-size:28px;">—</div><div class="cf-cap">Cash paid (Jan–today)</div></div></div>
+      <div class="cf-card pos" id="cm_net_wrap"><div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M7 7h12M15 3l4 4-4 4M17 17H5M9 13l-4 4 4 4"/></svg></div><div><div class="cf-lbl">Net Cash Flow YTD</div><div class="cf-val" id="cm_net_ytd" style="font-size:28px;">—</div><div class="cf-cap">Net cash movement (In – Out)</div></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1.15fr;gap:16px;">
+      <div class="cf-panel" style="display:flex;flex-direction:column;justify-content:center;">
+        <div class="cf-panel-t">Cash In vs Cash Out (YTD)</div>
+        <div class="cf-hb"><span>Cash In</span><div class="cf-hb-track"><div class="cf-hb-fill" id="cf_hb_in" style="background:#3ccfae;"></div></div><span class="cf-hb-v" id="cf_hb_in_v">—</span></div>
+        <div class="cf-hb"><span>Cash Out</span><div class="cf-hb-track"><div class="cf-hb-fill" id="cf_hb_out" style="background:#ff6f6f;"></div></div><span class="cf-hb-v" id="cf_hb_out_v">—</span></div>
+      </div>
+      <div class="cf-panel">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div class="cf-panel-t" style="margin-bottom:0;">Monthly Cash Flow (YTD)</div>
+          <div style="display:flex;gap:14px;font-size:12px;color:var(--text2);"><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#3ccfae;margin-right:5px;"></span>Cash In</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff6f6f;margin-right:5px;"></span>Cash Out</span></div>
+        </div>
+        <div style="position:relative;height:150px;"><canvas id="cInOut"></canvas></div>
       </div>
     </div>
-    <div class="cw tall"><canvas id="cInOut"></canvas></div>
   </div>
+
+  <!-- ── 3. Outstanding balances & obligations ── -->
+  <div class="cf-sec">
+    <div class="cf-sec-h"><span class="cf-sec-t">Outstanding Balances &amp; Obligations</span><span class="cf-sec-s">Amounts to be collected and upcoming payment obligations</span></div>
+    <div style="display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:16px;">
+      <div class="cf-card amb" id="cm_inv_wrap" style="flex-direction:column;align-items:stretch;gap:12px;">
+        <div style="display:flex;align-items:center;gap:16px;">
+          <div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg></div>
+          <div style="flex:1;min-width:0;"><div class="cf-lbl">Invoices Outstanding</div><div class="cf-val" id="cm_invoices">—</div><div class="cf-cap">Amount awaiting collection</div></div>
+          <div style="font-size:11px;color:var(--text3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;text-align:center;line-height:1.3;">From Invoice<br>Tracker · live</div>
+        </div>
+        <div style="display:grid;grid-template-columns:auto auto auto 1.4fr;gap:18px;align-items:end;border-top:1px solid rgba(245,166,35,.25);padding-top:12px;">
+          <div><div style="font-size:18px;font-weight:700;color:var(--text);" id="cm_inv_count">—</div><div style="font-size:11px;color:var(--text3);">Outstanding<br>invoices</div></div>
+          <div><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--green);" id="cm_inv_notdue">—</div><div style="font-size:11px;color:var(--text3);">Not yet due</div></div>
+          <div><div style="font-size:16px;font-weight:700;font-family:var(--mono);color:var(--coral);" id="cm_inv_overdue">—</div><div style="font-size:11px;color:var(--text3);">Overdue</div></div>
+          <div style="border-left:1px solid rgba(245,166,35,.25);padding-left:16px;min-width:0;">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;">Ageing (overdue)</div>
+            <div id="cm_inv_ageing" style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:rgba(148,163,184,.14);"></div>
+            <div style="display:flex;gap:10px;margin-top:6px;font-size:10px;color:var(--text3);flex-wrap:wrap;">
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f7c46a;margin-right:4px;"></span>1–30 days</span>
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#f5a623;margin-right:4px;"></span>31–60 days</span>
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#b9740c;margin-right:4px;"></span>&gt; 60 days</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cf-card neg" style="flex-direction:column;align-items:stretch;gap:10px;">
+        <div style="display:flex;align-items:center;gap:16px;"><div class="cf-ic"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></div><div><div class="cf-lbl">Loans Due</div><div class="cf-val" id="cm_loans" style="font-size:28px;">—</div><div class="cf-cap">Outstanding balance</div></div></div>
+        <div class="cf-foot"><div>Next payment<br><span style="color:var(--text2);">—</span></div><div>No. of loans<br><span style="color:var(--text2);">—</span></div></div>
+      </div>
+      <div class="cf-card neg" style="flex-direction:column;align-items:stretch;gap:10px;">
+        <div style="display:flex;align-items:center;gap:16px;"><div class="cf-ic"><svg viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/></svg></div><div><div class="cf-lbl">Taxes Due</div><div class="cf-val" id="cm_taxes" style="font-size:28px;">—</div><div class="cf-cap">Outstanding balance</div></div></div>
+        <div class="cf-foot"><div>Next payment<br><span style="color:var(--text2);">—</span></div><div>Tax period<br><span style="color:var(--text2);">—</span></div></div>
+      </div>
+    </div>
+  </div>
+
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
       <div style="font-size:13px;font-weight:700;color:var(--text);">📐 Cash Flow Forecast — Scenario Builder</div>
@@ -611,6 +678,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       Pipeline conversion: cash starts arriving 2 months after the current month, spread evenly over the following 6 months — fixed, independent of Display Period. Direct Cost on pipeline: added in the same month pipeline cash lands (no separate lag), scaled by the chosen Direct Cost %, on top of the base Direct Cost already reflected in Base Out.
     </div>
   </div>
+    <!-- ── Runway summary ── -->
+    <div id="scen_runway_wrap" style="margin-bottom:16px;padding:16px 20px;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.25);border-radius:12px;display:flex;align-items:center;gap:32px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Runway — this scenario</div>
+        <div style="display:flex;align-items:baseline;gap:10px;">
+          <span id="scen_runway_val" style="font-size:32px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</span>
+          <span style="font-size:13px;color:var(--text3);">months</span>
+        </div>
+        <div id="scen_runway_sub" style="font-size:11px;color:var(--text3);margin-top:2px;">balance hits zero in —</div>
+      </div>
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;">Projected cash balance at month-end — next 12 months</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--teal);margin-right:4px;"></span>2+ months of runway</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--amber);margin-right:4px;"></span>under 2 months of runway (balance &lt; <span id="scen_runway_thr">2× avg monthly outflow</span>)</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--coral);margin-right:4px;"></span>balance at or below $0</span>
+        </div>
+        <div id="scen_runway_bars" style="display:flex;align-items:flex-end;gap:4px;height:104px;"></div>
+        <div id="scen_runway_mo_labels" style="display:flex;gap:4px;margin-top:3px;"></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:8px;line-height:1.5;">Note: "avg monthly outflow" = average operating cash-out of the last 3 completed months (current partial month excluded). The same figure drives the amber warning on the End of Period Balance scorecard and the dashed forecast line.</div>
+      </div>
+    </div>
+
   <!-- Scenario detail table -->
   <!-- Scenario Builder -->
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
@@ -643,36 +733,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       * Table reflects scenario controls above · Pipeline High (light blue) · Pipeline Medium (dark blue) · 2-month CCC applied
     </div>
 
-    <!-- ── Runway summary ── -->
-    <div id="scen_runway_wrap" style="margin-top:18px;padding:16px 20px;background:rgba(15,184,184,.06);border:1px solid rgba(15,184,184,.25);border-radius:12px;display:flex;align-items:center;gap:32px;flex-wrap:wrap;">
-      <div>
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">Runway — this scenario</div>
-        <div style="display:flex;align-items:baseline;gap:10px;">
-          <span id="scen_runway_val" style="font-size:32px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</span>
-          <span style="font-size:13px;color:var(--text3);">months</span>
-        </div>
-        <div id="scen_runway_sub" style="font-size:11px;color:var(--text3);margin-top:2px;">balance hits zero in —</div>
-      </div>
-      <div style="flex:1;min-width:200px;">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;">Projected cash balance at month-end — next 12 months</div>
-        <div style="font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;">
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--teal);margin-right:4px;"></span>2+ months of runway</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--amber);margin-right:4px;"></span>under 2 months of runway (balance &lt; 2× avg monthly outflow)</span>
-          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--coral);margin-right:4px;"></span>balance at or below $0</span>
-        </div>
-        <div id="scen_runway_bars" style="display:flex;align-items:flex-end;gap:4px;height:104px;"></div>
-        <div id="scen_runway_mo_labels" style="display:flex;gap:4px;margin-top:3px;"></div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;">End balance</div>
-        <div id="scen_runway_endbal" style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--teal);">—</div>
-        <div id="scen_runway_end_label" style="font-size:10px;color:var(--text3);margin-top:2px;">—</div>
-        <div id="scen_runway_warning" style="font-size:9px;color:var(--amber);margin-top:4px;max-width:180px;display:none;">⚠ Below 3-month cash cushion</div>
-      </div>
-    </div>
-    <div style="font-size:9px;color:var(--text3);margin-top:8px;line-height:1.5;">
-      Amber warning rule: applies to End Balance above, the "End of Period Balance" scorecard, and the dashed forecast line in the chart below — all three turn amber when the projected balance is positive but falls below 3× the average monthly outflow from confirmed actual months (Base Out actuals only, excluding the current partial month). A rough "3-month cash cushion" check, separate from the Runway calculation above.
-    </div>
+
 
 </div>
 </div>
@@ -1237,9 +1298,10 @@ async function loadAllData(){
     processCFF(cffRows);
     processBudget(budBaseRows, budFcstRows);
     loadScenDefaults();
+    updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v148cashflow-collections-rework · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v151runway-3mo · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1843,13 +1905,12 @@ function processCash(rows){
   const ytdCashOut=cash.filter((_,i)=>i<actualCount).reduce((s,c)=>s+(c.cOA_op||0),0);
   const sinceJan=cash.slice(1).reduce((s,c)=>s+(c.cIA||0),0);
   document.getElementById('cm_ytd_in').textContent=fC(ytdCashIn);
-  document.getElementById('cm_ytd_out').textContent=fC(ytdCashOut);
+  document.getElementById('cm_ytd_out').textContent=fC(Math.abs(ytdCashOut));   // shown as a positive amount: cash paid
   const netYTD = ytdCashIn + ytdCashOut;
   const netYTDel = document.getElementById('cm_net_ytd');
   if(netYTDel){
     netYTDel.textContent = fC(netYTD);
-    netYTDel.className = 'cmv '+(netYTD >= 0 ? 'g' : 'r');
-    const nw=document.getElementById('cm_net_wrap'); if(nw) nw.className='cm solid '+(netYTD >= 0 ? 'g' : 'r');
+    const nw=document.getElementById('cm_net_wrap'); if(nw) nw.className='cf-card '+(netYTD >= 0 ? 'pos' : 'neg');
   }
   window._netYTD = netYTD;
 
@@ -1869,45 +1930,7 @@ function processCash(rows){
   buildCashChart();
   // buildScenChart called at end of loadAllData
 
-  // Chart 1: Actual — Cash In/Out bars + Balance line on right axis
-  const cInData   = cash.map((c,i)=>i<actualCount?(c.cIA||null):null);
-  const cOutData  = cash.map((c,i)=>i<actualCount?(c.cOA_op||null):null);
-  const balAData  = cash.map((c,i)=>i<actualCount?(c.balA||null):null);
-  const scYtdIn   = document.getElementById('sc_ytd_in');
-  const scYtdOut  = document.getElementById('sc_ytd_out');
-  const scNetCF   = document.getElementById('sc_net_cf');
-  const scNetWrap = document.getElementById('sc_net_cf_wrap');
-  const netCF     = ytdCashIn + ytdCashOut; // ytdCashOut is negative
-  if(scYtdIn)  scYtdIn.textContent  = fC(ytdCashIn);
-  if(scYtdOut) scYtdOut.textContent = fC(ytdCashOut);
-  if(scNetCF){
-    scNetCF.textContent = fC(netCF);
-    scNetCF.className   = 'sv '+(netCF>=0?'g':'r');
-  }
-  if(scNetWrap) scNetWrap.className = 'sc '+(netCF>=0?'g':'r');
-  destroyChart('cInOut');
-  charts['cInOut']=new Chart(document.getElementById('cInOut'),{type:'bar',
-    data:{labels:L26.slice(0,cash.length),datasets:[
-      {label:'Cash In (A)', data:cInData,  backgroundColor:tA, borderRadius:3, order:2, yAxisID:'y', stack:'s'},
-      {label:'Cash Out (A)',data:cOutData, backgroundColor:cA, borderRadius:3, order:2, yAxisID:'y', stack:'s'},
-      {label:'Cash Balance (A)',data:balAData,type:'line',
-       borderColor:green,borderWidth:2.5,
-       pointRadius:5,pointBackgroundColor:balAData.map(v=>v!=null?(v<0?coral:green):green),
-       fill:false,tension:0.3,order:1,yAxisID:'y2',
-       segment:{borderColor:ctx=>balAData[ctx.p1DataIndex]<0?coral:green}}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{position:'top',labels:{boxWidth:10,padding:12,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
-        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
-      scales:{
-        x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1'}},
-        y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#cbd5e1'},
-           title:{display:true,text:'Cash Flow ($)',color:'#cbd5e1',font:{size:10}}},
-        y2:{position:'right',grid:{drawOnChartArea:false},
-            ticks:{callback:v=>fN(v),color:'#2ECC8F'},
-            title:{display:true,text:'Balance ($)',color:'#2ECC8F',font:{size:10}}}
-      }
-    }});
+  buildCfCharts();
 
   // Runway — two scenarios: T=no loans, U=incl loans.
   // Kept as raw data (window._runwayT/_runwayU, latest actual month) for reference/data-dictionary
@@ -1921,6 +1944,42 @@ function processCash(rows){
   updateRunwayCard();
 }
 
+// Year-to-date cash flow visuals (Cash Flow tab): horizontal In-vs-Out bars + monthly grouped bars, months to date only.
+function buildCfCharts(){
+  const cash=window._cash||[]; if(!cash.length) return;
+  const n = Math.min(cash.length, window._effActualCount||window._actualCount||0);   // calendar-aware: Jan … current month
+  const months = cash.slice(0,n);
+  const labels = L26.slice(0,n).map(l=>(l||'').split(' ')[0]);
+  const ins  = months.map(c=>c.cIA||0);
+  const outs = months.map(c=>Math.abs(c.cOA_op||0));
+  const totIn  = window._ytdCashIn||ins.reduce((s,v)=>s+v,0);
+  const totOut = Math.abs(window._ytdCashOut||0);
+  const mx = Math.max(totIn,totOut,1);
+  const setW=(id,v)=>{const e=document.getElementById(id); if(e) e.style.width=(v/mx*100)+'%';};
+  setW('cf_hb_in',totIn); setW('cf_hb_out',totOut);
+  const vi=document.getElementById('cf_hb_in_v'), vo=document.getElementById('cf_hb_out_v');
+  if(vi) vi.textContent=fC(totIn); if(vo) vo.textContent=fC(totOut);
+  const el=document.getElementById('cInOut'); if(!el) return;
+  destroyChart('cInOut');
+  charts['cInOut']=new Chart(el,{type:'bar',
+    data:{labels,datasets:[
+      {label:'Cash In', data:ins,  backgroundColor:'#3ccfae', borderRadius:3, barPercentage:.8, categoryPercentage:.7},
+      {label:'Cash Out',data:outs, backgroundColor:'#ff6f6f', borderRadius:3, barPercentage:.8, categoryPercentage:.7}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+      scales:{x:{grid:{display:false},ticks:{color:'#cbd5e1',font:{size:11}}},
+              y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>fN(v).replace('.0',''),color:'#cbd5e1',font:{size:11},maxTicksLimit:4}}}}});
+}
+// "As of" chip in the Cash Flow header — reference date from the DB1 sheet when present, otherwise today
+function updateCfAsOf(){
+  const el=document.getElementById('cf_asof'); if(!el) return;
+  const raw=(window._refDate||'').toString();
+  const m=raw.match(/([A-Za-z]+)\s*,?\s*(\d{1,2})/);
+  const yr=new Date().getFullYear();
+  if(m){ el.textContent='As of '+parseInt(m[2])+' '+m[1].charAt(0).toUpperCase()+m[1].slice(1).toLowerCase()+' '+yr; }
+  else { el.textContent='As of '+new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}); }
+}
 function tog(){return(document.getElementById('cashTog')?.value||'noloan')==='noloan';}
 function buildCashChart(){
   // cbal chart removed — replaced by scenario builder
@@ -2163,7 +2222,7 @@ function buildScenChart(){
   // 3-month cash cushion check — average monthly outflow from CONFIRMED actual months only
   // (excludes the current partial month, since it isn't a complete month of data yet).
   const closedActualOutflows = cash.slice(0, Math.max(0,currentMonthIdx))
-    .map(c=>Math.abs(c.cOA_op||0)).filter(v=>v>0);
+    .map(c=>Math.abs(c.cOA_op||0)).filter(v=>v>0).slice(-3);   // last 3 closed months
   const avgMonthlyOutflow = closedActualOutflows.length
     ? closedActualOutflows.reduce((s,v)=>s+v,0)/closedActualOutflows.length : 0;
   const threeMonthCushion = avgMonthlyOutflow * 3;
@@ -2225,7 +2284,8 @@ function buildScenChart(){
     // Each bar = projected month-end cash balance, with its value printed above it.
     const fcastBals = scenBal.slice(actualCount, actualCount+12);
     const maxAbs = Math.max(1, ...fcastBals.map(Math.abs));
-    const twoMo  = avgMonthlyOutflow * 2;            // 2 months of runway at the average monthly outflow
+    const twoMo  = avgMonthlyOutflow * 2;
+    const thrEl = document.getElementById('scen_runway_thr'); if(thrEl) thrEl.textContent = '$'+Math.round(twoMo/1000)+'K = 2× avg monthly outflow of $'+Math.round(avgMonthlyOutflow/1000)+'K (last 3 closed months)';            // 2 months of runway at the average monthly outflow
     const fK = v => (v<0?'-':'')+'$'+(Math.abs(v)>=1000? (Math.abs(v)/1000).toFixed(0)+'K' : Math.abs(v).toFixed(0));
     rBars.innerHTML = fcastBals.map((b, i) => {
       const h   = Math.max(4, Math.abs(b) / maxAbs * 78);
@@ -3347,6 +3407,7 @@ function processInvoices(rows){
     // and a recently-overdue one land in the same "1-60 days" bucket.
     let age60 = 0, age61to180 = 0, age180plus = 0, ageUnclassified = 0;
 
+    let invNotDue = 0, invOd30 = 0, invOd60 = 0, invOd60p = 0;   // Cash Flow tab: not-yet-due vs overdue split of Invoices Outstanding
     let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
       const r=rows[i];
@@ -3393,6 +3454,12 @@ function processInvoices(rows){
           daysDistance = Math.abs(_daysBetween(new Date(yr, mo, 15)));
         }
       }
+      { const _dt = expDate || (_parseYM(expMo)!=null ? new Date(Math.floor(_parseYM(expMo)/12), _parseYM(expMo)%12, 15) : null);
+        const _sd = _dt ? _daysBetween(_dt) : 0;                 // negative = expected collection date already passed
+        if(_sd>=0)        invNotDue += outstanding;
+        else if(_sd>=-30) invOd30  += outstanding;
+        else if(_sd>=-60) invOd60  += outstanding;
+        else              invOd60p += outstanding; }
       if(daysDistance==null){
         ageUnclassified += scheduleAmt;
       } else if(daysDistance<=60){
@@ -3685,6 +3752,11 @@ function processInvoices(rows){
     if(!window._outSortState) window._outSortState = {field:'amount', dir:'desc'};
     renderCustomerTable('out');
 
+    // Cash Flow tab — Invoices Outstanding detail (count, not yet due, overdue, overdue ageing)
+    { const od = invOd30+invOd60+invOd60p, set=(id,t)=>{const e=document.getElementById(id); if(e) e.textContent=t;};
+      set('cm_inv_count', String(outstandingInvoiceCount)); set('cm_inv_notdue', fC(invNotDue)); set('cm_inv_overdue', fC(od));
+      const ag=document.getElementById('cm_inv_ageing');
+      if(ag){ const seg=(v,c)=>od>0&&v>0?`<div title="${fC(v)}" style="width:${v/od*100}%;background:${c};"></div>`:''; ag.innerHTML = seg(invOd30,'#f7c46a')+seg(invOd60,'#f5a623')+seg(invOd60p,'#b9740c'); } }
     window._invoicesOutstanding = grandTotal;
     window._invOutstanding = grandTotal;
     window._invCount = outstandingInvoiceCount;
@@ -3915,6 +3987,7 @@ function processDB1(rows){
         window._refDate=refDate;
         // Update all date displays across dashboard
         document.querySelectorAll('.ref-date').forEach(el=>el.textContent=refDate);
+        updateCfAsOf();
         const hDate=document.getElementById('cm_banks_date');
         if(hDate)hDate.textContent=refDate;
       }
