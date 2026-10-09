@@ -65,7 +65,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .card.accent{border-color:rgba(15,184,184,.28);}
 .cw{position:relative;height:268px;}.cw.tall{height:320px;}.cw.short{height:210px;}
 .ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap;}
-.ctitle{font-size:13px;font-weight:700;color:var(--text);}
+.ctitle{font-size:16px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.2px;}
 .csub{font-size:15px;color:var(--text3);margin-top:3px;}
 .scr{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .sc{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 16px;text-align:center;min-width:110px;}
@@ -91,6 +91,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .solid-card .ts{background-color:rgba(11,18,32,.88);color:#fff;border-color:transparent;}
 .solid-card .ts{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");}
 .solid-card .sbtn{font-size:9px;padding:5px 8px;background:rgba(11,18,32,.88);border:1px solid transparent;border-radius:6px;color:#fff;cursor:pointer;font-family:var(--font);font-weight:600;}
+.sc.fr{background:var(--bg2);border:1.5px solid var(--border2);box-shadow:none;}
+.sc.fr .slb{color:var(--text2);}
+.sc.fr-r{background:rgba(255,107,107,.10);border-color:var(--coral);}
+.sc.fr-g{background:rgba(46,204,143,.10);border-color:var(--green);}
 .sc.solid{border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.25);}
 .sc.solid.g{background:linear-gradient(155deg,#55e0a8,#2ECC8F);}
 .sc.solid.r{background:linear-gradient(155deg,#ff8f8f,#ff6b6b);}
@@ -391,14 +395,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="slabel"><span>YTD Analysis</span> — Year to Date, Through the Last Confirmed Month</div>
 
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle" style="font-size:16px;">2026 YTD Actuals vs Full Year Target</div><div class="csub">YTD actuals as a % of full-year target. Based on static budget forecast (v0) · <span style="color:var(--amber);font-weight:700;">▍amber marker</span> = expected pace (<span id="yc_pace_txt">—</span> of the year complete); green/red compares actual with that pace</div></div>
+    <div class="ch"><div><div class="ctitle">2026 YTD Actuals vs Full Year Target</div><div class="csub">YTD actuals as a % of full-year target. Based on static budget forecast (v0) · <span style="color:var(--amber);font-weight:700;">▍amber marker</span> = expected pace (<span id="yc_pace_txt">—</span> of the year complete); green/red compares actual with that pace</div></div>
       <div style="font-size:11px;font-weight:700;color:var(--text2);background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;">YTD 2026</div>
     </div>
     <div id="yc2026" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;"></div>
   </div>
 
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle" style="font-size:16px;">2026 YTD Actuals vs YTD Forecast – Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period. Based on adjusted budget forecast (BudgetF)<span id="ytdv_src_note"></span></div></div>
+    <div class="ch"><div><div class="ctitle">2026 YTD Actuals vs YTD Forecast – Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period. Based on adjusted budget forecast (BudgetF)<span id="ytdv_src_note"></span></div></div>
       <div style="font-size:11px;font-weight:700;color:var(--text2);background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;">YTD 2026</div>
     </div>
     <div id="ytdv_grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;"></div>
@@ -431,7 +435,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Expenses by Category — variance-focused redesign -->
   <div class="mb">
     <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
-      <div><div class="ctitle" style="font-size:15px;">Expenses by Category — Actual vs YTD Target</div>
+      <div><div class="ctitle">Expenses by Category — Actual vs YTD Target</div>
       <div class="csub">Both sides scoped to the same months · Source: Budget 2026A (actual, col K + monthly cols AH onward) / Budget 2026F_v0 (forecast, col J + monthly cols AH onward)</div></div>
     </div>
     <div id="h1_exp_methodnote" style="background:rgba(15,184,184,.08);border:1px solid rgba(15,184,184,.25);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.5;"></div>
@@ -534,9 +538,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="cf-panel">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <div class="cf-panel-t" style="margin-bottom:0;">Monthly Cash Flow (YTD)</div>
-          <div style="display:flex;gap:14px;font-size:12px;color:var(--text2);"><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#3ccfae;margin-right:5px;"></span>Cash In</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff6f6f;margin-right:5px;"></span>Cash Out</span></div>
+          <div style="display:flex;gap:14px;font-size:12px;color:var(--text2);"><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#3ccfae;margin-right:5px;"></span>Cash In</span><span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#ff6f6f;margin-right:5px;"></span>Cash Out</span><span><span style="display:inline-block;width:14px;height:3px;border-radius:2px;background:#f5a623;margin-right:5px;vertical-align:middle;"></span>End-of-month balance</span></div>
         </div>
-        <div style="position:relative;height:150px;"><canvas id="cInOut"></canvas></div>
+        <div style="position:relative;height:270px;"><canvas id="cInOut"></canvas></div>
       </div>
     </div>
   </div>
@@ -579,7 +583,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text);">📐 Cash Flow Forecast — Scenario Builder</div>
+      <div class="ctitle">Cash Flow Forecast — Scenario Builder</div>
 
     </div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;">
@@ -660,7 +664,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
       <!-- Scorecards + Set Default -->
       <div class="scr">
-          <div class="sc r"><div class="slb">Goes negative</div><div class="sv r" id="scen_neg">—</div></div>
+          <div class="sc fr fr-g" id="scen_neg_card"><div class="slb">Goes negative</div><div class="sv r" id="scen_neg">—</div></div>
           <div class="sc"><div class="slb" id="scen_dec_label">End of Period Balance</div><div class="sv w" id="scen_dec">—</div></div>
         <button onclick="saveScenDefault()" style="font-size:10px;padding:5px 10px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:6px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save current settings as default">
           📌 Set as default
@@ -704,7 +708,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- Scenario detail table -->
   <!-- Scenario Builder -->
   <div class="card mb" style="border-color:rgba(15,184,184,.28);">
-    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:16px;">📋 Scenario Projection — Monthly Detail</div>
+    <div class="ctitle" style="margin-bottom:16px;">Scenario Projection — Monthly Detail</div>
     <div style="overflow-x:auto;">
       <table class="vt" id="scen_table" style="min-width:900px;">
         <thead>
@@ -751,7 +755,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="pl">
     <div class="ptc">
       <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:13px;font-weight:700;color:var(--text)">Active Opportunities</div>
+        <div class="ctitle">Active Opportunities</div>
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="tl">Sort by</span>
           <select class="ts" id="pipeSortTog" onchange="sortPipeline()" style="font-size:11px;">
@@ -926,7 +930,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <!-- Outstanding by customer — same 8-column grid as the table below, column for column -->
   <div class="out-table-wrap tbl-out mb">
-    <div style="padding:14px 16px 10px;font-size:13px;font-weight:700;color:var(--text)">Outstanding Invoices by Customer</div>
+    <div class="ctitle" style="padding:14px 16px 10px;">Outstanding Invoices by Customer</div>
     <table>
       <colgroup><col style="width:3.5%"><col style="width:13%"><col style="width:26%"><col style="width:11%"><col style="width:9.5%"><col style="width:12%"><col style="width:13.5%"><col style="width:11.5%"></colgroup>
       <thead><tr>
@@ -946,7 +950,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <!-- To be invoiced by customer -->
   <div class="out-table-wrap mb">
     <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-      <div style="font-size:13px;font-weight:700;color:var(--text)">To Be Invoiced by Customer</div>
+      <div class="ctitle">To Be Invoiced by Customer</div>
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:11px;color:var(--text3);">Show</span>
         <select class="ts" id="ni_period_filter" onchange="renderCustomerTable('ni')" style="font-size:11px;">
@@ -1301,7 +1305,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v151runway-3mo · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v152cf-chart-titles · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1952,6 +1956,9 @@ function buildCfCharts(){
   const labels = L26.slice(0,n).map(l=>(l||'').split(' ')[0]);
   const ins  = months.map(c=>c.cIA||0);
   const outs = months.map(c=>Math.abs(c.cOA_op||0));
+  const sb = window._scenBal;
+  const bal = months.map((c,i)=> sb && sb[i]!=null ? sb[i] : ((c.balA||c.balF2)||null));
+  const fK = v => '$'+(Math.abs(v)>=1000? (Math.abs(v)/1000).toFixed(0)+'K' : Math.round(Math.abs(v)));
   const totIn  = window._ytdCashIn||ins.reduce((s,v)=>s+v,0);
   const totOut = Math.abs(window._ytdCashOut||0);
   const mx = Math.max(totIn,totOut,1);
@@ -1963,13 +1970,21 @@ function buildCfCharts(){
   destroyChart('cInOut');
   charts['cInOut']=new Chart(el,{type:'bar',
     data:{labels,datasets:[
-      {label:'Cash In', data:ins,  backgroundColor:'#3ccfae', borderRadius:3, barPercentage:.8, categoryPercentage:.7},
-      {label:'Cash Out',data:outs, backgroundColor:'#ff6f6f', borderRadius:3, barPercentage:.8, categoryPercentage:.7}
+      {type:'bar',label:'Cash In', data:ins,  backgroundColor:'#3ccfae', borderRadius:3, barPercentage:.85, categoryPercentage:.75, yAxisID:'y', order:2},
+      {type:'bar',label:'Cash Out',data:outs, backgroundColor:'#ff6f6f', borderRadius:3, barPercentage:.85, categoryPercentage:.75, yAxisID:'y', order:2},
+      {type:'line',label:'End-of-month balance', data:bal, borderColor:'#f5a623', backgroundColor:'#f5a623', borderWidth:2.5, pointRadius:4, pointHoverRadius:6, tension:.25, yAxisID:'y2', order:1, spanGaps:true}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,
+    plugins:[{id:'cfBarLbl',afterDatasetsDraw(ch){
+      const ctx=ch.ctx; ctx.save(); ctx.font='600 10px sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#cbd5e1';
+      ch.data.datasets.forEach((d,di)=>{ if(d.type!=='bar') return; const m=ch.getDatasetMeta(di);
+        m.data.forEach((b,i)=>{ const v=d.data[i]; if(!v) return; ctx.fillText(fK(v), b.x, b.y-4); }); });
+      ctx.restore(); }}],
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:14}},
+      interaction:{mode:'index',intersect:false},
       plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
       scales:{x:{grid:{display:false},ticks:{color:'#cbd5e1',font:{size:11}}},
-              y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>fN(v).replace('.0',''),color:'#cbd5e1',font:{size:11},maxTicksLimit:4}}}}});
+              y:{beginAtZero:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>fN(v).replace('.0',''),color:'#cbd5e1',font:{size:11},maxTicksLimit:5}},
+              y2:{position:'right',beginAtZero:true,grid:{display:false},ticks:{callback:v=>fN(v).replace('.0',''),color:'#f5a623',font:{size:11},maxTicksLimit:5}}}}});
 }
 // "As of" chip in the Cash Flow header — reference date from the DB1 sheet when present, otherwise today
 function updateCfAsOf(){
@@ -2228,6 +2243,8 @@ function buildScenChart(){
   const threeMonthCushion = avgMonthlyOutflow * 3;
   const belowCushion = endBal_scen >= 0 && endBal_scen < threeMonthCushion;
 
+  window._scenBal = scenBal.map((v,i)=> i===currentMonthIdx ? correctedCurrentBalance : v);
+  buildCfCharts();
   const rVal  = document.getElementById('scen_runway_val');
   const rSub  = document.getElementById('scen_runway_sub');
   const rEnd  = document.getElementById('scen_runway_endbal');
@@ -2309,7 +2326,7 @@ function buildScenChart(){
   const scDec  = document.getElementById('scen_dec');
   const scDecLabel = document.getElementById('scen_dec_label');
   const decVal = scenBal[Math.min(winEnd, scenBal.length-1)];
-  if(scNeg){scNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';scNeg.className='sv '+(negIdx>=0?'r':'g');}
+  if(scNeg){scNeg.textContent=negIdx>=0?cash[negIdx].date:'None ✓';scNeg.className='sv '+(negIdx>=0?'r':'g'); const _nc=document.getElementById('scen_neg_card'); if(_nc) _nc.className='sc fr '+(negIdx>=0?'fr-r':'fr-g');}
   if(scDecLabel) scDecLabel.textContent = 'End of Period Balance ('+(L26[winEnd]||'')+')';
   if(scDec){
     scDec.textContent=fC(decVal);
