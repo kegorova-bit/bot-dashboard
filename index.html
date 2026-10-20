@@ -172,6 +172,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .co-sub.a{border-color:rgba(245,166,35,.7);background:rgba(245,166,35,.07);}
 .co-sub.t{border-color:rgba(15,184,184,.7);background:rgba(15,184,184,.07);}
 .co-tag{font-size:10px;color:var(--text3);border:1px solid var(--border2);border-radius:8px;padding:5px 9px;text-align:center;line-height:1.3;flex:none;}
+.co-hov{cursor:help;}.co-dot{border-bottom:1px dotted var(--text3);display:inline-block;}
 .co-sel{width:100%;font-size:11px;}
 .co-btn{font-size:10px;padding:5px 8px;background:rgba(11,18,32,.6);border:1px solid rgba(15,184,184,.5);border-radius:6px;color:var(--teal);cursor:pointer;font-family:var(--font);font-weight:600;}
 @media(max-width:1100px){.co-grid{grid-template-columns:1fr;}}
@@ -822,36 +823,55 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div id="colTbiPeriodDefaultNote" style="font-size:8px;text-align:center;color:var(--text3);"></div>
         </div>
       </div>
-      <div style="padding:18px 22px 22px;display:flex;flex-direction:column;gap:14px;flex:1;">
-        <div style="text-align:center;font-size:13px;color:var(--text2);">Cash in Forecast = Invoices Outstanding + Collections from New Invoices</div>
-        <div class="co-eq">
+      <div style="padding:16px 22px 20px;display:flex;flex-direction:column;gap:20px;flex:1;justify-content:center;">
+        <div style="text-align:center;font-size:12px;color:var(--text2);">Cash in Forecast = Invoices Outstanding + Collections from New Invoices</div>
+        <div class="co-eq" style="gap:10px;">
           <span class="co-chip a" id="col_eq_out">—</span><span class="co-op">+</span><span class="co-chip t" id="col_eq_new">—</span><span class="co-op">=</span><span class="co-chip t" id="col_eq_tot">—</span>
         </div>
-        <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:16px;flex:1;">
-          <!-- Invoices Outstanding — yellow everywhere -->
-          <div class="co-sub a">
-            <div style="display:flex;align-items:flex-start;gap:14px;">
-              <div class="cf-ic" style="background:rgba(245,166,35,.2);"><svg viewBox="0 0 24 24" style="stroke:var(--amber);"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg></div>
-              <div style="flex:1;min-width:0;"><div class="co-lbl" style="color:var(--amber);">Invoices Outstanding</div><div id="col_inv_out" class="co-val" style="color:var(--amber);">—</div><div class="co-cap">Amount awaiting collection</div></div>
-              <div class="co-tag">From Invoice<br>Tracker · live</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="co-sub a" style="padding:12px 14px;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="cf-ic" style="width:38px;height:38px;background:rgba(245,166,35,.2);"><svg viewBox="0 0 24 24" style="stroke:var(--amber);width:19px;height:19px;"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg></div>
+              <div style="flex:1;min-width:0;"><div class="co-lbl" style="color:var(--amber);font-size:11px;">Invoices Outstanding</div><div id="col_inv_out" class="co-val" style="color:var(--amber);font-size:22px;margin-top:1px;">—</div></div>
             </div>
-            <div id="col_inv_out_note" style="display:none;font-size:10px;margin-top:8px;line-height:1.35;color:var(--text3);"></div>
-            <div style="margin-top:auto;border-top:1px solid rgba(245,166,35,.28);padding-top:14px;display:flex;gap:30px;align-items:flex-end;">
-              <div><div style="font-size:20px;font-weight:700;color:var(--text);" id="col_inv_count">—</div><div class="co-cap" style="margin:0;">Outstanding<br>invoices</div></div>
-              <div><div style="font-size:17px;font-weight:700;font-family:var(--mono);color:var(--green);" id="col_inv_notdue">—</div><div class="co-cap" style="margin:0;">Not yet due</div></div>
-              <div><div style="font-size:17px;font-weight:700;font-family:var(--mono);color:var(--coral);" id="col_inv_overdue">—</div><div class="co-cap" style="margin:0;">Overdue</div></div>
+            <div id="col_inv_out_note" style="display:none;font-size:10px;line-height:1.35;color:var(--text3);"></div>
+            <div style="border-top:1px solid rgba(245,166,35,.28);padding-top:9px;display:flex;gap:18px;align-items:flex-end;">
+              <div id="col_inv_hover" class="co-hov"><div style="font-size:17px;font-weight:700;color:var(--text);" id="col_inv_count">—</div><div class="co-cap co-dot" style="margin:0;font-size:10px;">Invoices</div></div>
+              <div><div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--green);" id="col_inv_notdue">—</div><div class="co-cap" style="margin:0;font-size:10px;">Not yet due</div></div>
+              <div><div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--coral);" id="col_inv_overdue">—</div><div class="co-cap" style="margin:0;font-size:10px;">Overdue</div></div>
             </div>
           </div>
-          <!-- Collections from new invoices — forecast teal -->
-          <div class="co-sub t">
-            <div style="display:flex;align-items:flex-start;gap:14px;">
-              <div class="cf-ic" style="background:rgba(15,184,184,.22);"><svg viewBox="0 0 24 24" style="stroke:var(--teal);"><path d="M7 3h7l5 5v13H7zM14 3v5h5M12 11v6M9 14h6"/></svg></div>
-              <div style="flex:1;min-width:0;"><div id="col_cashin_draft_label" class="co-lbl" style="color:var(--teal);">Collections from new invoices</div><div id="col_cashin_draft" class="co-val" style="color:var(--teal);">—</div></div>
+          <div class="co-sub t" style="padding:12px 14px;gap:10px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="cf-ic" style="width:38px;height:38px;background:rgba(15,184,184,.22);"><svg viewBox="0 0 24 24" style="stroke:var(--teal);width:19px;height:19px;"><path d="M7 3h7l5 5v13H7zM14 3v5h5M12 11v6M9 14h6"/></svg></div>
+              <div style="flex:1;min-width:0;"><div id="col_cashin_draft_label" class="co-lbl" style="color:var(--teal);font-size:11px;">Collections from new invoices</div><div id="col_cashin_draft" class="co-val" style="color:var(--teal);font-size:22px;margin-top:1px;">—</div></div>
             </div>
-            <div style="margin-top:auto;border-top:1px dashed rgba(15,184,184,.35);padding-top:14px;">
-              <div id="col_wtbi_label" class="co-cap" style="margin:0;">Won → To Be Invoiced</div>
-              <div id="col_not_inv" style="font-size:20px;font-weight:700;color:var(--text);margin-top:4px;">—</div>
+            <div style="border-top:1px dashed rgba(15,184,184,.35);padding-top:9px;display:flex;gap:22px;align-items:flex-end;">
+              <div id="col_new_hover" class="co-hov"><div style="font-size:17px;font-weight:700;color:var(--text);" id="col_new_count">—</div><div class="co-cap co-dot" style="margin:0;font-size:10px;">New invoices</div></div>
+              <div><div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--text);" id="col_not_inv">—</div><div id="col_wtbi_label" class="co-cap" style="margin:0;font-size:10px;">Won → To Be Invoiced</div></div>
             </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(15,184,184,.4);padding-top:14px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;">
+          <div style="display:flex;align-items:center;gap:14px;min-width:0;">
+            <div class="cf-ic" style="width:46px;height:46px;background:rgba(0,0,0,.22);"><svg viewBox="0 0 24 24" style="stroke:#9ff3ee;width:22px;height:22px;"><path d="M5 20V11M12 20V5M19 20v-7"/></svg></div>
+            <div style="min-width:0;">
+              <div class="co-lbl" style="font-size:12px;">Cash In Forecast + Pipeline</div>
+              <div id="col_fcst_p" class="co-val" style="font-size:28px;">—</div>
+              <div id="col_fcst_p_sub" class="co-cap" style="font-size:11px;">Cash In Forecast + Pipeline (High + Medium) at the chosen %</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <span class="co-lbl" style="font-size:10px;">Pipeline %</span>
+            <select class="ts co-sel" id="colFcstPipelinePct" onchange="setPipelinePct(this.value);" style="min-width:100px;">
+              <option value="0" selected>0%</option>
+              <option value="0.10">10%</option>
+              <option value="0.25">25%</option>
+              <option value="0.50">50%</option>
+              <option value="0.75">75%</option>
+              <option value="1.00">100%</option>
+            </select>
+            <span class="co-cap" style="margin:2px 0 0;font-size:10px;">Pipeline (H+M): <b id="col_fcst_p_pipeline" style="color:var(--text);font-family:var(--mono);">—</b></span>
           </div>
         </div>
       </div>
@@ -932,33 +952,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div id="col-tooltip" class="inv-tip" style="display:none;opacity:0;"></div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- ═══ Cash In Forecast + Pipeline — same teal as Cash In Forecast; Pipeline % shared with the chart's Forecast toggle ═══ -->
-  <div class="co-panel co-teal" style="display:grid;grid-template-columns:1.3fr 1fr auto;gap:28px;align-items:center;margin-bottom:20px;">
-    <div style="display:flex;align-items:center;gap:18px;min-width:0;">
-      <div class="cf-ic" style="width:60px;height:60px;background:rgba(0,0,0,.22);"><svg viewBox="0 0 24 24" style="stroke:#9ff3ee;"><path d="M5 20V11M12 20V5M19 20v-7"/></svg></div>
-      <div style="min-width:0;">
-        <div class="co-lbl">Cash In Forecast + Pipeline</div>
-        <div id="col_fcst_p" class="co-big" style="font-size:34px;">—</div>
-        <div id="col_fcst_p_sub" class="co-cap">Cash In Forecast + Pipeline (High + Medium) at the chosen %</div>
-      </div>
-    </div>
-    <div style="border-left:1px solid rgba(15,184,184,.4);padding-left:28px;">
-      <div class="co-lbl" style="font-size:12px;">Pipeline (High + Medium)</div>
-      <div id="col_fcst_p_pipeline" class="co-val" style="font-size:26px;white-space:nowrap;">—</div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-      <span class="co-lbl" style="font-size:12px;">Pipeline %</span>
-      <select class="ts co-sel" id="colFcstPipelinePct" onchange="setPipelinePct(this.value);" style="min-width:110px;">
-        <option value="0" selected>0%</option>
-        <option value="0.10">10%</option>
-        <option value="0.25">25%</option>
-        <option value="0.50">50%</option>
-        <option value="0.75">75%</option>
-        <option value="1.00">100%</option>
-      </select>
     </div>
   </div>
 
@@ -1045,22 +1038,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
 
-  <!-- Invoicing Timeline — rolling 12 months from today -->
+  <!-- Invoicing Forecast — hover a bar for the invoices to be issued that month -->
   <div class="card accent mb">
-    <div class="ch"><div><div class="ctitle">Invoicing Timeline — 3 Months Actual + Next 12 Months (Rolling)</div><div class="csub">Grey = actual invoiced (Staging) · Teal = draft to-be-invoiced by expected Invoice Date, col A · live from Invoice Tracker</div></div></div>
-    <div class="cw tall"><canvas id="tbi_timeline_chart"></canvas></div>
+    <div class="ch">
+      <div><div class="ctitle">Invoicing Forecast</div><div class="csub">Grey = actual invoiced · Teal = draft to-be-invoiced by expected Invoice Date · hover a bar to see the invoices</div></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="tl">Display period</span>
+        <select class="ts" id="invPeriodTog" onchange="buildInvFcstChart()" style="font-size:11px;">
+          <option value="2026">2026 (Full Year)</option>
+          <option value="6mo">6-Month Forecast (+3 actual)</option>
+          <option value="12mo" selected>12-Month Forecast (+3 actual)</option>
+        </select>
+      </div>
+    </div>
+    <div style="position:relative;"><div class="cw tall"><canvas id="tbi_timeline_chart"></canvas></div><div id="inv_fcst_tip" class="inv-tip" style="display:none;opacity:0;"></div></div>
   </div>
 
   <div class="two">
     <div class="card accent mb">
       <div class="ch">
-        <div><div class="ctitle">DSO Trend — Days to Collect by Month</div><div class="csub">Average days from invoice to payment · Live from Invoice Tracker</div></div>
+        <div><div class="ctitle">DSO Trend — Days to Collect by Month</div><div class="csub">Average days from invoice to payment · hover a point to see the invoices behind it · Live from Invoice Tracker</div></div>
         <div class="scr">
           <div class="sc n"><div class="slb">Avg DSO</div><div class="sv" id="dso_avg_sc">—</div></div>
           <div class="sc"><div class="slb">Target</div><div class="sv w">30d</div></div>
         </div>
       </div>
-      <div class="cw"><canvas id="dso_trend"></canvas></div>
+      <div style="position:relative;"><div class="cw"><canvas id="dso_trend"></canvas></div><div id="dso_tip" class="inv-tip" style="display:none;opacity:0;"></div></div>
     </div>
     <div class="card accent mb">
       <div class="ch">
@@ -1345,7 +1348,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v157balance-anchored-today · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v158collections-hovers · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2059,6 +2062,7 @@ function initInvPopup(){
 
 // Collections tab helpers — equation chips, YTD progress bar, and the "actual cash" runway
 function colExtras(){
+  initColHovers();
   const num=id=>{const e=document.getElementById(id); if(!e) return null; const t=(e.textContent||'').replace(/[^0-9.\-]/g,''); return t===''||t==='-'?null:parseFloat(t);};
   const txt=(id,t)=>{const e=document.getElementById(id); if(e) e.textContent=t;};
   txt('col_eq_out',(document.getElementById('col_inv_out')||{}).textContent||'—');
@@ -2076,6 +2080,103 @@ function colRunwayActual(){
   v.textContent=m.toFixed(1)+' mo';
   v.style.color = m<2?'var(--coral)':m<4?'var(--amber)':'var(--teal)';
   if(sub) sub.textContent='Current cash '+fC(cash)+' ÷ avg monthly outflow '+fC(avg)+' (last 3 months)';
+}
+
+// ── Hover tables & charts-with-popups (Collections tab) ──
+const _escH = t => String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function _tblHtml(title, color, cols, rows, totalLbl, totalVal, maxRows){
+  const lim = maxRows||14, shown = rows.slice(0,lim), more = rows.length-shown.length;
+  return '<div class="ctt-month" style="color:'+color+';">'+_escH(title)+'</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="color:var(--text3);text-align:left;">'+
+    cols.map((c,i)=>'<th style="padding:3px 8px 4px 0;'+(i===cols.length-1?'text-align:right;padding-right:0;':'')+'">'+_escH(c)+'</th>').join('')+'</tr></thead><tbody>'+
+    shown.map(r=>'<tr style="border-top:1px solid rgba(255,255,255,.05);">'+r.map((c,i)=>'<td style="padding:4px 8px 4px 0;vertical-align:top;'+(i===r.length-1?'text-align:right;padding-right:0;font-family:var(--mono);white-space:nowrap;color:'+color+';':'color:var(--text2);')+'">'+c+'</td>').join('')+'</tr>').join('')+
+    '</tbody></table>'+(more>0?'<div style="font-size:10px;color:var(--text3);margin-top:4px;">+ '+more+' more</div>':'')+
+    (totalLbl?'<div class="ctt-total"><span>'+_escH(totalLbl)+'</span><span>'+totalVal+'</span></div>':'');
+}
+function bindHoverTable(hoverId, buildFn){
+  const h=document.getElementById(hoverId); if(!h||h._bound) return; h._bound=true;
+  let tip=document.getElementById('hov_tip_'+hoverId);
+  if(!tip){ tip=document.createElement('div'); tip.id='hov_tip_'+hoverId; tip.className='inv-tip'; tip.style.cssText='position:fixed;display:none;max-width:520px;min-width:340px;'; document.body.appendChild(tip); }
+  h.addEventListener('mouseenter',()=>{
+    tip.innerHTML=buildFn(); tip.style.display='block'; tip.style.opacity='1';
+    const r=h.getBoundingClientRect(), tw=tip.offsetWidth, th=tip.offsetHeight;
+    tip.style.left=Math.max(8,Math.min(r.left,window.innerWidth-tw-8))+'px';
+    tip.style.top=(r.bottom+th+8<window.innerHeight ? r.bottom+8 : Math.max(8,r.top-th-8))+'px';
+  });
+  h.addEventListener('mouseleave',()=>{tip.style.display='none';});
+}
+function initColHovers(){
+  bindHoverTable('col_inv_hover',()=>{
+    const d=(window._outInvList||[]).slice().sort((a,b)=>b.amount-a.amount), tot=d.reduce((s,r)=>s+r.amount,0);
+    return _tblHtml('Outstanding invoices','var(--amber)',['Customer','Project / Invoice','Exp. collection','Amount'],
+      d.map(r=>[_escH(r.customer),_escH(r.project)+(r.invNo?'<div style="font-size:10px;color:var(--text3);">'+_escH(r.invNo)+'</div>':''),_escH(r.coll||'—'),fC(r.amount)]),'Total',fC(tot));
+  });
+  bindHoverTable('col_new_hover',()=>{
+    const d=(window._newInvList||[]).slice().sort((a,b)=>b.amount-a.amount), tot=d.reduce((s,r)=>s+r.amount,0);
+    const lbl=k=>{ if(k==null) return '—'; const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']; return MN[k%12]+" '"+String(Math.floor(k/12)).slice(2); };
+    return _tblHtml('Collections from new invoices (drafts to be invoiced)','var(--teal)',['Customer','Project','Invoice month','Amount'],
+      d.map(r=>[_escH(r.customer),_escH(r.project),lbl(r.invKey),fC(r.amount)]),'Total',fC(tot));
+  });
+}
+// Invoicing Forecast chart — stacked: actual invoiced (grey) + draft to-be-invoiced by Invoice Date (teal); hover lists the invoices
+function buildInvFcstChart(){
+  const el=document.getElementById('tbi_timeline_chart'); if(!el||typeof Chart==='undefined') return;
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now=new Date(), curKey=now.getFullYear()*12+now.getMonth();
+  const sel=(document.getElementById('invPeriodTog')||{}).value||'12mo';
+  let start,end;
+  if(sel==='2026'){ start=now.getFullYear()*12; end=start+11; }
+  else { start=curKey-3; end=sel==='6mo'?curKey+5:curKey+11; }
+  const keys=[]; for(let k=start;k<=end;k++) keys.push(k);
+  const lbl=k=>MN[k%12]+" '"+String(Math.floor(k/12)).slice(2);
+  const labels=keys.map(lbl);
+  const s26=window._s26||[];
+  const actual=keys.map(k=>{ if(k>curKey) return null; const row=s26.find(r=>r.date===lbl(k)); return row&&row.rA?row.rA:null; });
+  const drafts=window._draftInv||[];
+  const byKey={}; drafts.forEach(d=>{ if(d.invKey!=null) (byKey[d.invKey]=byKey[d.invKey]||[]).push(d); });
+  const tbi=keys.map(k=>{ const a=byKey[k]; return a&&a.length?a.reduce((s,d)=>s+d.amount,0):null; });
+  destroyChart('tbi_timeline_chart');
+  charts['tbi_timeline_chart']=new Chart(el,{type:'bar',
+    data:{labels,datasets:[
+      {label:'Invoiced (Actual)',data:actual,backgroundColor:'rgba(148,163,184,0.55)',borderColor:'#94a3b8',borderWidth:1.5,borderRadius:4,stack:'s'},
+      {label:'To Be Invoiced',data:tbi,backgroundColor:'rgba(15,184,184,0.65)',borderColor:'#0fb8b8',borderWidth:1.5,borderRadius:4,stack:'s'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,padding:10,color:'#cbd5e1',font:{size:11}}},
+        tooltip:{enabled:false,external:ctx=>{
+          const tip=document.getElementById('inv_fcst_tip'); if(!tip) return;
+          const t=ctx.tooltip; if(!t||t.opacity===0){ tip.style.display='none'; tip.style.opacity='0'; return; }
+          const i=t.dataPoints[0].dataIndex, k=keys[i], list=(byKey[k]||[]).slice().sort((a,b)=>b.amount-a.amount);
+          let h='';
+          if(actual[i]) h+='<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;color:var(--text2);"><span>Invoiced (actual)</span><span style="font-family:var(--mono);">'+fC(actual[i])+'</span></div>';
+          if(list.length) h+=_tblHtml('Invoices to be issued','var(--teal)',['Customer','Project','Amount'],list.map(d=>[_escH(d.customer),_escH(d.project),fC(d.amount)]),'To be invoiced',fC(tbi[i]||0));
+          else h+='<div style="color:var(--text3);">'+(actual[i]?'':'Nothing to be invoiced')+'</div>';
+          tip.innerHTML='<div class="ctt-month" style="color:var(--text);">'+lbl(k)+'</div>'+h;
+          tip.style.display='block'; tip.style.opacity='1';
+          const w=ctx.chart.canvas.offsetWidth, tw=tip.offsetWidth;
+          tip.style.left=Math.max(4,Math.min(t.caretX+14, w-tw-4))+'px'; tip.style.top='10px';
+        }}},
+      scales:{x:{stacked:true,grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#b3c1d1'}},
+              y:{stacked:true,grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
+}
+// DSO trend — hover a point to see the invoices behind that month's figure (coloured by the same green/amber/red rule)
+function dsoExtTip(ctx){
+  const tip=document.getElementById('dso_tip'); if(!tip) return;
+  const t=ctx.tooltip; if(!t||t.opacity===0){ tip.style.display='none'; tip.style.opacity='0'; return; }
+  const i=t.dataPoints[0].dataIndex, label=ctx.chart.data.labels[i], val=ctx.chart.data.datasets[0].data[i];
+  const det=(window._dsoDetail||[])[i];
+  const col=v=>v>60?'var(--coral)':v>30?'var(--amber)':'var(--green)';
+  let h='<div class="ctt-month" style="color:'+col(val)+';">'+_escH(label)+' — avg '+val+' days</div>';
+  if(det&&det.length){
+    const rows=det.slice().sort((a,b)=>b.dso-a.dso);
+    h+='<table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="color:var(--text3);text-align:left;"><th style="padding:3px 8px 4px 0;">Customer</th><th style="padding:3px 8px 4px 0;">Project / Invoice</th><th style="text-align:right;">Days</th></tr></thead><tbody>'+
+      rows.slice(0,12).map(r=>'<tr style="border-top:1px solid rgba(255,255,255,.05);"><td style="padding:4px 8px 4px 0;vertical-align:top;color:var(--text2);">'+_escH(r.customer)+'</td><td style="padding:4px 8px 4px 0;color:var(--text2);">'+_escH(r.project)+(r.invNo?'<div style="font-size:10px;color:var(--text3);">'+_escH(r.invNo)+'</div>':'')+'</td><td style="text-align:right;font-family:var(--mono);font-weight:700;vertical-align:top;color:'+col(r.dso)+';">'+r.dso+'d</td></tr>').join('')+
+      '</tbody></table>'+(rows.length>12?'<div style="font-size:10px;color:var(--text3);margin-top:4px;">+ '+(rows.length-12)+' more</div>':'')+
+      '<div style="font-size:10px;color:var(--text3);margin-top:6px;">'+rows.length+' invoice'+(rows.length!==1?'s':'')+' collected in the month · green ≤30d · amber 31–60d · red &gt;60d</div>';
+  } else h+='<div style="color:var(--text3);">No invoice detail available.</div>';
+  tip.innerHTML=h; tip.style.display='block'; tip.style.opacity='1';
+  const w=ctx.chart.canvas.offsetWidth, tw=tip.offsetWidth;
+  tip.style.left=Math.max(4,Math.min(t.caretX+14,w-tw-4))+'px'; tip.style.top='10px';
 }
 function tog(){return(document.getElementById('cashTog')?.value||'noloan')==='noloan';}
 function buildCashChart(){
@@ -2849,8 +2950,8 @@ function buildDSO(){
       {label:'30-day target',data:months.map(()=>30),borderColor:'rgba(46,204,143,0.5)',
        borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false}
     ]},
-    options:{...bO(),plugins:{...bO().plugins,
-      tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+c.parsed.y+(c.dataset.label==='DSO (days)'?' days':'')}}}
+    options:{...bO(),interaction:{mode:'index',intersect:false},plugins:{...bO().plugins,
+      tooltip:{enabled:false,external:ctx=>dsoExtTip(ctx)}}
     ,scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#cbd5e1',maxRotation:45}},
       y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>v+'d',color:'#cbd5e1'}}}}});
 
@@ -3518,6 +3619,7 @@ function processInvoices(rows){
     // and a recently-overdue one land in the same "1-60 days" bucket.
     let age60 = 0, age61to180 = 0, age180plus = 0, ageUnclassified = 0;
 
+    const outInvList = [];
     let invNotDue = 0, invOd30 = 0, invOd60 = 0, invOd60p = 0;   // Cash Flow tab: not-yet-due vs overdue split of Invoices Outstanding
     let notInvoicedTotal = 0;
     for(let i=1;i<rows.length;i++){
@@ -3589,9 +3691,11 @@ function processInvoices(rows){
         if(outInvDate && (!existing.invDate || outInvDate < existing.invDate)) existing.invDate = outInvDate;
         if(outCollIso) existing.collDates.push(outCollIso);
       } else { byCustomerProject.push({key, customer, project, amount: outstanding, amountNoVat: outNoVat, expMonth: expMo||null, invDate: outInvDate||null, collDates: outCollIso?[outCollIso]:[]}); }
+      outInvList.push({customer, project, invNo:(r[C.invoiceNo]||'').trim(), amount:outstanding, coll:outCollIso, invDate:outInvDate});
       grandTotal += outstanding;
       outstandingInvoiceCount++;
     }
+    window._outInvList = outInvList;
     window._notInvoiced = notInvoicedTotal;  // true unbounded total — used by the To Be Invoiced by Customer table footer
     const age60El = document.getElementById('col_age_60');
     const age61to180El = document.getElementById('col_age_61to180');
@@ -3611,6 +3715,7 @@ function processInvoices(rows){
     const monthlyTBI = new Array(24).fill(0);  // rolling 24 months from today, index 0 = current month — feeds the period-toggle sum and sparkline (a coarser, separate aggregate from the day-buckets above)
 
     const notInvRows=[];  // [{key, customer, project, amount}]
+    const draftInv=[];    // one entry per draft invoice row
     for(let i=1;i<rows.length;i++){
       const r=rows[i];if(!r[0]||!r[0].trim())continue;
       const st=(r[C.status]||'').trim().toLowerCase();
@@ -3622,13 +3727,15 @@ function processInvoices(rows){
       const key=cust+'||'+proj;
       const expMo=(r[0]||'').trim();  // Invoice Date, column A — the expected/target invoice date for draft rows
       const expKey=_parseYM(expMo);
+      draftInv.push({customer:cust, project:proj, invNo:(r[C.invoiceNo]||'').trim(), amount:amt, invKey:expKey, collIdx:null});
       // ── COLLECTION clock (col N): when this draft's cash is expected to land ──
       // Fallback chain for an undated row: col O month label → invoice month + 1 (no payment-term field mapped).
       let collKey = _collKeyOf(r);
       if(collKey==null && expKey!=null) collKey = expKey + 1;
       // Month timeline → Cash In Forecast. Already-past collection dates fold into the current month.
       { const idx = collKey==null ? 0 : Math.max(0, collKey - _curKey);
-        if(idx<24) collDraftMonthly[idx] += amt; }
+        if(idx<24) collDraftMonthly[idx] += amt;
+        draftInv[draftInv.length-1].collIdx = idx; }
       // Day-buckets → Collection Schedule (1-60 / 61-180 / 180+), same absolute-distance rule as Outstanding.
       { let collDate = _parseFullDate((r[C.expectedCollectionDate]||'').trim());
         if(!collDate && collKey!=null) collDate = new Date(Math.floor(collKey/12), collKey%12, 15);
@@ -3700,6 +3807,9 @@ function processInvoices(rows){
     window._cashInPeriod      = cashInOutstanding + cashInDraft;
     window._cashInOutstanding = cashInOutstanding;
     window._cashInDraft       = cashInDraft;
+    window._draftInv          = draftInv;
+    window._newInvList        = draftInv.filter(d=>d.collIdx!=null && d.collIdx<_tbiMonths);
+    { const e=document.getElementById('col_new_count'); if(e) e.textContent = String(window._newInvList.length); }
     window._cashInMonthly     = collOutMonthly.map((v,i)=>v+collDraftMonthly[i]);
 
     const periodLabelText = _tbiPeriodSel==='2026' ? 'through Dec 2026' : ('next '+_tbiMonths+' months');
@@ -3734,55 +3844,7 @@ function processInvoices(rows){
       ' | unbounded total (table footer)=', notInvoicedTotal);
 
 
-    // Invoicing Timeline chart — 3 trailing actual months + rolling 12 months forecast from today
-    (function(){
-      const tlEl = document.getElementById('tbi_timeline_chart'); if(!tlEl) return;
-      const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      const fcstLabels = monthlyTBI.map((_,i)=>{
-        const d = new Date(_now.getFullYear(), _now.getMonth()+i, 1);
-        return MN[d.getMonth()]+" '"+String(d.getFullYear()).slice(2);
-      });
-      // 3 trailing actual months — Revenue Invoiced (A) from Staging, same source as the Invoiced vs
-      // Collected chart. Uses window._s26 (2026 rows); if the lookback crosses into a year not covered
-      // there, that slot is left blank rather than guessed.
-      const s26tl = window._s26 || [];
-      const actLabels = [], actVals = [];
-      for(let k=3; k>=1; k--){
-        const d = new Date(_now.getFullYear(), _now.getMonth()-k, 1);
-        const lbl = MN[d.getMonth()]+" '"+String(d.getFullYear()).slice(2);
-        actLabels.push(lbl);
-        const row = s26tl.find(r=>r.date===lbl);
-        actVals.push(row ? (row.rA||0) : null);
-      }
-      const labels = actLabels.concat(fcstLabels);
-      const actualData = actVals.concat(fcstLabels.map(()=>null));
-      const fcstData = actLabels.map(()=>null).concat(monthlyTBI);
-      destroyChart('tbi_timeline_chart');
-      charts['tbi_timeline_chart'] = new Chart(tlEl, {type:'bar',
-        data:{labels, datasets:[
-          {
-            label:'Invoiced (Actual)',
-            data: actualData,
-            backgroundColor:'rgba(148,163,184,0.55)',
-            borderColor:'#94a3b8',
-            borderWidth:1.5,
-            borderRadius:4
-          },
-          {
-            label:'To Be Invoiced',
-            data: fcstData,
-            backgroundColor:'rgba(15,184,184,0.65)',
-            borderColor:'#0fb8b8',
-            borderWidth:1.5,
-            borderRadius:4
-          }
-        ]},
-        options:{responsive:true, maintainAspectRatio:false,
-          plugins:{legend:{display:true, position:'top', labels:{boxWidth:10,padding:10,color:'#cbd5e1',font:{size:11}}},
-            tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
-          scales:{x:{grid:{color:'rgba(255,255,255,0.03)'},ticks:{color:'#b3c1d1'}},
-                  y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{callback:v=>fN(v),color:'#b3c1d1'}}}}});
-    })();
+    buildInvFcstChart();
 
     // Cash In Forecast sparkline — month-by-month expected collections (Outstanding + not-yet-invoiced, both
     // placed by Expected Collection Date, col N) over the next 12 months. Month 0 includes any overdue AR.
@@ -3820,13 +3882,15 @@ function processInvoices(rows){
       if(isNaN(invD)||isNaN(colD)||!colMo)continue;
       const dso=Math.round((colD-invD)/(86400000));
       if(dso<0||dso>500)continue;
-      if(!dsoByMonth[colMo]){dsoByMonth[colMo]={sum:0,n:0};}
+      if(!dsoByMonth[colMo]){dsoByMonth[colMo]={sum:0,n:0,items:[]};}
       dsoByMonth[colMo].sum+=dso;dsoByMonth[colMo].n+=1;
+      dsoByMonth[colMo].items.push({customer:(r[C.customer]||'').trim(), project:(r[C.project]||'').trim(), invNo:(r[C.invoiceNo]||'').trim(), dso, amt:Math.abs(pv(r[C.amountDso]))});
     }
     const dsoSorted=Object.keys(dsoByMonth).sort();
     const mN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     window._dsoMonths=dsoSorted.map(m=>{const p=m.split('-');return mN[parseInt(p[1])-1]+"'"+(p[0].slice(2));});
     window._dsoVals  =dsoSorted.map(m=>Math.round(dsoByMonth[m].sum/dsoByMonth[m].n));
+    window._dsoDetail=dsoSorted.map(m=>dsoByMonth[m].items);
 
     // ── Live DSO calculation
     
