@@ -1399,7 +1399,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v160ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v161ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -2472,6 +2472,9 @@ function buildScenChart(){
         // actual-to-date figure with the whole-month estimate, since the forecast is an independent
         // full-month projection, not something layered additively on top of actual-to-date.
         _curMoFullForecastNetFlow = fBaseIn + fPipelineIn + fCashOut;
+        // Effective full-month in/out: if actual-to-date already exceeds the forecast on either side, the ACTUAL is used.
+        entry.fcst.effIn  = Math.max(fBaseIn + fPipelineIn, c.cIA||0);
+        entry.fcst.effOut = Math.min(fCashOut, c.cOA_op||0);   // outflows are negative: min = larger outflow
         // Re-anchored to TODAY'S cash: end-of-month balance = today's cash (DB1) + remaining cash in − remaining cash out,
         // where remaining = full-month forecast − actual-to-date (never negative: a month can't "un-collect" or "un-pay").
         const _todayCash = (window._db1Banks!=null) ? ((window._db1Banks||0)+(window._db1Safe||0)+(window._db1Projects||0)) : 0;
@@ -2921,8 +2924,8 @@ function buildScenChart(){
       // Current month: Total Out / Net Flow / Balance come from the full-month forecast (mo_fcst), which
       // supersedes actual-to-date rather than layering on top of it, since the forecast independently
       // estimates the whole month. Balance chains from the PRIOR month's real ending balance.
-      var coDisplay = (isCurrentMo && mo_fcst) ? mo_fcst.cashOut : co;
-      var ntDisplay = (isCurrentMo && mo_fcst) ? mo_fcst.netFlow : nt;
+      var coDisplay = (isCurrentMo && mo_fcst) ? (mo_fcst.effOut!=null?mo_fcst.effOut:mo_fcst.cashOut) : co;
+      var ntDisplay = (isCurrentMo && mo_fcst) ? (mo_fcst.effIn!=null ? mo_fcst.effIn+coDisplay : mo_fcst.netFlow) : nt;
       var priorBal  = scenBal[i-1]!==undefined ? scenBal[i-1] : bv;
       var bvDisplay = (isCurrentMo && mo_fcst) ? (mo_fcst.endBal!=null ? mo_fcst.endBal : priorBal + mo_fcst.netFlow) : bv;
       lastBvDisplay = bvDisplay;
