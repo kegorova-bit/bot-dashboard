@@ -176,6 +176,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .co-sel{width:100%;font-size:11px;}
 .co-btn{font-size:10px;padding:5px 8px;background:rgba(11,18,32,.6);border:1px solid rgba(15,184,184,.5);border-radius:6px;color:var(--teal);cursor:pointer;font-family:var(--font);font-weight:600;}
 @media(max-width:1100px){.co-grid{grid-template-columns:1fr;}}
+.ytd-row{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;margin-bottom:20px;align-items:stretch;}
+.ytd-hd{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.ytd-chip{font-size:12px;font-weight:700;color:var(--text2);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;background:var(--bg2);}
+.ytd-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+.ytd-card{border:1.5px solid;border-radius:14px;padding:16px 18px;background:var(--bg);min-width:0;}
+.ytd-ch-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);}
+.ytd-lg{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);white-space:nowrap;}
+.ytd-lg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:6px;}
+.ytd-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-bottom:20px;}
+.ytd-take{display:flex;gap:14px;align-items:flex-start;padding:12px 0;}
+.ytd-take+.ytd-take{border-top:1px solid var(--border);}
+.ytd-arrow{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;}
+.ytd-arrow svg{width:20px;height:20px;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;}
+.ytd-vrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:14px 0;}
+.ytd-vrow+.ytd-vrow{border-top:1px solid var(--border);}
+.ytd-pill{font-family:var(--mono);font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid;min-width:70px;text-align:center;}
+@media(max-width:1200px){.ytd-row,.ytd-charts{grid-template-columns:1fr;}.ytd-cards{grid-template-columns:1fr;}}
 .cf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
 .cf-title{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.3px;line-height:1.15;}
 .cf-subtitle{font-size:14px;color:var(--text3);margin-top:4px;}
@@ -410,26 +427,59 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     </div>
     <div class="cw"><canvas id="c2026f"></canvas></div>
   </div>
-</div>
 
 <!-- ══════════ FINANCIALS 2025 ══════════ -->
   </div>
   <!-- YTD Analysis sub-view -->
   <div id="sv-ytd" class="sub-view" style="display:none;">
-  <div class="slabel"><span>YTD Analysis</span> — Year to Date, Through the Last Confirmed Month</div>
-
-  <div class="card mb">
-    <div class="ch"><div><div class="ctitle">2026 YTD Actuals vs Full Year Target</div><div class="csub">YTD actuals as a % of full-year target. Based on static budget forecast (v0) · <span style="color:var(--amber);font-weight:700;">▍amber marker</span> = expected pace (<span id="yc_pace_txt">—</span> of the year complete); green/red compares actual with that pace</div></div>
-      <div style="font-size:11px;font-weight:700;color:var(--text2);background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;">YTD 2026</div>
+  <div class="cf-head">
+    <div>
+      <div class="cf-title">YTD Analysis</div>
+      <div class="cf-subtitle">Year to date, through the last confirmed month</div>
     </div>
-    <div id="yc2026" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;"></div>
+    <div class="cf-asof"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>YTD 2026</span></div>
   </div>
 
-  <div class="card mb">
-    <div class="ch"><div><div class="ctitle">2026 YTD Actuals vs YTD Forecast – Variance</div><div class="csub">To the last completed month · progress = actual as % of forecast for the same period. Based on adjusted budget forecast (BudgetF)<span id="ytdv_src_note"></span></div></div>
-      <div style="font-size:11px;font-weight:700;color:var(--text2);background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;">YTD 2026</div>
+  <div class="ytd-row">
+    <div class="co-panel">
+      <div class="ytd-hd">
+        <div class="cf-ic" style="width:46px;height:46px;background:rgba(245,166,35,.16);"><svg viewBox="0 0 24 24" style="stroke:var(--amber);"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.8"/></svg></div>
+        <div style="flex:1;min-width:0;">
+          <div class="cf-sec-t">YTD Actuals vs Full Year Target</div>
+          <div class="cf-sec-s" style="display:block;margin-top:3px;">YTD actuals as a % of full-year target · based on static budget forecast (v0) · <span style="color:var(--amber);font-weight:700;">▍</span> = expected pace (<span id="yc_pace_txt">—</span> of the year complete)</div>
+        </div>
+        <div class="ytd-chip">YTD 2026</div>
+      </div>
+      <div id="yc2026" class="ytd-cards"></div>
     </div>
-    <div id="ytdv_grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:4px 4px 8px;"></div>
+    <div class="co-panel" id="ytd_takeaways">
+      <div class="ytd-hd" style="margin-bottom:12px;"><div class="cf-ic" style="width:34px;height:34px;background:transparent;"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:var(--amber);"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0012 3z"/></svg></div><div class="cf-sec-t" style="font-size:14px;">Key takeaways (vs target)</div></div>
+      <div id="ytd_take_list"></div>
+    </div>
+  </div>
+
+  <div class="ytd-row">
+    <div class="co-panel">
+      <div class="ytd-hd">
+        <div class="cf-ic" style="width:46px;height:46px;background:rgba(99,179,237,.16);"><svg viewBox="0 0 24 24" style="stroke:#63b3ed;"><path d="M5 20V11M12 20V5M19 20v-7"/></svg></div>
+        <div style="flex:1;min-width:0;">
+          <div class="cf-sec-t">YTD Actuals vs YTD Forecast</div>
+          <div class="cf-sec-s" style="display:block;margin-top:3px;">To the last completed month · progress = actual as % of forecast for the same period · adjusted budget forecast (BudgetF)<span id="ytdv_src_note"></span></div>
+        </div>
+        <div class="ytd-chip">YTD 2026</div>
+      </div>
+      <div id="ytdv_grid" class="ytd-cards"></div>
+    </div>
+    <div class="co-panel" id="ytd_varpanel">
+      <div class="ytd-hd" style="margin-bottom:6px;"><div class="cf-ic" style="width:34px;height:34px;background:transparent;"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:#63b3ed;"><path d="M5 20V11M9 20V7M13 20V13M17 20V4M21 20v-9"/></svg></div><div class="cf-sec-t" style="font-size:14px;">Variance to forecast</div></div>
+      <div id="ytd_var_list"></div>
+    </div>
+  </div>
+
+  <div class="ytd-charts">
+    <div class="co-panel" style="padding:14px 16px;"><div class="ytd-ch-h"><span>Revenue — Actual vs Forecast (YTD)</span><span class="ytd-lg"><i style="background:#22d3ee"></i>Actual<i style="background:#64748b"></i>Forecast</span></div><div style="position:relative;height:150px;"><canvas id="ytd_ch_rev"></canvas></div></div>
+    <div class="co-panel" style="padding:14px 16px;"><div class="ytd-ch-h"><span>Expenses — Actual vs Forecast (YTD)</span><span class="ytd-lg"><i style="background:#3ccfae"></i>Actual<i style="background:#64748b"></i>Forecast</span></div><div style="position:relative;height:150px;"><canvas id="ytd_ch_exp"></canvas></div></div>
+    <div class="co-panel" style="padding:14px 16px;"><div class="ytd-ch-h"><span>Op. Profit — Actual vs Forecast (YTD)</span><span class="ytd-lg"><i style="background:#ff6f6f"></i>Actual<i style="background:#64748b"></i>Forecast</span></div><div style="position:relative;height:150px;"><canvas id="ytd_ch_prof"></canvas></div></div>
   </div>
 
   <div class="card mb">
@@ -823,7 +873,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div id="colTbiPeriodDefaultNote" style="font-size:8px;text-align:center;color:var(--text3);"></div>
         </div>
       </div>
-      <div style="padding:16px 22px 20px;display:flex;flex-direction:column;gap:20px;flex:1;justify-content:center;">
+      <div style="padding:16px 22px 20px;display:flex;flex-direction:column;gap:18px;flex:1;justify-content:space-evenly;">
         <div style="text-align:center;font-size:12px;color:var(--text2);">Cash in Forecast = Invoices Outstanding + Collections from New Invoices</div>
         <div class="co-eq" style="gap:10px;">
           <span class="co-chip a" id="col_eq_out">—</span><span class="co-op">+</span><span class="co-chip t" id="col_eq_new">—</span><span class="co-op">=</span><span class="co-chip t" id="col_eq_tot">—</span>
@@ -832,10 +882,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div class="co-sub a" style="padding:12px 14px;gap:10px;">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cf-ic" style="width:38px;height:38px;background:rgba(245,166,35,.2);"><svg viewBox="0 0 24 24" style="stroke:var(--amber);width:19px;height:19px;"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6"/></svg></div>
-              <div style="flex:1;min-width:0;"><div class="co-lbl" style="color:var(--amber);font-size:11px;">Invoices Outstanding</div><div id="col_inv_out" class="co-val" style="color:var(--amber);font-size:22px;margin-top:1px;">—</div></div>
+              <div style="flex:1;min-width:0;"><div class="co-lbl" style="color:var(--amber);font-size:11px;min-height:28px;display:flex;align-items:flex-end;">Invoices Outstanding</div><div id="col_inv_out" class="co-val" style="color:var(--amber);font-size:22px;margin-top:1px;">—</div></div>
             </div>
             <div id="col_inv_out_note" style="display:none;font-size:10px;line-height:1.35;color:var(--text3);"></div>
-            <div style="border-top:1px solid rgba(245,166,35,.28);padding-top:9px;display:flex;gap:18px;align-items:flex-end;">
+            <div style="border-top:1px solid rgba(245,166,35,.28);padding-top:9px;margin-top:auto;display:flex;gap:20px;align-items:flex-end;min-height:48px;">
               <div id="col_inv_hover" class="co-hov"><div style="font-size:17px;font-weight:700;color:var(--text);" id="col_inv_count">—</div><div class="co-cap co-dot" style="margin:0;font-size:10px;">Invoices</div></div>
               <div><div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--green);" id="col_inv_notdue">—</div><div class="co-cap" style="margin:0;font-size:10px;">Not yet due</div></div>
               <div><div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--coral);" id="col_inv_overdue">—</div><div class="co-cap" style="margin:0;font-size:10px;">Overdue</div></div>
@@ -844,9 +894,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
           <div class="co-sub t" style="padding:12px 14px;gap:10px;">
             <div style="display:flex;align-items:center;gap:12px;">
               <div class="cf-ic" style="width:38px;height:38px;background:rgba(15,184,184,.22);"><svg viewBox="0 0 24 24" style="stroke:var(--teal);width:19px;height:19px;"><path d="M7 3h7l5 5v13H7zM14 3v5h5M12 11v6M9 14h6"/></svg></div>
-              <div style="flex:1;min-width:0;"><div id="col_cashin_draft_label" class="co-lbl" style="color:var(--teal);font-size:11px;">Collections from new invoices</div><div id="col_cashin_draft" class="co-val" style="color:var(--teal);font-size:22px;margin-top:1px;">—</div></div>
+              <div style="flex:1;min-width:0;"><div id="col_cashin_draft_label" class="co-lbl" style="color:var(--teal);font-size:11px;min-height:28px;display:flex;align-items:flex-end;">Collections from new invoices</div><div id="col_cashin_draft" class="co-val" style="color:var(--teal);font-size:22px;margin-top:1px;">—</div></div>
             </div>
-            <div style="border-top:1px dashed rgba(15,184,184,.35);padding-top:9px;display:flex;gap:22px;align-items:flex-end;">
+            <div style="border-top:1px dashed rgba(15,184,184,.35);padding-top:9px;margin-top:auto;display:flex;gap:20px;align-items:flex-end;min-height:48px;">
               <div id="col_new_hover" class="co-hov"><div style="font-size:17px;font-weight:700;color:var(--text);" id="col_new_count">—</div><div class="co-cap co-dot" style="margin:0;font-size:10px;">New invoices</div></div>
               <div><div style="font-size:14px;font-weight:700;font-family:var(--mono);color:var(--text);" id="col_not_inv">—</div><div id="col_wtbi_label" class="co-cap" style="margin:0;font-size:10px;">Won → To Be Invoiced</div></div>
             </div>
@@ -880,26 +930,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <!-- ═══ RIGHT: YTD Collected + Runway, then chart ═══ -->
     <div style="display:flex;flex-direction:column;gap:20px;min-width:0;">
       <div style="display:grid;grid-template-columns:1fr 1.15fr;gap:20px;">
-        <div class="co-panel co-green" style="display:flex;align-items:center;gap:16px;">
+        <div class="co-panel co-green" style="display:flex;align-items:center;gap:16px;padding:16px 20px;">
           <div class="cf-ic" style="width:60px;height:60px;background:rgba(46,204,143,.2);"><svg viewBox="0 0 24 24" style="stroke:var(--green);"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></div>
           <div style="flex:1;min-width:0;">
             <div class="co-lbl" style="color:var(--green);">YTD Collected</div>
             <div id="col_ytd" class="co-val" style="color:var(--green);font-size:30px;">—</div>
             <div class="co-cap">Actual cash collected Jan–today</div>
-            <div id="col_ytd_pct" class="co-cap" style="margin-top:8px;color:var(--text2);">—</div>
+            <div id="col_ytd_pct" class="co-cap" style="margin-top:6px;color:var(--text2);">—</div>
             <div style="height:7px;border-radius:4px;background:rgba(148,163,184,.16);margin-top:5px;overflow:hidden;"><div id="col_ytd_bar" style="height:100%;width:0;background:var(--green);border-radius:4px;"></div></div>
           </div>
         </div>
-        <div id="col_runway_card" class="co-panel co-navy">
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-            <div class="cf-ic" style="width:44px;height:44px;"><svg viewBox="0 0 24 24" style="width:22px;height:22px;"><path d="M6 3h12M6 21h12M7 3v3.5a5 5 0 002 4l3 2.5-3 2.5a5 5 0 00-2 4V21M17 3v3.5a5 5 0 01-2 4L12 13l3 2.5a5 5 0 012 4V21"/></svg></div>
+        <div id="col_runway_card" class="co-panel co-navy" style="padding:16px 20px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div class="cf-ic" style="width:36px;height:36px;"><svg viewBox="0 0 24 24" style="width:22px;height:22px;"><path d="M6 3h12M6 21h12M7 3v3.5a5 5 0 002 4l3 2.5-3 2.5a5 5 0 00-2 4V21M17 3v3.5a5 5 0 01-2 4L12 13l3 2.5a5 5 0 012 4V21"/></svg></div>
             <div class="co-lbl">Runway</div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <div style="min-width:0;">
               <div class="co-cap" style="margin:0 0 4px;font-weight:700;color:var(--text2);">Based on actual cash</div>
-              <div id="col_runway_act_val" class="co-val" style="font-size:26px;">—</div>
-              <div id="col_runway_act_sub" class="co-cap" style="line-height:1.35;">Current cash ÷ avg monthly outflow</div>
+              <div id="col_runway_act_val" class="co-val co-hov" style="font-size:26px;display:inline-block;border-bottom:1px dotted var(--text3);">—</div><span id="col_runway_act_sub" style="display:none;"></span>
             </div>
             <div style="min-width:0;border-left:1px solid var(--border2);padding-left:14px;">
               <div class="co-cap" style="margin:0 0 4px;font-weight:700;color:var(--text2);">Based on forecast</div>
@@ -907,7 +956,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <div id="col_runway_sub" class="co-cap" style="line-height:1.35;">Balance outlook</div>
             </div>
           </div>
-          <div style="margin-top:12px;font-size:11px;color:var(--teal);">Scenario Builder settings · Cash Flow tab ›</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--teal);">Scenario Builder settings · Cash Flow tab ›</div>
         </div>
       </div>
 
@@ -918,6 +967,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <div class="ctitle">Collections — Actual vs Forecast</div>
             <div class="csub" id="col_chart_subtitle" style="margin-top:4px;">Solid bars = collected · Light bars = forecast</div>
           </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end;">
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="tl">Display period</span>
             <select class="ts" id="colPeriodTog" style="font-size:11px;">
@@ -926,14 +976,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
               <option value="12mo">12-Month Forecast (+3 actual)</option>
             </select>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;">
-          <div class="scr" style="flex-wrap:nowrap;gap:8px;">
-            <div class="sc g" style="min-width:108px;padding:8px 12px;"><div class="slb">YTD Actual</div><div class="sv g" id="col_sc_actual">—</div></div>
-            <div class="sc b" style="min-width:108px;padding:8px 12px;" title="Planned (static) cash-in forecast for the same months that already have actual collections"><div class="slb">YTD Forecast</div><div class="sv b" id="col_sc_ytdfcst">—</div></div>
-            <div class="sc t" style="min-width:140px;padding:8px 12px;" title="Expected collections from today to the end of the chosen display period (incl. the selected pipeline %)"><div class="slb" id="col_sc_fcst_label">Forecast to period end</div><div class="sv t" id="col_sc_fcst">—</div></div>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <span class="tl">Forecast</span>
             <select class="ts" id="colFcstTog" onchange="setPipelinePct(this.value);" style="font-size:11px;">
               <option value="0" selected>Pipeline 0%</option>
@@ -946,9 +989,17 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
             <button onclick="saveColChartDefault()" style="font-size:9px;padding:5px 9px;background:rgba(15,184,184,0.12);border:1px solid rgba(15,184,184,0.3);border-radius:6px;color:var(--teal);cursor:pointer;font-family:var(--font);" title="Save the current Display period and Pipeline % as the default view">📌 Set as default</button>
             <span id="colChartDefaultNote" style="font-size:8px;color:var(--text3);min-width:34px;"></span>
           </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:14px;">
+          <div class="scr" style="flex-wrap:nowrap;gap:8px;">
+            <div class="sc g" style="min-width:108px;padding:8px 12px;"><div class="slb">YTD Actual</div><div class="sv g" id="col_sc_actual">—</div></div>
+            <div class="sc b" style="min-width:108px;padding:8px 12px;" title="Planned (static) cash-in forecast for the same months that already have actual collections"><div class="slb">YTD Forecast</div><div class="sv b" id="col_sc_ytdfcst">—</div></div>
+            <div class="sc t" style="min-width:140px;padding:8px 12px;" title="Expected collections from today to the end of the chosen display period (incl. the selected pipeline %)"><div class="slb" id="col_sc_fcst_label">Forecast to period end</div><div class="sv t" id="col_sc_fcst">—</div></div>
+          </div>
         </div>
         <div style="position:relative;margin-top:12px;">
-          <div class="cw" style="height:215px;"><canvas id="col_fwd"></canvas></div>
+          <div class="cw" style="height:185px;"><canvas id="col_fwd"></canvas></div>
           <div id="col-tooltip" class="inv-tip" style="display:none;opacity:0;"></div>
         </div>
       </div>
@@ -980,6 +1031,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <tfoot><tr><td></td><td colspan="2"><strong>Total Outstanding</strong></td><td class="num"><strong id="out_total_novat">—</strong></td><td></td><td class="num"><strong id="out_total_val">—</strong></td><td></td><td><strong>100%</strong></td></tr></tfoot>
     </table>
   </div>
+  <!-- Invoicing Forecast — hover a bar for the invoices to be issued that month -->
+  <div class="card accent mb">
+    <div class="ch">
+      <div><div class="ctitle">Invoicing Forecast</div><div class="csub">Grey = actual invoiced · Teal = draft to-be-invoiced by expected Invoice Date · hover a bar to see the invoices</div></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span class="tl">Display period</span>
+        <select class="ts" id="invPeriodTog" onchange="buildInvFcstChart()" style="font-size:11px;">
+          <option value="2026">2026 (Full Year)</option>
+          <option value="6mo">6-Month Forecast (+3 actual)</option>
+          <option value="12mo" selected>12-Month Forecast (+3 actual)</option>
+        </select>
+      </div>
+    </div>
+    <div style="position:relative;"><div class="cw tall"><canvas id="tbi_timeline_chart"></canvas></div><div id="inv_fcst_tip" class="inv-tip" style="display:none;opacity:0;"></div></div>
+  </div>
+
   <!-- To be invoiced by customer -->
   <div class="out-table-wrap mb">
     <div style="padding:14px 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
@@ -1037,22 +1104,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div style="grid-row:5;grid-column:3;"></div>
       </div>
     </div>
-
-  <!-- Invoicing Forecast — hover a bar for the invoices to be issued that month -->
-  <div class="card accent mb">
-    <div class="ch">
-      <div><div class="ctitle">Invoicing Forecast</div><div class="csub">Grey = actual invoiced · Teal = draft to-be-invoiced by expected Invoice Date · hover a bar to see the invoices</div></div>
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span class="tl">Display period</span>
-        <select class="ts" id="invPeriodTog" onchange="buildInvFcstChart()" style="font-size:11px;">
-          <option value="2026">2026 (Full Year)</option>
-          <option value="6mo">6-Month Forecast (+3 actual)</option>
-          <option value="12mo" selected>12-Month Forecast (+3 actual)</option>
-        </select>
-      </div>
-    </div>
-    <div style="position:relative;"><div class="cw tall"><canvas id="tbi_timeline_chart"></canvas></div><div id="inv_fcst_tip" class="inv-tip" style="display:none;opacity:0;"></div></div>
-  </div>
 
   <div class="two">
     <div class="card accent mb">
@@ -1348,7 +1399,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v158collections-hovers · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v160ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1483,25 +1534,30 @@ function processStaging(rows){
     renderYtdKpiColumn({
       label:'Revenue', topLine:'YTD Actual',
       mainValue:fC(t26.rA), mainColor:'var(--teal)',
-      secondaryText:`Target: ${fmt(totRF26)}`,
+      secLabel:'Target', secValue:fC(totRF26),
       varLabel:'to target', varAmt:t26.rA-totRF26, base:totRF26, favorable:t26.rA>=totRF26*paceYtd, pacePct:paceYtd*100,
       progressPct: totRF26?(t26.rA/totRF26*100):0, pctSuffix:'of full-year target'
     }) +
     renderYtdKpiColumn({
       label:'Expenses', topLine:'YTD Actual',
       mainValue:fC(Math.abs(t26.eA)), mainColor: Math.abs(t26.eA)<=Math.abs(totEF26)?'var(--green)':'var(--coral)',
-      secondaryText:`Target: ${fmt(Math.abs(totEF26))}`,
+      secLabel:'Target', secValue:fC(Math.abs(totEF26)),
       varLabel:'to target', varAmt:Math.abs(totEF26)-Math.abs(t26.eA), base:totEF26, favorable:Math.abs(t26.eA)<=Math.abs(totEF26)*paceYtd, pacePct:paceYtd*100,
       progressPct: totEF26?(Math.abs(t26.eA)/Math.abs(totEF26)*100):0, pctSuffix:'of full-year target'
     }) +
     renderYtdKpiColumn({
       label:'Operating Profit', topLine:'YTD Actual',
       mainValue:fC(t26.pA), mainColor: t26.pA>=0?'var(--green)':'var(--coral)',
-      secondaryText:`Target: ${fmt(totPF26)}`,
+      secLabel:'Target', secValue:fC(totPF26),
       varLabel:'to target', varAmt:t26.pA-totPF26, base:totPF26, favorable:t26.pA>=totPF26*paceYtd, pacePct:paceYtd*100,
       progressPct: totPF26?(t26.pA/totPF26*100):0, pctSuffix:'of full-year target'
     });
   { const pt=document.getElementById('yc_pace_txt'); if(pt) pt.textContent=Math.round(paceYtd*100)+'%'; }
+  buildYtdTakeaways([
+    {label:'Revenue',          actual:t26.rA,             target:totRF26,            lowerIsBetter:false},
+    {label:'Expenses',         actual:Math.abs(t26.eA),   target:Math.abs(totEF26),  lowerIsBetter:true},
+    {label:'Operating profit', actual:t26.pA,             target:totPF26,            lowerIsBetter:false}
+  ], paceYtd*100);
   const sc=document.getElementById('sc_pA');sc.textContent=fmt(t26.pA);sc.className='sv '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_pA_wrap').className='sc '+(t26.pA>=0?'g':'r');
   document.getElementById('sc_mA').textContent=fPct(t26.pA,t26.rA);
@@ -1775,6 +1831,7 @@ function buildVarTable(s26){
   window._ytdVarData = {tRA,tRF,tEA,tEF,tPA,tPF};
   { const n=document.getElementById('ytdv_src_note'); if(n) n.textContent = bf ? '' : ' — ⚠ BudgetF not available, showing Staging base forecast'; }
   updateYtdVarianceDash();
+  buildYtdMiniCharts(s26, bf);
 }
 
 // Actual vs Forecast chart — toggle-able by variable (Revenue / Expenses / Operating Profit).
@@ -1814,37 +1871,94 @@ function buildAvfChart(){
 // similar) since they're built from the exact same template function. Six fixed-height rows: label,
 // top line, main value, secondary text, variance line, progress bar + % label.
 const YTD_ICONS = {
-  'Revenue':          {icon:'📊', bg:'rgba(15,184,184,.18)'},
-  'Expenses':         {icon:'🪙', bg:'rgba(46,204,143,.18)'},
-  'Operating Profit': {icon:'📈', bg:'rgba(46,204,143,.18)'}
+  'Revenue':          {svg:'<path d="M5 20V11M12 20V5M19 20v-7"/>', col:'#63b3ed', bg:'rgba(99,179,237,.2)', frame:'rgba(99,179,237,.7)', fixed:true},
+  'Expenses':         {svg:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>', col:'#2ECC8F', bg:'rgba(46,204,143,.2)'},
+  'Operating Profit': {svg:'<path d="M3 17l6-6 4 4 8-8M15 7h6v6"/>', col:'#ff6b6b', bg:'rgba(255,107,107,.2)'}
 };
 function renderYtdKpiColumn(opts){
-  const favColor = opts.favorable ? 'var(--green)' : 'var(--coral)';
+  const fav = !!opts.favorable;
+  const favColor = fav ? 'var(--green)' : 'var(--coral)';
   const pct = Math.max(0, opts.progressPct||0);
-  const barWidth = Math.min(100, (pct/150)*100);
-  const varSign = opts.varAmt>=0 ? '+' : '';
-  const iconInfo = YTD_ICONS[opts.label] || {icon:'●', bg:'rgba(255,255,255,.08)'};
-  return `<div style="background:var(--bg);border:1px solid var(--border2);border-radius:12px;padding:20px;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-      <div style="width:44px;height:44px;border-radius:50%;background:${iconInfo.bg};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">${iconInfo.icon}</div>
-      <div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;">${opts.label}</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:2px;">${opts.topLine||'&nbsp;'}</div>
-      </div>
+  const barWidth = Math.min(100, pct);
+  const varSign = opts.varAmt>=0 ? '+' : '-';
+  const ic = YTD_ICONS[opts.label] || {svg:'<circle cx="12" cy="12" r="4"/>', bg:'rgba(255,255,255,.08)', col:'#cbd5e1'};
+  const frame = ic.fixed ? ic.frame : (fav ? 'rgba(46,204,143,.7)' : 'rgba(255,107,107,.7)');
+  const iconBg = ic.fixed ? ic.bg : (fav ? 'rgba(46,204,143,.2)' : 'rgba(255,107,107,.2)');
+  const iconCol = ic.fixed ? ic.col : (fav ? '#2ECC8F' : '#ff6b6b');
+  return `<div class="ytd-card" style="border-color:${frame};">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div class="cf-ic" style="width:44px;height:44px;background:${iconBg};"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:${iconCol};fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;">${ic.svg}</svg></div>
+      <div><div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;">${opts.label}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">${opts.topLine||'&nbsp;'}</div></div>
     </div>
-    <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--text);min-height:34px;">${opts.mainValue}</div>
-    <div style="display:flex;align-items:center;gap:12px;margin-top:14px;">
-      <div style="flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;position:relative;">
-        <div style="position:absolute;left:66.7%;top:-3px;bottom:-3px;width:2px;background:rgba(255,255,255,.5);"></div>
-        ${opts.pacePct!=null?`<div title="Expected pace: ${opts.pacePct.toFixed(0)}% of the full-year target by now" style="position:absolute;left:${Math.min(100,opts.pacePct/150*100)}%;top:-6px;bottom:-6px;width:0;border-left:3px solid var(--amber);border-radius:2px;"></div>`:''}
-        <div style="height:100%;width:${barWidth}%;border-radius:4px;background:${favColor};"></div>
-      </div>
-      <div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text2);white-space:nowrap;flex:0 0 178px;width:178px;text-align:right;">${opts.secondaryText||''}</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:14px;">
+      <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--text);line-height:1.1;">${opts.mainValue}</div>
+      <div style="text-align:right;"><div style="font-size:11px;color:var(--text3);">${opts.secLabel||''}</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text2);">${opts.secValue||'—'}</div></div>
     </div>
-    <div style="margin-top:10px;min-height:26px;"><span style="display:inline-block;font-family:var(--mono);font-size:13px;font-weight:700;color:#0b1220;background:${favColor};padding:4px 11px;border-radius:999px;">${pct.toFixed(1)}% · ${varSign}${fC(opts.varAmt)} ${opts.varLabel}</span></div>
+    <div style="height:9px;background:var(--bg3);border-radius:5px;position:relative;margin-top:14px;">
+      <div style="height:100%;width:${barWidth}%;border-radius:5px;background:${favColor};"></div>
+      ${opts.pacePct!=null?`<div title="Expected pace: ${opts.pacePct.toFixed(0)}% of the full-year target by now" style="position:absolute;left:${Math.min(100,opts.pacePct)}%;top:-4px;bottom:-4px;width:0;border-left:3px solid var(--amber);border-radius:2px;"></div>`:''}
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+      <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:${favColor};">${pct.toFixed(1)}%</div>
+      <div style="width:1px;height:20px;background:var(--border2);"></div>
+      <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${favColor};">${varSign}${fC(Math.abs(opts.varAmt))} ${opts.varLabel}</div>
+    </div>
   </div>`;
 }
 
+
+// "Key takeaways (vs target)" — one row per metric: pp ahead/behind the expected pace, $ vs full-year target, % vs pace
+function buildYtdTakeaways(rows, pacePct){
+  const el=document.getElementById('ytd_take_list'); if(!el) return;
+  const arrow=(up)=>up?'<path d="M12 19V5M5 12l7-7 7 7"/>':'<path d="M12 5v14M19 12l-7 7-7-7"/>';
+  el.innerHTML = rows.map(r=>{
+    const pct = r.target ? r.actual/Math.abs(r.target)*100 : 0;
+    const diffPp = r.lowerIsBetter ? pacePct-pct : pct-pacePct;      // positive = favourable
+    const good = diffPp>=0, col = good?'var(--green)':'var(--coral)';
+    const vs = r.actual-r.target;
+    return `<div class="ytd-take"><div class="ytd-arrow" style="background:${good?'rgba(46,204,143,.18)':'rgba(255,107,107,.18)'};"><svg viewBox="0 0 24 24" style="stroke:${col};">${arrow(good)}</svg></div>
+      <div style="min-width:0;"><div style="font-size:15px;font-weight:700;color:var(--text);">${r.label} <span style="color:${col};">${Math.abs(diffPp).toFixed(1)} pp ${good?'ahead':'behind'}</span></div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px;">${fmt(Math.abs(vs))} ${vs<0?'below':'above'} full-year target</div>
+      <div style="font-size:12px;color:var(--text3);">(${pct.toFixed(1)}% vs ${pacePct.toFixed(0)}% expected pace)</div></div></div>`;
+  }).join('');
+}
+// "Variance to forecast" list (YTD actual vs YTD forecast)
+function buildYtdVarList(d){
+  const el=document.getElementById('ytd_var_list'); if(!el) return;
+  const row=(lbl,amt,base,good)=>{
+    const col=good?'var(--green)':'var(--coral)', bg=good?'rgba(46,204,143,.16)':'rgba(255,107,107,.16)';
+    const p=base?amt/Math.abs(base)*100:null;
+    return `<div class="ytd-vrow"><div style="font-size:14px;color:var(--text);">${lbl}</div><div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${col};">${amt>=0?'+':'-'}${fC(Math.abs(amt))}</div><div class="ytd-pill" style="color:${col};background:${bg};border-color:${col};">${p==null?'—':(p>=0?'+':'')+p.toFixed(1)+'%'}</div></div>`;
+  };
+  const rv=d.tRA-d.tRF, ev=Math.abs(d.tEF)-Math.abs(d.tEA), pv=d.tPA-d.tPF;
+  el.innerHTML = row('Revenue',rv,d.tRF,rv>=0)+row('Expenses',ev,d.tEF,ev>=0)+row('Operating Profit',pv,d.tPF,pv>=0);
+}
+// Three small Actual-vs-Forecast bar charts (Jan–Dec): actual for completed months, BudgetF forecast for all months
+function buildYtdMiniCharts(s26, bf){
+  if(typeof Chart==='undefined') return;
+  const labels=MN.slice(0,12);
+  const rF = s26.map((r,i)=> bf ? bf.rF[i] : r.rF);
+  const eF = s26.map((r,i)=> Math.abs(bf ? bf.eF[i] : r.eF));
+  const pF = s26.map((r,i)=> bf ? bf.rF[i]+bf.eF[i] : (r.pFp||0));
+  const defs=[
+    ['ytd_ch_rev', s26.map(r=>r.done?r.rA:null), rF, '#22d3ee'],
+    ['ytd_ch_exp', s26.map(r=>r.done?Math.abs(r.eA):null), eF, '#3ccfae'],
+    ['ytd_ch_prof',s26.map(r=>r.done?r.pA:null), pF, '#ff6f6f']
+  ];
+  defs.forEach(([id,act,fc,col])=>{
+    const el=document.getElementById(id); if(!el) return;
+    destroyChart(id);
+    charts[id]=new Chart(el,{type:'bar',
+      data:{labels,datasets:[
+        {label:'Actual',data:act,backgroundColor:col,borderRadius:2,barPercentage:.9,categoryPercentage:.8},
+        {label:'Forecast',data:fc,backgroundColor:'rgba(100,116,139,.75)',borderRadius:2,barPercentage:.9,categoryPercentage:.8}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+        scales:{x:{grid:{display:false},ticks:{color:'#cbd5e1',font:{size:10}}},
+                y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>fN(v).replace('.0',''),color:'#cbd5e1',font:{size:10},maxTicksLimit:5}}}}});
+  });
+}
 function updateYtdVarianceDash(){
   const d = window._ytdVarData; if(!d) return;
   const grid = document.getElementById('ytdv_grid'); if(!grid) return;
@@ -1855,24 +1969,25 @@ function updateYtdVarianceDash(){
     renderYtdKpiColumn({
       label:'Revenue', topLine:'YTD Actual',
       mainValue:fC(d.tRA), mainColor:'var(--teal)',
-      secondaryText: d.tRF?`Forecast: ${fmt(d.tRF)}`:'—',
+      secLabel:'Forecast', secValue:d.tRF?fC(d.tRF):'—',
       varLabel:'vs forecast', varAmt:d.tRA-d.tRF, base:d.tRF, favorable:d.tRA>=d.tRF,
       progressPct: d.tRF?Math.max(0,(d.tRA/Math.abs(d.tRF))*100):0, pctSuffix:'of forecast'
     }) +
     renderYtdKpiColumn({
       label:'Expenses', topLine:'YTD Actual',
       mainValue:fC(Math.abs(d.tEA)), mainColor: Math.abs(d.tEA)<=Math.abs(d.tEF)?'var(--green)':'var(--coral)',
-      secondaryText: d.tEF?`Forecast: ${fmt(Math.abs(d.tEF))}`:'—',
+      secLabel:'Forecast', secValue:d.tEF?fC(Math.abs(d.tEF)):'—',
       varLabel:'vs forecast', varAmt:Math.abs(d.tEF)-Math.abs(d.tEA), base:d.tEF, favorable:Math.abs(d.tEA)<=Math.abs(d.tEF),
       progressPct: d.tEF?Math.max(0,(Math.abs(d.tEA)/Math.abs(d.tEF))*100):0, pctSuffix:'of forecast'
     }) +
     renderYtdKpiColumn({
       label:'Operating Profit', topLine:'YTD Actual',
       mainValue:fC(d.tPA), mainColor: d.tPA>=0?'var(--green)':'var(--coral)',
-      secondaryText: d.tPF?`Forecast: ${fmt(d.tPF)}`:'—',
+      secLabel:'Forecast', secValue:d.tPF?fC(d.tPF):'—',
       varLabel:'vs forecast', varAmt:d.tPA-d.tPF, base:d.tPF, favorable:d.tPA>=d.tPF,
       progressPct: d.tPF?Math.max(0,(d.tPA/Math.abs(d.tPF))*100):0, pctSuffix:'of forecast'
     });
+  buildYtdVarList(d);
 }
 
 // ─── Q1 TAB ───────────────────────────────────────────────────────
@@ -2079,7 +2194,8 @@ function colRunwayActual(){
   const m=cash/avg;
   v.textContent=m.toFixed(1)+' mo';
   v.style.color = m<2?'var(--coral)':m<4?'var(--amber)':'var(--teal)';
-  if(sub) sub.textContent='Current cash '+fC(cash)+' ÷ avg monthly outflow '+fC(avg)+' (last 3 months)';
+  if(sub) sub.textContent='Current cash '+fC(cash)+' ÷ avg monthly outflow '+fC(avg)+' (average of the last 3 closed months)';
+  bindHoverTable('col_runway_act_val',()=>'<div class="ctt-month" style="color:var(--text);">Runway based on actual cash</div><div style="font-size:12px;color:var(--text2);line-height:1.5;">'+_escH((document.getElementById('col_runway_act_sub')||{}).textContent||'')+'</div>');
 }
 
 // ── Hover tables & charts-with-popups (Collections tab) ──
@@ -3814,13 +3930,13 @@ function processInvoices(rows){
 
     const periodLabelText = _tbiPeriodSel==='2026' ? 'through Dec 2026' : ('next '+_tbiMonths+' months');
     const wtbiLabelEl = document.getElementById('col_wtbi_label');
-    if(wtbiLabelEl) wtbiLabelEl.textContent = '↳ Won — To Be Invoiced ('+periodLabelText+')';
+    if(wtbiLabelEl) { wtbiLabelEl.textContent = 'Won → To Be Invoiced'; wtbiLabelEl.title = periodLabelText; }
     const fcstNpSubEl = document.getElementById('col_fcst_np_sub');
-    if(fcstNpSubEl) fcstNpSubEl.innerHTML = 'Expected collections, '+periodLabelText+'<br><span style="font-size:11px;">Outstanding '+fmt(cashInOutstanding)+' + collections from new invoices '+fmt(cashInDraft)+' · by Expected Collection Date</span>';
+    if(fcstNpSubEl) fcstNpSubEl.textContent = 'Expected collections, '+periodLabelText;
 
     // Cash In Breakdown card — the two pieces the headline is made of.
     const cashInDraftLblEl = document.getElementById('col_cashin_draft_label');
-    if(cashInDraftLblEl) cashInDraftLblEl.textContent = 'Collections from new invoices ('+periodLabelText+')';
+    if(cashInDraftLblEl) { cashInDraftLblEl.textContent = 'Collections from new invoices'; cashInDraftLblEl.title = periodLabelText; }
     const cashInDraftEl = document.getElementById('col_cashin_draft');
     if(cashInDraftEl) cashInDraftEl.textContent = fC(cashInDraft);
     // The card shows the FULL AR balance. If any of it isn't expected until after the selected period, say so —
