@@ -547,8 +547,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div id="h1_exp_insights" style="font-size:14px;line-height:1.8;color:var(--text2);padding:6px 2px;"></div>
     </div>
   </div>
-</div>
 
+  </div>
   <!-- 2025 Financials sub-view -->
   <div id="sv-fin25" class="sub-view" style="display:none;">
     <div class="slabel"><span>2025 Financials</span> — Full Year Actuals</div>
@@ -570,6 +570,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="ch"><div><div class="ctitle">Monthly Revenue vs Forecast — 2025</div></div></div>
       <table class="vt" id="vt25"></table>
     </div>
+  </div>
 </div>
 
 <!-- ══════════ CASH FLOW ══════════ -->
@@ -1399,7 +1400,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v161ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v162ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
