@@ -179,12 +179,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ytd-row{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;margin-bottom:20px;align-items:stretch;}
 .ytd-hd{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
 .ytd-chip{font-size:12px;font-weight:700;color:var(--text2);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;background:var(--bg2);}
-.ytd-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
-.ytd-card{border:1.5px solid;border-radius:14px;padding:16px 18px;background:var(--bg);min-width:0;}
+.ytd-cards{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;align-items:stretch;}
+.ytd-cards2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.ytd-split{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:24px;align-items:center;}
+.ytd-srow{display:grid;grid-template-columns:14px 1fr auto auto;gap:12px;align-items:center;padding:12px 0;}
+.ytd-srow+.ytd-srow{border-top:1px solid var(--border);}
+.ytd-card{display:flex;flex-direction:column;justify-content:space-between;border:1.5px solid;border-radius:14px;padding:16px 18px;background:var(--bg);min-width:0;}
 .ytd-ch-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--text2);}
 .ytd-lg{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--text3);white-space:nowrap;}
 .ytd-lg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:6px;}
-.ytd-charts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-bottom:20px;}
+.ytd-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:20px;}
 .ytd-take{display:flex;gap:14px;align-items:flex-start;padding:12px 0;}
 .ytd-take+.ytd-take{border-top:1px solid var(--border);}
 .ytd-arrow{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;}
@@ -192,7 +196,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ytd-vrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:14px 0;}
 .ytd-vrow+.ytd-vrow{border-top:1px solid var(--border);}
 .ytd-pill{font-family:var(--mono);font-size:12px;font-weight:700;padding:5px 12px;border-radius:999px;border:1px solid;min-width:70px;text-align:center;}
-@media(max-width:1200px){.ytd-row,.ytd-charts{grid-template-columns:1fr;}.ytd-cards{grid-template-columns:1fr;}}
+@media(max-width:1200px){.ytd-row,.ytd-charts,.ytd-split{grid-template-columns:1fr;}.ytd-cards,.ytd-cards2{grid-template-columns:1fr;}}
 .cf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
 .cf-title{font-size:26px;font-weight:700;color:var(--text);letter-spacing:-.3px;line-height:1.15;}
 .cf-subtitle{font-size:14px;color:var(--text3);margin-top:4px;}
@@ -347,6 +351,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
     <button class="sub-tab active" id="st_fin26" onclick="switchSubTab('fin26',this)">📊 2026 Financials</button>
     <button class="sub-tab" id="st_ytd"   onclick="switchSubTab('ytd',this)">📈 YTD Analysis</button>
+    <button class="sub-tab" id="st_exp"   onclick="switchSubTab('exp',this)">💸 Expenses</button>
     <button class="sub-tab" id="st_fin25" onclick="switchSubTab('fin25',this)">📋 2025 Financials</button>
   </div>
   <!-- 2026 Financials sub-view -->
@@ -355,7 +360,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="slabel"><span>2026 Financials</span> — Revenue & Profitability</div>
   <div class="card accent mb">
     <div class="ch">
-      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">Confirmed actuals only · lighter/hatched bars = preliminary (posted, not yet finalized — confirmed on the 15th of the following month) · No incentives</div></div>
+      <div><div class="ctitle">Revenue, Expenses & Operating Profit — 2026 Actual (YTD)</div><div class="csub">No incentives. Revenue (YTD), Expenses and Op Profit (actuals up to last closed month, forecast current month).</div></div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div class="scr">
           <div class="sc t"><div class="slb" id="sc_rA_label">Revenue YTD</div><div class="sv t" id="sc_rA">—</div></div>
@@ -447,6 +452,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div style="flex:1;min-width:0;">
           <div class="cf-sec-t">YTD Actuals vs Full Year Target</div>
           <div class="cf-sec-s" style="display:block;margin-top:3px;">YTD actuals as a % of full-year target · based on static budget forecast (v0) · <span style="color:var(--amber);font-weight:700;">▍</span> = expected pace (<span id="yc_pace_txt">—</span> of the year complete)</div>
+          <div class="cf-sec-s" style="display:block;margin-top:2px;">No incentives. Revenue (YTD), Expenses and Op Profit (actuals up to last closed month, forecast current month).</div>
         </div>
         <div class="ytd-chip">YTD 2026</div>
       </div>
@@ -465,6 +471,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div style="flex:1;min-width:0;">
           <div class="cf-sec-t">YTD Actuals vs YTD Forecast</div>
           <div class="cf-sec-s" style="display:block;margin-top:3px;">To the last completed month · progress = actual as % of forecast for the same period · adjusted budget forecast (BudgetF)<span id="ytdv_src_note"></span></div>
+          <div class="cf-sec-s" style="display:block;margin-top:2px;">No incentives. Revenue (YTD), Expenses and Op Profit (actuals up to last closed month, forecast current month).</div>
         </div>
         <div class="ytd-chip">YTD 2026</div>
       </div>
@@ -478,12 +485,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
   <div class="ytd-charts">
     <div class="co-panel" style="padding:14px 16px;"><div class="ytd-ch-h"><span>Revenue — Actual vs Forecast (YTD)</span><span class="ytd-lg"><i style="background:#22d3ee"></i>Actual<i style="background:#64748b"></i>Forecast</span></div><div style="position:relative;height:150px;"><canvas id="ytd_ch_rev"></canvas></div></div>
-    <div class="co-panel" style="padding:14px 16px;"><div class="ytd-ch-h"><span>Expenses — Actual vs Forecast (YTD)</span><span class="ytd-lg"><i style="background:#3ccfae"></i>Actual<i style="background:#64748b"></i>Forecast</span></div><div style="position:relative;height:150px;"><canvas id="ytd_ch_exp"></canvas></div></div>
     <div class="co-panel" style="padding:14px 16px;"><div class="ytd-ch-h"><span>Op. Profit — Actual vs Forecast (YTD)</span><span class="ytd-lg"><i style="background:#ff6f6f"></i>Actual<i style="background:#64748b"></i>Forecast</span></div><div style="position:relative;height:150px;"><canvas id="ytd_ch_prof"></canvas></div></div>
   </div>
 
+  <div class="co-panel" id="ytd_split" style="margin-bottom:20px;">
+    <div class="ytd-hd">
+      <div class="cf-ic" style="width:46px;height:46px;background:rgba(34,211,238,.14);"><svg viewBox="0 0 24 24" style="stroke:#22d3ee;"><path d="M12 3v9h9"/><path d="M20.5 15A9 9 0 1 1 9 3.5"/></svg></div>
+      <div style="flex:1;min-width:0;">
+        <div class="cf-sec-t">Revenue Split — Data Collection vs HAIVO</div>
+        <div class="cf-sec-s" style="display:block;margin-top:3px;">YTD actual revenue by business line · completed months only · shares add up to total YTD revenue</div>
+      </div>
+      <div class="ytd-chip">YTD 2026</div>
+    </div>
+    <div class="ytd-split">
+      <div id="ytd_split_box"></div>
+      <div>
+        <div class="ytd-ch-h"><span>Monthly revenue by business line</span><span class="ytd-lg" id="ytd_split_lg"></span></div>
+        <div style="position:relative;height:230px;"><canvas id="ytd_ch_split"></canvas></div>
+      </div>
+    </div>
+  </div>
+
   <div class="card mb">
-    <div class="ch"><div><div class="ctitle">Monthly Revenue Variance</div><div class="csub">Completed months · Future months forecast only</div></div></div>
+    <div class="ch"><div><div class="ctitle">Monthly Revenue & Op Profit Variance</div><div class="csub">Completed months · Future months forecast only</div></div></div>
     <table class="vt" id="vt"></table>
   </div>
 
@@ -504,6 +528,43 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       </div>
     </div>
     <div class="cw"><canvas id="avf_chart"></canvas></div>
+  </div>
+
+  </div>
+  <!-- Expenses sub-view -->
+  <div id="sv-exp" class="sub-view" style="display:none;">
+  <div class="cf-head">
+    <div>
+      <div class="cf-title">Expenses Analysis</div>
+      <div class="cf-subtitle">Year to date, through the last confirmed month</div>
+    </div>
+    <div class="cf-asof"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>YTD 2026</span></div>
+  </div>
+
+  <div class="ytd-row">
+    <div class="co-panel">
+      <div class="ytd-hd">
+        <div class="cf-ic" style="width:46px;height:46px;background:rgba(46,204,143,.16);"><svg viewBox="0 0 24 24" style="stroke:#2ECC8F;"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg></div>
+        <div style="flex:1;min-width:0;">
+          <div class="cf-sec-t">YTD Expenses vs Forecast</div>
+          <div class="cf-sec-s" style="display:block;margin-top:3px;">Left: actual as % of the full-year forecast (<span style="color:var(--amber);font-weight:700;">▍</span> = expected pace, <span id="ec_pace_txt">—</span> of the year complete) · Right: actual as % of forecast for the same period (BudgetF)</div>
+          <div class="cf-sec-s" style="display:block;margin-top:2px;">No incentives. Revenue (YTD), Expenses and Op Profit (actuals up to last closed month, forecast current month).</div>
+        </div>
+        <div class="ytd-chip">YTD 2026</div>
+      </div>
+      <div class="ytd-cards ytd-cards2"><div id="ec_target" style="display:contents;"></div><div id="ec_fcst" style="display:contents;"></div></div>
+    </div>
+    <div class="co-panel" id="ec_takeaways">
+      <div class="ytd-hd" style="margin-bottom:12px;"><div class="cf-ic" style="width:34px;height:34px;background:transparent;"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:var(--amber);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div class="cf-sec-t" style="font-size:15px;">Key takeaways</div></div>
+      <div id="ec_take_list"></div>
+    </div>
+  </div>
+
+  <div class="co-panel" style="padding:14px 16px;margin-bottom:20px;"><div class="ytd-ch-h"><span>Expenses — Actual vs Forecast (YTD)</span><span class="ytd-lg"><i style="background:#3ccfae"></i>Actual<i style="background:#64748b"></i>Forecast</span></div><div style="position:relative;height:240px;"><canvas id="ytd_ch_exp"></canvas></div></div>
+
+  <div class="card mb">
+    <div class="ch"><div><div class="ctitle">Monthly Expenses Variance</div><div class="csub">Completed months · Future months forecast only · negative variance = spent less than forecast (favourable)</div></div></div>
+    <table class="vt" id="vt_exp"></table>
   </div>
 
   <!-- Expenses by Category — variance-focused redesign -->
@@ -759,7 +820,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
         <div id="scen_runway_sub" style="font-size:11px;color:var(--text3);margin-top:2px;">balance hits zero in —</div>
       </div>
       <div style="flex:1;min-width:200px;">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;">Projected cash balance at month-end — next 12 months</div>
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;">Projected cash balance at month-end — current month + next 12 months</div>
         <div style="font-size:10px;color:var(--text3);margin-bottom:8px;display:flex;gap:12px;flex-wrap:wrap;">
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--teal);margin-right:4px;"></span>2+ months of runway</span>
           <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--amber);margin-right:4px;"></span>under 2 months of runway (balance &lt; <span id="scen_runway_thr">2× avg monthly outflow</span>)</span>
@@ -1400,7 +1461,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v162ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v166ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -1531,32 +1592,33 @@ function processStaging(rows){
   const totEF26=s26.reduce((s,r)=>s+r.eF,0);
   const totPF26=s26.reduce((s,r)=>s+(r.pFp||0),0);
 
-  document.getElementById('yc2026').innerHTML =
-    renderYtdKpiColumn({
+  const _cRev = renderYtdKpiColumn({
       label:'Revenue', topLine:'YTD Actual',
       mainValue:fC(t26.rA), mainColor:'var(--teal)',
       secLabel:'Target', secValue:fC(totRF26),
       varLabel:'to target', varAmt:t26.rA-totRF26, base:totRF26, favorable:t26.rA>=totRF26*paceYtd, pacePct:paceYtd*100,
       progressPct: totRF26?(t26.rA/totRF26*100):0, pctSuffix:'of full-year target'
-    }) +
-    renderYtdKpiColumn({
-      label:'Expenses', topLine:'YTD Actual',
+    });
+  const _cExp = renderYtdKpiColumn({
+      label:'Expenses', topLine:'YTD Actual', big:true,
       mainValue:fC(Math.abs(t26.eA)), mainColor: Math.abs(t26.eA)<=Math.abs(totEF26)?'var(--green)':'var(--coral)',
-      secLabel:'Target', secValue:fC(Math.abs(totEF26)),
-      varLabel:'to target', varAmt:Math.abs(totEF26)-Math.abs(t26.eA), base:totEF26, favorable:Math.abs(t26.eA)<=Math.abs(totEF26)*paceYtd, pacePct:paceYtd*100,
+      secLabel:'Forecast', secValue:fC(Math.abs(totEF26)),
+      varLabel:'vs forecast', varAmt:Math.abs(totEF26)-Math.abs(t26.eA), varDispAmt:Math.abs(t26.eA)-Math.abs(totEF26), base:totEF26, favorable:Math.abs(t26.eA)<=Math.abs(totEF26)*paceYtd, pacePct:paceYtd*100,
       progressPct: totEF26?(Math.abs(t26.eA)/Math.abs(totEF26)*100):0, pctSuffix:'of full-year target'
-    }) +
-    renderYtdKpiColumn({
+    });
+  const _cOp = renderYtdKpiColumn({
       label:'Operating Profit', topLine:'YTD Actual',
       mainValue:fC(t26.pA), mainColor: t26.pA>=0?'var(--green)':'var(--coral)',
       secLabel:'Target', secValue:fC(totPF26),
-      varLabel:'to target', varAmt:t26.pA-totPF26, base:totPF26, favorable:t26.pA>=totPF26*paceYtd, pacePct:paceYtd*100,
+      varLabel:'to target', varAmt:t26.pA-totPF26, frameGood:t26.pA>0, base:totPF26, favorable:t26.pA>=totPF26*paceYtd, pacePct:paceYtd*100,
       progressPct: totPF26?(t26.pA/totPF26*100):0, pctSuffix:'of full-year target'
     });
-  { const pt=document.getElementById('yc_pace_txt'); if(pt) pt.textContent=Math.round(paceYtd*100)+'%'; }
+  document.getElementById('yc2026').innerHTML = _cRev + _cOp;
+  { const e=document.getElementById('ec_target'); if(e) e.innerHTML=_cExp.replace('YTD Actual','vs Full Year Forecast').replace('class="ytd-card"','class="ytd-card" data-big="1"'); }
+  window._expTkFY = {eA:Math.abs(t26.eA), eFY:Math.abs(totEF26), pace:paceYtd*100};
+  { const pt=document.getElementById('yc_pace_txt'); if(pt) pt.textContent=Math.round(paceYtd*100)+'%'; const p2=document.getElementById('ec_pace_txt'); if(p2) p2.textContent=Math.round(paceYtd*100)+'%'; }
   buildYtdTakeaways([
     {label:'Revenue',          actual:t26.rA,             target:totRF26,            lowerIsBetter:false},
-    {label:'Expenses',         actual:Math.abs(t26.eA),   target:Math.abs(totEF26),  lowerIsBetter:true},
     {label:'Operating profit', actual:t26.pA,             target:totPF26,            lowerIsBetter:false}
   ], paceYtd*100);
   const sc=document.getElementById('sc_pA');sc.textContent=fmt(t26.pA);sc.className='sv '+(t26.pA>=0?'g':'r');
@@ -1783,7 +1845,7 @@ function getBudgetFMonthly(){
 }
 function buildVarTable(s26){
   const vt=document.getElementById('vt');
-  vt.innerHTML='<thead><tr><th>Month</th><th>Revenue (A)</th><th>Revenue (F)</th><th>Rev Var $</th><th>Rev Var %</th><th>Expenses (A)</th><th>Expenses (F)</th><th>Exp Var $</th><th>Exp Var %</th><th>Op Profit (A)</th><th>Op Profit (F)</th><th>Op Profit Var $</th><th>Op Profit Var %</th></tr></thead>';
+  vt.innerHTML='<thead><tr><th>Month</th><th>Revenue (A)</th><th>Revenue (F)</th><th>Rev Var $</th><th>Rev Var %</th><th>Op Profit (A)</th><th>Op Profit (F)</th><th>Op Profit Var $</th><th>Op Profit Var %</th></tr></thead>';
   const vb=document.createElement('tbody');
   let tRA=0,tRF=0,tEA=0,tEF=0,tPA=0,tPF=0;
   const bf=getBudgetFMonthly();
@@ -1804,9 +1866,6 @@ function buildVarTable(s26){
       <td>${r.done&&r.rA?fC(r.rA):'—'}</td><td>${fC(r.rF)}</td>
       <td class="${va!=null?(va>=0?'pos':'neg'):''}">${va!=null?fC(va):'—'}</td>
       <td class="${vp!=null?(va>=0?'pos':'neg'):''}">${vp!=null?(va>=0?'+':'')+vp+'%':'—'}</td>
-      <td>${r.done&&r.eA?fC(r.eA):'—'}</td><td>${fC(r.eF)}</td>
-      <td class="${evar!=null?(evar>=0?'pos':'neg'):''}">${evar!=null?fC(evar):'—'}</td>
-      <td class="${evarp!=null?(evar>=0?'pos':'neg'):''}">${evarp!=null?(evar>=0?'+':'')+evarp+'%':'—'}</td>
       <td class="${r.done?(r.pA>=0?'pos':'neg'):''}">${r.done&&r.pA?fC(r.pA):'—'}</td>
       <td>${pF!=null?fC(pF):'—'}</td>
       <td class="${pvar!=null?(pvar>=0?'pos':'neg'):''}">${pvar!=null?fC(pvar):'—'}</td>
@@ -1820,9 +1879,6 @@ function buildVarTable(s26){
   tf.innerHTML=`<tr><td><strong>YTD Total</strong></td><td>${fC(tRA)}</td><td>${fC(tRF)}</td>
     <td class="${totVA>=0?'pos':'neg'}"><strong>${fC(totVA)}</strong></td>
     <td class="${totVA>=0?'pos':'neg'}"><strong>${tRF?(totVA/Math.abs(tRF)*100).toFixed(1)+'%':'—'}</strong></td>
-    <td>${fC(tEA)}</td><td>${fC(tEF)}</td>
-    <td class="${totEVar>=0?'pos':'neg'}"><strong>${fC(totEVar)}</strong></td>
-    <td class="${totEVar>=0?'pos':'neg'}"><strong>${tEF?(totEVar/Math.abs(tEF)*100).toFixed(1)+'%':'—'}</strong></td>
     <td class="${tPA>=0?'pos':'neg'}"><strong>${fC(tPA)}</strong></td>
     <td><strong>${fC(tPF)}</strong></td>
     <td class="${totPVar>=0?'pos':'neg'}"><strong>${fC(totPVar)}</strong></td>
@@ -1833,6 +1889,8 @@ function buildVarTable(s26){
   { const n=document.getElementById('ytdv_src_note'); if(n) n.textContent = bf ? '' : ' — ⚠ BudgetF not available, showing Staging base forecast'; }
   updateYtdVarianceDash();
   buildYtdMiniCharts(s26, bf);
+  buildExpMonthlyTable(s26, bf);
+  buildYtdSplit(s26);
 }
 
 // Actual vs Forecast chart — toggle-able by variable (Revenue / Expenses / Operating Profit).
@@ -1883,26 +1941,35 @@ function renderYtdKpiColumn(opts){
   const barWidth = Math.min(100, pct);
   const varSign = opts.varAmt>=0 ? '+' : '-';
   const ic = YTD_ICONS[opts.label] || {svg:'<circle cx="12" cy="12" r="4"/>', bg:'rgba(255,255,255,.08)', col:'#cbd5e1'};
-  const frame = ic.fixed ? ic.frame : (fav ? 'rgba(46,204,143,.7)' : 'rgba(255,107,107,.7)');
-  const iconBg = ic.fixed ? ic.bg : (fav ? 'rgba(46,204,143,.2)' : 'rgba(255,107,107,.2)');
-  const iconCol = ic.fixed ? ic.col : (fav ? '#2ECC8F' : '#ff6b6b');
-  return `<div class="ytd-card" style="border-color:${frame};">
+  // frameGood (optional) overrides the frame / icon / progress-bar colour independently of the favourable test
+  // that colours the % and variance text (e.g. Operating Profit: positive profit = green frame + bar, while a
+  // shortfall vs target keeps the % text red).
+  const fg = (opts.frameGood!=null) ? !!opts.frameGood : fav;
+  const barColor = fg ? 'var(--green)' : 'var(--coral)';
+  const frame = ic.fixed ? ic.frame : (fg ? 'rgba(46,204,143,.7)' : 'rgba(255,107,107,.7)');
+  const iconBg = ic.fixed ? ic.bg : (fg ? 'rgba(46,204,143,.2)' : 'rgba(255,107,107,.2)');
+  const iconCol = ic.fixed ? ic.col : (fg ? '#2ECC8F' : '#ff6b6b');
+  const dAmt = (opts.varDispAmt!=null) ? opts.varDispAmt : opts.varAmt;   // signed amount shown (actual − comparator when varDispAmt given)
+  const dSign = dAmt>=0 ? '+' : '-';
+  const big = (opts.big!=null) ? !!opts.big : opts.label==='Revenue';   // Revenue is the hero card; Expenses / Operating Profit are compact
+  const icSz = big?52:36, valSz = big?34:20, secSz = big?16:12, pctSz = big?22:15, varSz = big?14:12, padS = big?'22px 24px':'12px 16px', gapT = big?18:10;
+  return `<div class="ytd-card" style="border-color:${frame};padding:${padS};">
     <div style="display:flex;align-items:center;gap:12px;">
-      <div class="cf-ic" style="width:44px;height:44px;background:${iconBg};"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:${iconCol};fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;">${ic.svg}</svg></div>
+      <div class="cf-ic" style="width:${icSz}px;height:${icSz}px;background:${iconBg};"><svg viewBox="0 0 24 24" style="width:${Math.round(icSz/2)}px;height:${Math.round(icSz/2)}px;stroke:${iconCol};fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;">${ic.svg}</svg></div>
       <div><div style="font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.5px;">${opts.label}</div><div style="font-size:12px;color:var(--text3);margin-top:2px;">${opts.topLine||'&nbsp;'}</div></div>
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:14px;">
-      <div style="font-family:var(--mono);font-size:24px;font-weight:700;color:var(--text);line-height:1.1;">${opts.mainValue}</div>
-      <div style="text-align:right;"><div style="font-size:11px;color:var(--text3);">${opts.secLabel||''}</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text2);">${opts.secValue||'—'}</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-top:${gapT}px;">
+      <div style="font-family:var(--mono);font-size:${valSz}px;font-weight:700;color:var(--text);line-height:1.1;">${opts.mainValue}</div>
+      <div style="text-align:right;"><div style="font-size:11px;color:var(--text3);">${opts.secLabel||''}</div><div style="font-family:var(--mono);font-size:${secSz}px;font-weight:700;color:var(--text2);">${opts.secValue||'—'}</div></div>
     </div>
-    <div style="height:9px;background:var(--bg3);border-radius:5px;position:relative;margin-top:14px;">
-      <div style="height:100%;width:${barWidth}%;border-radius:5px;background:${favColor};"></div>
+    <div style="height:${big?11:7}px;background:var(--bg3);border-radius:5px;position:relative;margin-top:${gapT}px;">
+      <div style="height:100%;width:${barWidth}%;border-radius:5px;background:${barColor};"></div>
       ${opts.pacePct!=null?`<div title="Expected pace: ${opts.pacePct.toFixed(0)}% of the full-year target by now" style="position:absolute;left:${Math.min(100,opts.pacePct)}%;top:-4px;bottom:-4px;width:0;border-left:3px solid var(--amber);border-radius:2px;"></div>`:''}
     </div>
-    <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
-      <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:${favColor};">${pct.toFixed(1)}%</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-top:${big?14:8}px;">
+      <div style="font-family:var(--mono);font-size:${pctSz}px;font-weight:700;color:${favColor};">${pct.toFixed(1)}%</div>
       <div style="width:1px;height:20px;background:var(--border2);"></div>
-      <div style="font-family:var(--mono);font-size:13px;font-weight:700;color:${favColor};">${varSign}${fC(Math.abs(opts.varAmt))} ${opts.varLabel}</div>
+      <div style="font-family:var(--mono);font-size:${varSz}px;font-weight:700;color:${favColor};">${dSign}${fC(Math.abs(dAmt))} ${opts.varLabel}</div>
     </div>
   </div>`;
 }
@@ -1919,7 +1986,7 @@ function buildYtdTakeaways(rows, pacePct){
     const vs = r.actual-r.target;
     return `<div class="ytd-take"><div class="ytd-arrow" style="background:${good?'rgba(46,204,143,.18)':'rgba(255,107,107,.18)'};"><svg viewBox="0 0 24 24" style="stroke:${col};">${arrow(good)}</svg></div>
       <div style="min-width:0;"><div style="font-size:15px;font-weight:700;color:var(--text);">${r.label} <span style="color:${col};">${Math.abs(diffPp).toFixed(1)} pp ${good?'ahead':'behind'}</span></div>
-      <div style="font-size:12px;color:var(--text2);margin-top:2px;">${fmt(Math.abs(vs))} ${vs<0?'below':'above'} full-year target</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px;">${fmt(Math.abs(vs))} ${vs<0?'below':'above'} full-year ${r.tgtWord||'target'}</div>
       <div style="font-size:12px;color:var(--text3);">(${pct.toFixed(1)}% vs ${pacePct.toFixed(0)}% expected pace)</div></div></div>`;
   }).join('');
 }
@@ -1932,7 +1999,7 @@ function buildYtdVarList(d){
     return `<div class="ytd-vrow"><div style="font-size:14px;color:var(--text);">${lbl}</div><div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${col};">${amt>=0?'+':'-'}${fC(Math.abs(amt))}</div><div class="ytd-pill" style="color:${col};background:${bg};border-color:${col};">${p==null?'—':(p>=0?'+':'')+p.toFixed(1)+'%'}</div></div>`;
   };
   const rv=d.tRA-d.tRF, ev=Math.abs(d.tEF)-Math.abs(d.tEA), pv=d.tPA-d.tPF;
-  el.innerHTML = row('Revenue',rv,d.tRF,rv>=0)+row('Expenses',ev,d.tEF,ev>=0)+row('Operating Profit',pv,d.tPF,pv>=0);
+  el.innerHTML = row('Revenue',rv,d.tRF,rv>=0)+row('Operating Profit',pv,d.tPF,pv>=0);
 }
 // Three small Actual-vs-Forecast bar charts (Jan–Dec): actual for completed months, BudgetF forecast for all months
 function buildYtdMiniCharts(s26, bf){
@@ -1960,34 +2027,112 @@ function buildYtdMiniCharts(s26, bf){
                 y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>fN(v).replace('.0',''),color:'#cbd5e1',font:{size:10},maxTicksLimit:5}}}}});
   });
 }
+
+// Expenses tab — "Key takeaways": pace vs full-year forecast + YTD actual vs YTD forecast (expenses: lower = favourable)
+function buildExpTakeaways(){
+  const el=document.getElementById('ec_take_list'); if(!el) return;
+  const fy=window._expTkFY, d=window._ytdVarData; if(!fy||!d) return;
+  const arrow=(up)=>up?'<path d="M12 19V5M5 12l7-7 7 7"/>':'<path d="M12 5v14M19 12l-7 7-7-7"/>';
+  const row=(good,head,l2,l3)=>{const col=good?'var(--green)':'var(--coral)';
+    return `<div class="ytd-take"><div class="ytd-arrow" style="background:${good?'rgba(46,204,143,.18)':'rgba(255,107,107,.18)'};"><svg viewBox="0 0 24 24" style="stroke:${col};">${arrow(!good?false:true)}</svg></div>
+      <div style="min-width:0;"><div style="font-size:15px;font-weight:700;color:var(--text);">${head(col)}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px;">${l2}</div><div style="font-size:12px;color:var(--text3);">${l3}</div></div></div>`;};
+  const pct = fy.eFY? fy.eA/fy.eFY*100 : 0, diffPp = fy.pace-pct, good1 = diffPp>=0, vs1 = fy.eA-fy.eFY;
+  const eA=Math.abs(d.tEA), eF=Math.abs(d.tEF), vs2=eA-eF, good2=vs2<=0, p2=eF?eA/eF*100:0;
+  el.innerHTML =
+    row(good1, c=>`Spend pace <span style="color:${c};">${Math.abs(diffPp).toFixed(1)} pp ${good1?'ahead':'behind'}</span>`,
+        `${fmt(Math.abs(vs1))} ${vs1<0?'below':'above'} full-year forecast`, `(${pct.toFixed(1)}% vs ${fy.pace.toFixed(0)}% expected pace)`) +
+    row(good2, c=>`vs YTD forecast <span style="color:${c};">${vs2<=0?'-':'+'}${fmt(Math.abs(vs2))}</span>`,
+        `${fmt(Math.abs(vs2))} ${vs2<=0?'under':'over'} the forecast for the same period`, `(${p2.toFixed(1)}% of YTD forecast)`);
+}
+
+// Expenses tab — monthly Actual vs Forecast table (BudgetF forecast, same basis as the cards)
+function buildExpMonthlyTable(s26, bf){
+  const vt=document.getElementById('vt_exp'); if(!vt) return;
+  vt.innerHTML='<thead><tr><th>Month</th><th>Expenses (A)</th><th>Expenses (F)</th><th>Var $</th><th>Var %</th></tr></thead>';
+  const vb=document.createElement('tbody'); let tA=0,tF=0;
+  s26.forEach((r0,i)=>{
+    const F = Math.abs(bf ? bf.eF[i] : r0.eF), A = r0.done ? Math.abs(r0.eA) : null;
+    if(r0.done){tA+=A;tF+=F;}
+    const v = A!==null ? A-F : null, vp = (v!==null&&F) ? v/F*100 : null;
+    const good = v!==null && v<=0;           // spent less than forecast = favourable
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${MN[i]||i}'26${r0.done?'':' <span style="color:var(--text3);font-size:10px">(F)</span>'}</td>
+      <td>${A!==null&&A?fC(A):'—'}</td><td>${fC(F)}</td>
+      <td class="${v!==null?(good?'pos':'neg'):''}">${v!==null?(v>0?'+':'')+fC(v):'—'}</td>
+      <td class="${vp!==null?(good?'pos':'neg'):''}">${vp!==null?(vp>0?'+':'')+vp.toFixed(0)+'%':'—'}</td>`;
+    vb.appendChild(tr);
+  });
+  const tv=tA-tF, tg=tv<=0, tf=document.createElement('tfoot');
+  tf.innerHTML=`<tr><td><strong>YTD Total</strong></td><td>${fC(tA)}</td><td>${fC(tF)}</td>
+    <td class="${tg?'pos':'neg'}"><strong>${tv>0?'+':''}${fC(tv)}</strong></td>
+    <td class="${tg?'pos':'neg'}"><strong>${tF?(tv>0?'+':'')+(tv/tF*100).toFixed(1)+'%':'—'}</strong></td></tr>`;
+  vt.innerHTML+=''; vt.appendChild(vb); vt.appendChild(tf);
+}
+
+// YTD Analysis — Revenue split by business line (Data Collection / HAIVO / Grants), completed months only
+function buildYtdSplit(s26){
+  const box=document.getElementById('ytd_split_box'); if(!box) return;
+  const done=s26.filter(r=>r.done);
+  const sum=k=>done.reduce((a,r)=>a+(r[k]||0),0);
+  const dc=sum('dcA'), hv=sum('haivoA'), gr=sum('gA'), tot=sum('rA');
+  const other=tot-dc-hv-gr;
+  const C={dc:'#22d3ee', hv:'#a78bfa', gr:'#7c9cc4', ot:'#64748b'};
+  const items=[{k:'dc',l:'Data Collection',v:dc},{k:'hv',l:'HAIVO',v:hv},{k:'gr',l:'Grants',v:gr}];
+  if(Math.abs(other)>1) items.push({k:'ot',l:'Other / unallocated',v:other});
+  const share=v=>tot?(v/tot*100):0;
+  box.innerHTML =
+    `<div style="font-size:12px;color:var(--text3);">Total YTD revenue</div>
+     <div style="font-family:var(--mono);font-size:30px;font-weight:700;color:var(--text);margin:2px 0 12px;">${fC(tot)}</div>
+     <div style="display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--bg3);margin-bottom:6px;">${items.filter(i=>i.v>0).map(i=>`<div title="${i.l}: ${fC(i.v)}" style="width:${share(i.v)}%;background:${C[i.k]};"></div>`).join('')}</div>`
+    + items.map(i=>`<div class="ytd-srow"><span style="width:10px;height:10px;border-radius:50%;background:${C[i.k]};display:inline-block;"></span>
+        <span style="font-size:14px;color:var(--text);">${i.l}</span>
+        <span style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);">${fC(i.v)}</span>
+        <span class="ytd-pill" style="color:${C[i.k]};border-color:${C[i.k]};min-width:64px;">${share(i.v).toFixed(1)}%</span></div>`).join('');
+  const lg=document.getElementById('ytd_split_lg');
+  if(lg) lg.innerHTML=items.map(i=>`<i style="background:${C[i.k]}"></i>${i.l}`).join('');
+  const el=document.getElementById('ytd_ch_split'); if(!el||typeof Chart==='undefined') return;
+  destroyChart('ytd_ch_split');
+  const lab=MN.slice(0,12), mk=k=>s26.map(r=>r.done?(k==='ot'?(r.rA-(r.dcA||0)-(r.haivoA||0)-(r.gA||0)):(r[k]||0)):null);
+  const src={dc:mk('dcA'),hv:mk('haivoA'),gr:mk('gA'),ot:mk('ot')};
+  charts['ytd_ch_split']=new Chart(el,{type:'bar',
+    data:{labels:lab,datasets:items.map(i=>({label:i.l,data:src[i.k],backgroundColor:C[i.k],stack:'s',borderRadius:2,barPercentage:.75,categoryPercentage:.8}))},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+fC(c.parsed.y)}}},
+      scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#cbd5e1',font:{size:10}}},
+              y:{stacked:true,grid:{color:'rgba(255,255,255,0.05)'},ticks:{callback:v=>fN(v).replace('.0',''),color:'#cbd5e1',font:{size:10},maxTicksLimit:5}}}}});
+}
+
 function updateYtdVarianceDash(){
   const d = window._ytdVarData; if(!d) return;
   const grid = document.getElementById('ytdv_grid'); if(!grid) return;
   // Op Profit's main-value color is sign-based (matches the Target section's convention), not
   // vs-forecast-based — a profitable YTD is green even if it's short of forecast; the variance line
   // still separately shows favorable/unfavorable vs forecast in its own color.
-  grid.innerHTML =
-    renderYtdKpiColumn({
+  const _vRev = renderYtdKpiColumn({
       label:'Revenue', topLine:'YTD Actual',
       mainValue:fC(d.tRA), mainColor:'var(--teal)',
       secLabel:'Forecast', secValue:d.tRF?fC(d.tRF):'—',
       varLabel:'vs forecast', varAmt:d.tRA-d.tRF, base:d.tRF, favorable:d.tRA>=d.tRF,
       progressPct: d.tRF?Math.max(0,(d.tRA/Math.abs(d.tRF))*100):0, pctSuffix:'of forecast'
-    }) +
-    renderYtdKpiColumn({
-      label:'Expenses', topLine:'YTD Actual',
+    });
+  const _vExp = renderYtdKpiColumn({
+      label:'Expenses', topLine:'YTD Actual', big:true,
       mainValue:fC(Math.abs(d.tEA)), mainColor: Math.abs(d.tEA)<=Math.abs(d.tEF)?'var(--green)':'var(--coral)',
       secLabel:'Forecast', secValue:d.tEF?fC(Math.abs(d.tEF)):'—',
-      varLabel:'vs forecast', varAmt:Math.abs(d.tEF)-Math.abs(d.tEA), base:d.tEF, favorable:Math.abs(d.tEA)<=Math.abs(d.tEF),
+      varLabel:'vs forecast', varAmt:Math.abs(d.tEF)-Math.abs(d.tEA), varDispAmt:Math.abs(d.tEA)-Math.abs(d.tEF), base:d.tEF, favorable:Math.abs(d.tEA)<=Math.abs(d.tEF),
       progressPct: d.tEF?Math.max(0,(Math.abs(d.tEA)/Math.abs(d.tEF))*100):0, pctSuffix:'of forecast'
-    }) +
-    renderYtdKpiColumn({
+    });
+  const _vOp = renderYtdKpiColumn({
       label:'Operating Profit', topLine:'YTD Actual',
       mainValue:fC(d.tPA), mainColor: d.tPA>=0?'var(--green)':'var(--coral)',
       secLabel:'Forecast', secValue:d.tPF?fC(d.tPF):'—',
-      varLabel:'vs forecast', varAmt:d.tPA-d.tPF, base:d.tPF, favorable:d.tPA>=d.tPF,
+      varLabel:'vs forecast', varAmt:d.tPA-d.tPF, frameGood:d.tPA>0, base:d.tPF, favorable:d.tPA>=d.tPF,
       progressPct: d.tPF?Math.max(0,(d.tPA/Math.abs(d.tPF))*100):0, pctSuffix:'of forecast'
     });
+  grid.innerHTML = _vRev + _vOp;
+  { const e=document.getElementById('ec_fcst'); if(e) e.innerHTML=_vExp.replace('YTD Actual','vs YTD Forecast'); }
+  buildExpTakeaways();
   buildYtdVarList(d);
 }
 
@@ -2608,9 +2753,10 @@ function buildScenChart(){
   // Mini bar chart — one bar per forecast month, now bounded to the selected Display Period's end
   // (was previously unbounded, silently showing the full underlying array regardless of the period toggle).
   if(rBars){
-    // Fixed 12-month projection from the first forecast month (independent of the Display Period toggle).
+    // Fixed projection: current month + next 12 months (independent of the Display Period toggle).
     // Each bar = projected month-end cash balance, with its value printed above it.
-    const fcastBals = scenBal.slice(actualCount, actualCount+12);
+    const _rStart = Math.max(0, actualCount-1);   // current month + next 12 months
+    const fcastBals = window._scenBal.slice(_rStart, _rStart+13);
     const maxAbs = Math.max(1, ...fcastBals.map(Math.abs));
     const twoMo  = avgMonthlyOutflow * 2;
     const thrEl = document.getElementById('scen_runway_thr'); if(thrEl) thrEl.textContent = '$'+Math.round(twoMo/1000)+'K = 2× avg monthly outflow of $'+Math.round(avgMonthlyOutflow/1000)+'K (last 3 closed months)';            // 2 months of runway at the average monthly outflow
@@ -2618,14 +2764,14 @@ function buildScenChart(){
     rBars.innerHTML = fcastBals.map((b, i) => {
       const h   = Math.max(4, Math.abs(b) / maxAbs * 78);
       const col = b <= 0 ? 'var(--coral)' : b < twoMo ? 'var(--amber)' : 'var(--teal)';
-      const mo  = L26[actualCount + i];
+      const mo  = L26[_rStart + i];
       return `<div title="${mo}: ${fC(b)}" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;">
         <div style="font-size:9px;font-weight:700;font-family:var(--mono);color:${col};margin-bottom:2px;white-space:nowrap;">${fK(b)}</div>
         <div style="width:100%;height:${h}px;background:${col};border-radius:2px 2px 0 0;"></div></div>`;
     }).join('');
     if(rMoLabels){
       rMoLabels.innerHTML = fcastBals.map((b,i) => {
-        const mo = (L26[actualCount+i]||'').replace(" '","’");
+        const mo = (L26[_rStart+i]||'').replace(" '","’");
         return `<div style="flex:1;text-align:center;font-size:8px;color:var(--text3);white-space:nowrap;overflow:hidden;">${mo}</div>`;
       }).join('');
     }
@@ -3294,7 +3440,7 @@ function processBudget(baseRows, fcstRows){
     window._budH1cols = [33,34,35,36,37,38]; // Jan-Jun
     window._budH2cols = [39,40,41,42,43,44]; // Jul-Dec
     // Rebuild visible sub-tab if open
-    const sv = document.getElementById('sv-ytd');
+    const sv = document.getElementById('sv-exp');
     if(sv && sv.style.display !== 'none') buildYtdExpenseCategory();
     if(window._s26 && document.getElementById('vt')) buildVarTable(window._s26);  // forecast columns now come from BudgetF
   } catch(e){ console.warn('Budget parse failed', e); }
@@ -3305,7 +3451,7 @@ function processBudget(baseRows, fcstRows){
 // two sheets (2026A: categories in col K, rows ~141-145; 2026F_v0: categories in col J, rows ~140-144)
 // so categories are matched by NAME within each sheet independently, not by a shared row number.
 function buildYtdExpenseCategory(){
-  const sv = document.getElementById('sv-ytd');
+  const sv = document.getElementById('sv-exp');
   if(!sv || sv.style.display==='none') return;
   const el = id => document.getElementById(id);
 
@@ -4545,6 +4691,7 @@ function switchSubTab(view, btn){
     if(view==='fin26'){ buildSalesChart(); updateF(); }
     if(view==='fin25'){ /* charts already built */ }
     if(view==='ytd')  { buildYtdAnalysis(); }
+    if(view==='exp')  { buildYtdAnalysis(); buildYtdExpenseCategory(); }
     Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}});
   },50);
 }
