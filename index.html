@@ -181,6 +181,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .ytd-chip{font-size:12px;font-weight:700;color:var(--text2);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;white-space:nowrap;background:var(--bg2);}
 .ytd-cards{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:14px;align-items:stretch;}
 .ytd-cards2{grid-template-columns:repeat(2,minmax(0,1fr));}
+.snp-grid5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:20px;}
+.snp-grid5 .cf-card{flex-direction:column;align-items:flex-start;gap:10px;padding:16px 18px;}
+.snp-grid5 .cf-val{font-size:24px;}
+.snp-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-bottom:20px;}
+.snp-t{width:100%;border-collapse:collapse;font-size:13px;}
+.snp-t th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);text-align:left;padding:8px 8px;border-bottom:1px solid var(--border2);font-weight:700;}
+.snp-t td{padding:9px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+.snp-t td.n,.snp-t th.n{text-align:right;font-family:var(--mono);white-space:nowrap;}
+.snp-t tfoot td{font-weight:700;border-bottom:none;}
+.snp-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px;}
+.snp-mtd{display:grid;grid-template-columns:1fr auto auto auto;gap:6px 18px;align-items:baseline;font-size:13px;}
+.snp-mtd .h{font-size:11px;text-transform:uppercase;color:var(--text3);font-weight:700;letter-spacing:.4px;text-align:right;}
+.snp-mtd .v{font-family:var(--mono);text-align:right;}
+.snp-sum li{margin:6px 0;line-height:1.55;}
+@media(max-width:1200px){.snp-grid5{grid-template-columns:repeat(2,minmax(0,1fr));}.snp-2{grid-template-columns:1fr;}}
 .ytd-split{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:24px;align-items:center;}
 .ytd-srow{display:grid;grid-template-columns:14px 1fr auto auto;gap:12px;align-items:center;padding:12px 0;}
 .ytd-srow+.ytd-srow{border-top:1px solid var(--border);}
@@ -343,6 +358,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div class="tab" onclick="goTab('dso',this)">📬 Collections</div>
   <div class="tab" onclick="goTab('pipe',this)">🔮 Pipeline</div>
   <div class="tab" onclick="goTab('revpnl',this)">📊 Revenue & Profitability</div>
+  <div class="tab" onclick="goTab('snap',this)">📸 Last 2 Weeks</div>
 </div>
 
 <!-- ══════════ FINANCIALS 2026 ══════════ -->
@@ -900,6 +916,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
       <div class="ctitle" style="margin-bottom:12px">Split by Probability</div>
       <div class="dw"><canvas id="donut" style="max-width:240px;max-height:240px"></canvas></div>
     </div>
+  </div>
+</div>
+
+<!-- ══════════ LAST 2 WEEKS SNAPSHOT ══════════ -->
+<div class="page" id="page-snap">
+  <div class="cf-head">
+    <div>
+      <div class="cf-title">Last 2 Weeks Snapshot</div>
+      <div class="cf-subtitle">What moved in cash, collections and invoicing over the last 14 days</div>
+    </div>
+    <div class="cf-asof"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="snp_period">—</span></div>
+  </div>
+  <div id="snp_tiles" class="snp-grid5"></div>
+  <div class="co-panel" style="margin-bottom:20px;">
+    <div class="ytd-hd" style="margin-bottom:10px;"><div class="cf-ic" style="width:34px;height:34px;background:transparent;"><svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:var(--amber);"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg></div><div class="cf-sec-t" style="font-size:15px;">Key messages for management</div></div>
+    <ul id="snp_summary" class="snp-sum" style="margin:0;padding-left:20px;font-size:14px;color:var(--text2);"></ul>
+  </div>
+  <div class="snp-2">
+    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Cash collected — major movers</div></div><div id="snp_coll"></div></div>
+    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Overdue — needs attention</div></div><div id="snp_over"></div></div>
+  </div>
+  <div class="snp-2">
+    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Invoiced in the period</div></div><div id="snp_inv"></div></div>
+    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Current month vs forecast</div></div><div id="snp_mtd"></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.5;">Pipeline movement and runway change need weekly history, which the sheet doesn't store yet — they'll appear here once a snapshot log is added.</div></div>
   </div>
 </div>
 
@@ -1461,7 +1502,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v166ytd-redesign · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v167snapshot · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
   }catch(e){
     console.error('Load error:', e);
@@ -4762,11 +4803,101 @@ function loadCashInForecastPeriodDefault(){
   } catch(e){}
 }
 
+
+// ── LAST 2 WEEKS SNAPSHOT ────────────────────────────────────────────────────────────────────────
+// Computed from the invoice tracker (day-level dates) + DB1 cash. Amounts are VAT-inclusive, same basis as
+// "Invoices Outstanding" / collections elsewhere. Outstanding two weeks ago is RECONSTRUCTED:
+//   outstanding_then = outstanding_now − invoiced_in_period + collected_in_period (write-offs/credit notes ignored).
+function buildSnapshot(){
+  const DAYS=14;
+  const rows=window._invRowsCache, C=window._invoiceColMap;
+  const el=id=>document.getElementById(id); if(!el('snp_tiles')) return;
+  const esc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const pd=raw=>{const m=(raw||'').trim().match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);return m?new Date(+m[1],+m[2]-1,+m[3]):null;};
+  const now=new Date(), today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const start=new Date(today); start.setDate(start.getDate()-DAYS);
+  const dd=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  el('snp_period').textContent=dd(start)+' – '+dd(today);
+  const coll=[], inv=[], over=[]; let outNow=0, overdueNow=0, newOver=0, collTot=0, invTot=0;
+  if(rows && C){
+    for(let i=1;i<rows.length;i++){
+      const r=rows[i]; if(!r[0]||!r[0].trim()) continue;
+      const st=(r[C.status]||'').trim().toLowerCase(); if(st==='draft') continue;
+      const cust=(r[C.customer]||'').trim(), proj=(r[C.project]||'').trim();
+      const gross=Math.abs(pv(r[C.amountGross]));
+      const idt=pd(r[C.invoiceDate]);
+      if(idt && idt>start && idt<=today){ inv.push({cust,proj,amt:gross,date:idt}); invTot+=gross; }
+      const cdt=pd(r[C.collectionDate]), paid=Math.abs(pv(r[C.amountDso]));
+      if(cdt && paid>0 && cdt>start && cdt<=today){ coll.push({cust,proj,amt:paid,date:cdt}); collTot+=paid; }
+      if((r[C.paymentStatus]||'').trim().toLowerCase()==='outstanding'){
+        const out=Math.abs(pv(r[C.outstanding])); if(out<=0||!cust) continue;
+        outNow+=out;
+        const edt=pd(r[C.expectedCollectionDate]);
+        if(edt && edt<today){
+          const days=Math.round((today-edt)/86400000);
+          overdueNow+=out; const isNew=edt>start; if(isNew) newOver+=out;
+          over.push({cust,proj,amt:out,days,isNew});
+        }
+      }
+    }
+  }
+  const outThen=outNow-invTot+collTot;
+  const cashNow=(window._db1Banks||0)+(window._db1Safe||0)+(window._db1Projects||0);
+  const chg=window._cashChg2w, prev=window._cashPrev2w;
+  const arrow=(v,goodUp)=>{const up=v>=0,good=goodUp?up:!up;return `<span style="color:${good?'var(--green)':'var(--coral)'};">${up?'▲ +':'▼ -'}`;};
+  const tile=(cls,icon,lbl,val,cap)=>`<div class="cf-card ${cls}"><div class="cf-ic"><svg viewBox="0 0 24 24">${icon}</svg></div><div style="min-width:0;"><div class="cf-lbl">${lbl}</div><div class="cf-val">${val}</div><div class="cf-cap">${cap}</div></div></div>`;
+  const cashCap = (chg!=null&&prev!=null) ? `${chg>=0?'▲ +':'▼ -'}${fC(Math.abs(chg))}${prev?` (${Math.abs(chg/prev*100).toFixed(1)}%)`:''} vs 2 weeks ago` : 'Change vs 2 weeks ago: add DB1 B18';
+  const outChg=outNow-outThen;
+  el('snp_tiles').innerHTML =
+    tile('total','<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>','Total Cash',fC(cashNow),cashCap)
+   +tile('pos','<path d="M12 19V5M5 12l7-7 7 7"/>','Cash Collected',fC(collTot),`${coll.length} payment${coll.length===1?'':'s'} in ${DAYS} days`)
+   +tile('tl','<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/>','Invoiced',fC(invTot),`${inv.length} invoice${inv.length===1?'':'s'} issued`)
+   +tile('amb','<path d="M7 3h8l4 4v14H7zM15 3v4h4"/>','Invoices Outstanding',fC(outNow),`${outChg>=0?'▲ +':'▼ -'}${fC(Math.abs(outChg))} vs 2 weeks ago (est.)`)
+   +tile('neg','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>','Overdue',fC(overdueNow),`${fC(newOver)} newly overdue in ${DAYS} days`);
+  // tables
+  const tbl=(head,rowsHtml,foot)=>rowsHtml?`<table class="snp-t"><thead><tr>${head}</tr></thead><tbody>${rowsHtml}</tbody>${foot||''}</table>`:'<div style="font-size:13px;color:var(--text3);padding:10px 2px;">Nothing in this period.</div>';
+  const top=(arr,k,n)=>arr.slice().sort((a,b)=>b[k]-a[k]).slice(0,n);
+  const nm=x=>`<td><div style="color:var(--text);font-weight:600;">${esc(x.cust)}</div><div style="font-size:11px;color:var(--text3);">${esc(x.proj)}</div></td>`;
+  const more=(arr,n)=>arr.length>n?`<tr><td colspan="9" style="font-size:11px;color:var(--text3);">+ ${arr.length-n} more</td></tr>`:'';
+  const N=8;
+  el('snp_coll').innerHTML=tbl('<th>Customer / project</th><th class="n">Date</th><th class="n">Amount</th>',
+    top(coll,'amt',N).map(x=>`<tr>${nm(x)}<td class="n">${dd(x.date)}</td><td class="n" style="color:var(--green);">${fC(x.amt)}</td></tr>`).join('')+more(coll,N),
+    `<tfoot><tr><td>Total (${coll.length})</td><td></td><td class="n" style="color:var(--green);">${fC(collTot)}</td></tr></tfoot>`);
+  el('snp_over').innerHTML=tbl('<th>Customer / project</th><th class="n">Days overdue</th><th class="n">Amount</th>',
+    top(over,'amt',N).map(x=>`<tr>${nm(x)}<td class="n">${x.days}${x.isNew?'<span class="snp-tag" style="background:rgba(255,107,107,.18);color:var(--coral);">NEW</span>':''}</td><td class="n" style="color:var(--coral);">${fC(x.amt)}</td></tr>`).join('')+more(over,N),
+    `<tfoot><tr><td>Total overdue (${over.length})</td><td></td><td class="n" style="color:var(--coral);">${fC(overdueNow)}</td></tr></tfoot>`);
+  el('snp_inv').innerHTML=tbl('<th>Customer / project</th><th class="n">Date</th><th class="n">Amount</th>',
+    top(inv,'amt',N).map(x=>`<tr>${nm(x)}<td class="n">${dd(x.date)}</td><td class="n">${fC(x.amt)}</td></tr>`).join('')+more(inv,N),
+    `<tfoot><tr><td>Total (${inv.length})</td><td></td><td class="n">${fC(invTot)}</td></tr></tfoot>`);
+  // month-to-date vs forecast
+  let mtd='<div style="font-size:13px;color:var(--text3);">Cash data not loaded yet.</div>', mtdMsg=null;
+  const cash=window._cash||[], ci=(window._effActualCount||0)-1, c=cash[ci];
+  if(c){
+    const aIn=c.cIA||0, fIn=c.cIF||0, aOut=Math.abs(c.cOA_op||0), fOut=Math.abs(c.cOutF2||0);
+    const remIn=Math.max(0,fIn-aIn), remOut=Math.max(0,fOut-aOut);
+    const rw=(l,a,f,rm,col)=>`<div>${l}</div><div class="v" style="color:${col};">${fC(a)}</div><div class="v" style="color:var(--text2);">${fC(f)}</div><div class="v">${fC(rm)}</div>`;
+    mtd=`<div class="snp-mtd"><div class="h" style="text-align:left;">${esc(L26[ci]||'This month')}</div><div class="h">Actual</div><div class="h">Forecast</div><div class="h">Remaining</div>`
+       +rw('Cash in',aIn,fIn,remIn,'var(--green)')+rw('Cash out',aOut,fOut,remOut,'var(--coral)')
+       +`<div style="font-weight:700;border-top:1px solid var(--border2);padding-top:6px;">Net</div><div class="v" style="border-top:1px solid var(--border2);padding-top:6px;font-weight:700;color:${aIn-aOut>=0?'var(--green)':'var(--coral)'};">${fC(aIn-aOut)}</div><div class="v" style="border-top:1px solid var(--border2);padding-top:6px;color:var(--text2);">${fC(fIn-fOut)}</div><div class="v" style="border-top:1px solid var(--border2);padding-top:6px;">${fC(remIn-remOut)}</div></div>`;
+    mtdMsg={aIn,fIn,remIn};
+  }
+  el('snp_mtd').innerHTML=mtd;
+  // key messages
+  const msgs=[];
+  if(chg!=null) msgs.push(`Cash is <b>${fC(cashNow)}</b>, ${chg>=0?'up':'down'} <b>${fC(Math.abs(chg))}</b> over the last two weeks.`);
+  msgs.push(`<b>${fC(collTot)}</b> was collected across ${coll.length} payment${coll.length===1?'':'s'}${coll.length?`; the largest was ${esc(top(coll,'amt',1)[0].cust)} (${fC(top(coll,'amt',1)[0].amt)})`:''}.`);
+  msgs.push(`<b>${fC(invTot)}</b> was invoiced (${inv.length} invoice${inv.length===1?'':'s'}); outstanding receivables are now <b>${fC(outNow)}</b>.`);
+  if(overdueNow>0) msgs.push(`<b>${fC(overdueNow)}</b> is overdue${newOver>0?`, of which <b>${fC(newOver)}</b> became overdue in the last two weeks`:''}${over.length?` — largest: ${esc(top(over,'amt',1)[0].cust)} (${fC(top(over,'amt',1)[0].amt)})`:''}.`);
+  if(mtdMsg) msgs.push(`This month, cash in is <b>${fC(mtdMsg.aIn)}</b> against a forecast of ${fC(mtdMsg.fIn)}; <b>${fC(mtdMsg.remIn)}</b> is still expected.`);
+  el('snp_summary').innerHTML=msgs.map(m=>`<li>${m}</li>`).join('');
+}
+
 function goTab(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   el.classList.add('active');
   document.getElementById('page-'+id).classList.add('active');
+  if(id==='snap'){ try{ buildSnapshot(); }catch(e){ console.warn('Snapshot failed',e); } }
   // If switching to revpnl, activate default sub-tab (fin26)
   if(id==='revpnl'){
     const defaultBtn=document.getElementById('st_fin26');
