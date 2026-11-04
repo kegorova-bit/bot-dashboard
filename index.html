@@ -190,6 +190,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .snp-t td{padding:9px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
 .snp-t td.n,.snp-t th.n{text-align:right;font-family:var(--mono);white-space:nowrap;}
 .snp-t tfoot td{font-weight:700;border-bottom:none;}
+.cf-card.blu{border-color:rgba(74,163,223,.55);background:rgba(74,163,223,.08);}
+.cf-card.blu .cf-ic{background:rgba(74,163,223,.2);}.cf-card.blu .cf-ic svg{stroke:#4aa3df;}
+.cf-card.blu .cf-lbl,.cf-card.blu .cf-val{color:#4aa3df;}
+.cf-card.amb .cf-ic{background:rgba(245,166,35,.2);}
+.snp-hv{cursor:help;}
+.snp-fr{border-width:1px;border-style:solid;}
+.snp-fr.g{border-color:rgba(46,204,143,.5);background:rgba(46,204,143,.06);}.snp-fr.g .cf-sec-t{color:var(--green);}
+.snp-fr.r{border-color:rgba(255,107,107,.5);background:rgba(255,107,107,.06);}.snp-fr.r .cf-sec-t{color:var(--coral);}
+.snp-fr.b{border-color:rgba(74,163,223,.55);background:rgba(74,163,223,.07);}.snp-fr.b .cf-sec-t{color:#4aa3df;}
+.snp-fr.t{border-color:rgba(15,184,184,.55);background:rgba(15,184,184,.06);}.snp-fr.t .cf-sec-t{color:var(--teal);}
+.snp-out{display:grid;grid-template-columns:minmax(0,230px) minmax(0,1fr);gap:20px;align-items:center;}
+.snp-lg td{padding:7px 8px;border-bottom:1px solid var(--border);}
+.snp-lg .dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:9px;vertical-align:-1px;}
 .snp-tag{display:inline-block;white-space:nowrap;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;margin-left:6px;}
 .snp-mtd{display:grid;grid-template-columns:1fr auto auto auto;gap:6px 18px;align-items:baseline;font-size:13px;}
 .snp-mtd .h{font-size:11px;text-transform:uppercase;color:var(--text3);font-weight:700;letter-spacing:.4px;text-align:right;}
@@ -934,7 +947,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div id="snp_out_panel" class="co-panel" style="margin-bottom:20px;display:none;">
     <div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Where the cash went</div></div>
     <div id="snp_out_sub" style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5;"></div>
-    <div class="snp-2" style="margin-bottom:0;"><div id="snp_out_tbl"></div><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);font-weight:700;margin-bottom:4px;">Safe payments by month</div><div id="snp_out_mon"></div></div></div>
+    <div class="snp-2" style="margin-bottom:0;"><div class="snp-out"><div style="position:relative;height:220px;"><canvas id="snp_out_pie"></canvas></div><div id="snp_out_tbl"></div></div><div><div style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);font-weight:700;margin-bottom:4px;">Safe payments by month</div><div id="snp_out_mon"></div></div></div>
     <div id="snp_out_note" style="font-size:11px;color:var(--text3);margin-top:12px;line-height:1.55;"></div>
   </div>
   <div class="co-panel" style="margin-bottom:20px;">
@@ -942,12 +955,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <ul id="snp_summary" class="snp-sum" style="margin:0;padding-left:20px;font-size:14px;color:var(--text2);"></ul>
   </div>
   <div class="snp-2">
-    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Cash collected — major movers</div></div><div id="snp_coll"></div></div>
-    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Overdue — needs attention</div></div><div id="snp_over"></div></div>
+    <div class="co-panel snp-fr g"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Cash collected — major movers</div></div><div id="snp_coll"></div></div>
+    <div class="co-panel snp-fr r"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Overdue — needs attention</div></div><div id="snp_over"></div></div>
   </div>
   <div class="snp-2">
-    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Invoiced in the period</div></div><div id="snp_inv"></div></div>
-    <div class="co-panel"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Current month vs forecast</div></div><div id="snp_mtd"></div>
+    <div class="co-panel snp-fr b"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Invoiced in the period</div></div><div id="snp_inv"></div></div>
+    <div class="co-panel snp-fr t"><div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Current month vs forecast</div></div><div id="snp_mtd"></div>
       </div>
   </div>
   <div class="co-panel" style="margin-top:20px;">
@@ -1524,7 +1537,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v171cashout · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v172snapvisual · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -4925,7 +4938,7 @@ function buildSnapshot(){
   const winDays=Math.round((today-start)/86400000);
   const dd=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
   el('snp_period').textContent='Since '+dd(start)+' · '+winDays+' days';
-  const coll=[], inv=[], over=[]; let outNow=0, overdueNow=0, newOver=0, collTot=0, invTot=0;
+  const coll=[], inv=[], over=[], outL=[]; let outNow=0, overdueNow=0, newOver=0, collTot=0, invTot=0;
   if(rows && C){
     for(let i=1;i<rows.length;i++){
       const r=rows[i]; if(!r[0]||!r[0].trim()) continue;
@@ -4949,6 +4962,7 @@ function buildSnapshot(){
         const out=Math.abs(pv(r[C.outstanding])); if(out<=0||!cust) continue;
         outNow+=out;
         const edt=pd(r[C.expectedCollectionDate]);
+        outL.push({cust,proj,amt:out,edt,days:edt?Math.round((today-edt)/86400000):0});
         if(edt && edt<today){
           const days=Math.round((today-edt)/86400000);
           overdueNow+=out; const isNew=edt>start; if(isNew) newOver+=out;
@@ -4961,15 +4975,21 @@ function buildSnapshot(){
   const cashNow=(window._db1Banks||0)+(window._db1Safe||0)+(window._db1Projects||0);
   const chg=window._cashChg2w, prev=window._cashPrev2w;
   const arrow=(v,goodUp)=>{const up=v>=0,good=goodUp?up:!up;return `<span style="color:${good?'var(--green)':'var(--coral)'};">${up?'▲ +':'▼ -'}`;};
-  const tile=(cls,icon,lbl,val,cap)=>`<div class="cf-card ${cls}"><div class="cf-ic"><svg viewBox="0 0 24 24">${icon}</svg></div><div style="min-width:0;"><div class="cf-lbl">${lbl}</div><div class="cf-val">${val}</div><div class="cf-cap">${cap}</div></div></div>`;
+  const tile=(cls,icon,lbl,val,cap,id)=>`<div class="cf-card ${cls}${id?' snp-hv':''}"${id?` id="${id}" title="Hover to see the invoices"`:''}><div class="cf-ic"><svg viewBox="0 0 24 24">${icon}</svg></div><div style="min-width:0;"><div class="cf-lbl">${lbl}</div><div class="cf-val">${val}</div><div class="cf-cap">${cap}</div></div></div>`;
   const cashCap = (chg!=null&&prev!=null) ? `${chg>=0?'▲ +':'▼ -'}${fC(Math.abs(chg))}${prev?` (${Math.abs(chg/prev*100).toFixed(1)}%)`:''} vs ${dd(start)}` : (window._cashPrevIncomplete ? '⚠ Fill DB1 B18:D18 (banks, safe, projects 2 weeks ago)' : 'Change vs 2 weeks ago: add DB1 B18:D18');
   const outChg=outNow-outThen;
   el('snp_tiles').innerHTML =
     tile('total','<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>','Total Cash',fC(cashNow),cashCap)
-   +tile('pos','<path d="M12 19V5M5 12l7-7 7 7"/>','Cash Collected',fC(collTot),`${coll.length} payment${coll.length===1?'':'s'} in ${winDays} days`)
-   +tile('tl','<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/>','Invoiced',fC(invTot),`${inv.length} invoice${inv.length===1?'':'s'} issued`)
-   +tile('amb','<path d="M7 3h8l4 4v14H7zM15 3v4h4"/>','Invoices Outstanding',fC(outNow),`${outChg>=0?'▲ +':'▼ -'}${fC(Math.abs(outChg))} vs 2 weeks ago (est.)`)
-   +tile('neg','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>','Overdue',fC(overdueNow),`${fC(newOver)} newly overdue in ${winDays} days`);
+   +tile('pos','<path d="M12 19V5M5 12l7-7 7 7"/>','Cash Collected',fC(collTot),`${coll.length} payment${coll.length===1?'':'s'} in ${winDays} days`,'snp_t_coll')
+   +tile('blu','<path d="M7 3h8l4 4v14H7zM15 3v4h4M10 12h6M10 16h6"/>','Invoiced',fC(invTot),`${inv.length} invoice${inv.length===1?'':'s'} issued`,'snp_t_inv')
+   +tile('amb','<path d="M7 3h8l4 4v14H7zM15 3v4h4"/>','Invoices Outstanding',fC(outNow),`${outChg>=0?'▲ +':'▼ -'}${fC(Math.abs(outChg))} vs 2 weeks ago (est.)`,'snp_t_out')
+   +tile('neg','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>','Overdue',fC(overdueNow),`${fC(newOver)} newly overdue in ${winDays} days`,'snp_t_over');
+  window._snpL={coll,inv,over,outL,dd};
+  { const L=()=>window._snpL, H=_tblHtml, X=_escH;
+    bindHoverTable('snp_t_coll',()=>{ const a=L().coll.slice().sort((x,y)=>y.amt-x.amt); return H('Cash collected since '+L().dd(start),'var(--green)',['Customer','Project','Date','Amount'],a.map(r=>[X(r.cust),X(r.proj),r.date?L().dd(r.date):'month only',fC(r.amt)]),'Total',fC(a.reduce((t,r)=>t+r.amt,0))); });
+    bindHoverTable('snp_t_inv',()=>{ const a=L().inv.slice().sort((x,y)=>y.amt-x.amt); return H('Invoiced since '+L().dd(start),'#4aa3df',['Customer','Project','Date','Amount'],a.map(r=>[X(r.cust),X(r.proj),L().dd(r.date),fC(r.amt)]),'Total',fC(a.reduce((t,r)=>t+r.amt,0))); });
+    bindHoverTable('snp_t_out',()=>{ const a=L().outL.slice().sort((x,y)=>y.amt-x.amt); return H('Invoices outstanding today','var(--amber)',['Customer','Project','Exp. collection','Amount'],a.map(r=>[X(r.cust),X(r.proj),r.edt?L().dd(r.edt)+(r.days>0?' <span style="color:var(--coral);">('+r.days+'d late)</span>':''):'—',fC(r.amt)]),'Total',fC(a.reduce((t,r)=>t+r.amt,0)),16); });
+    bindHoverTable('snp_t_over',()=>{ const a=L().over.slice().sort((x,y)=>y.amt-x.amt); return H('Overdue invoices','var(--coral)',['Customer','Project','Days overdue','Amount'],a.map(r=>[X(r.cust),X(r.proj),r.days+'d'+(r.isNew?' · new':''),fC(r.amt)]),'Total',fC(a.reduce((t,r)=>t+r.amt,0))); }); }
   // tables
   const tbl=(head,rowsHtml,foot)=>rowsHtml?`<table class="snp-t"><thead><tr>${head}</tr></thead><tbody>${rowsHtml}</tbody>${foot||''}</table>`:'<div style="font-size:13px;color:var(--text3);padding:10px 2px;">Nothing in this period.</div>';
   const top=(arr,k,n)=>arr.slice().sort((a,b)=>b[k]-a[k]).slice(0,n);
@@ -5031,6 +5051,8 @@ function buildSnapshot(){
   msgs.push(`<b>${fC(collTot)}</b> was collected across ${coll.length} payment${coll.length===1?'':'s'}${coll.length?`; the largest was ${esc(top(coll,'amt',1)[0].cust)} (${fC(top(coll,'amt',1)[0].amt)})`:''}.`);
   msgs.push(`<b>${fC(invTot)}</b> was invoiced (${inv.length} invoice${inv.length===1?'':'s'}); outstanding receivables are now <b>${fC(outNow)}</b>.`);
   if(overdueNow>0) msgs.push(`<b>${fC(overdueNow)}</b> is overdue${newOver>0?`, of which <b>${fC(newOver)}</b> became overdue in the last two weeks`:''}${over.length?` — largest: ${esc(top(over,'amt',1)[0].cust)} (${fC(top(over,'amt',1)[0].amt)})`:''}.`);
+  { const sb=window._scenBal, dec=(sb&&sb.length>11)?sb[11]:null;
+    if(dec==null||dec<0) msgs.push(`Forecast cash at <b>31 Dec 2026</b> has turned negative because invoices planned for October moved to November and later, so their collection window moved with them.`); }
   if(mtdMsg && (mtdMsg.aIn||mtdMsg.fIn)) msgs.push(`This month, cash in is <b>${fC(mtdMsg.aIn)}</b> against a forecast of ${fC(mtdMsg.fIn)}; <b>${fC(mtdMsg.remIn)}</b> is still expected.`);
   el('snp_summary').innerHTML=msgs.map(m=>`<li>${m}</li>`).join('');
   // ── Where the cash went (safe ledger + project / bank remainder) ──
@@ -5049,9 +5071,17 @@ function buildSnapshot(){
       const rowsA=Object.keys(cats).sort((a,b)=>cats[b]-cats[a]).map(k=>[k,cats[k],'var(--coral)']);
       if(projSpend>0) rowsA.push(['Project spending (cash held in projects)',projSpend,'var(--amber)']);
       rowsA.push(['Paid straight from banks (not in safe ledger)',bank,'var(--text3)']);
-      const mx=Math.max(...rowsA.map(r=>Math.abs(r[1])),1);
-      const trs=rowsA.map(r=>`<tr><td>${esc(r[0])}<div style="height:4px;border-radius:2px;background:${r[2]};opacity:.55;width:${Math.max(2,Math.round(Math.abs(r[1])/mx*100))}%;margin-top:4px;"></div></td><td class="n">${fC(r[1])}</td><td class="n" style="color:var(--text3);">${grand?Math.round(r[1]/grand*100):0}%</td></tr>`).join('');
-      el('snp_out_tbl').innerHTML=`<table class="snp-t"><thead><tr><th>Cash out since ${dd(start)}</th><th class="n">Amount</th><th class="n">%</th></tr></thead><tbody>${trs}</tbody><tfoot><tr><td>Total cash out</td><td class="n">${fC(grand)}</td><td></td></tr></tfoot></table>`;
+      pan.style.display='block';   // must be visible before the chart is sized
+      // keep categories of $1,000+; everything smaller is grouped into "Others"
+      const big=rowsA.filter(r=>r[1]>=1000).sort((a,b)=>b[1]-a[1]), small=rowsA.filter(r=>r[1]<1000);
+      const smallSum=small.reduce((t,r)=>t+r[1],0); const pieRows=big.slice(); if(smallSum>0) pieRows.push(['Others (each under $1,000)',smallSum]);
+      const PAL=['#ff6b6b','#4aa3df','#7c8cf8','#b07cf0','#d98cb3','#e0a96d','#6fcf97'], GREY='#6b7488';
+      const cols=pieRows.map((r,ix)=>r[0].indexOf('Others')===0?GREY:(/banks/.test(r[0])?'#e0a96d':PAL[ix%PAL.length]));
+      const gsum=pieRows.reduce((t,r)=>t+r[1],0)||1;
+      el('snp_out_tbl').innerHTML=`<table class="snp-t snp-lg"><thead><tr><th>Cash out since ${dd(start)}</th><th class="n">Amount</th><th class="n">%</th></tr></thead><tbody>${pieRows.map((r,ix)=>`<tr><td><span class="dot" style="background:${cols[ix]};"></span>${esc(r[0])}</td><td class="n">${fC(r[1])}</td><td class="n" style="color:var(--text3);">${Math.round(r[1]/gsum*100)}%</td></tr>`).join('')}</tbody><tfoot><tr><td>Total cash out</td><td class="n">${fC(grand)}</td><td></td></tr></tfoot></table>`;
+      try{ destroyChart('snpOut'); const cv=el('snp_out_pie');
+        if(cv && typeof Chart!=='undefined') charts['snpOut']=new Chart(cv,{type:'doughnut',data:{labels:pieRows.map(r=>r[0]),datasets:[{data:pieRows.map(r=>Math.round(r[1])),backgroundColor:cols,borderWidth:2,borderColor:'#161b27',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'52%',animation:{duration:400},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': $'+c.parsed.toLocaleString()+' ('+Math.round(c.parsed/gsum*100)+'%)'}}}}});
+      }catch(e){ console.warn('pie failed',e); }
       // months matrix
       const now2=new Date(); const ms=[2,1,0].map(k=>new Date(now2.getFullYear(),now2.getMonth()-k,1));
       const mk=d=>d.getFullYear()*12+d.getMonth(); const mat={}; const tot=[0,0,0];
