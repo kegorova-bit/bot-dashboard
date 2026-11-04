@@ -11,7 +11,7 @@
 <style>
 
 :root{
-  --bg:#0f1117;--bg2:#161b27;--bg3:#1e2535;--bg4:#252d40;
+  --bg:#0a1a3c;--bg2:#10244f;--bg3:#173060;--bg4:#1e3b72;
   --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
   --teal:#0fb8b8;--tDim:rgba(15,184,184,0.14);
   --coral:#ff6b6b;--cDim:rgba(255,107,107,0.16);
@@ -1542,7 +1542,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v174 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v175 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -4454,7 +4454,7 @@ function processInvoices(rows){
     if(dEl){
       charts['donut']=new Chart(dEl,{type:'doughnut',
         data:{labels:['Low','Medium','High'],datasets:[{data:[_pL2,_pM2,_pH2],
-          backgroundColor:[coral,amber,green],borderWidth:3,borderColor:'#161b27',hoverOffset:6}]},
+          backgroundColor:[coral,amber,green],borderWidth:3,borderColor:'#10244f',hoverOffset:6}]},
         options:{responsive:true,maintainAspectRatio:true,cutout:'58%',
           plugins:{legend:{position:'bottom',labels:{boxWidth:10,padding:14,color:'#cbd5e1',font:{size:11},usePointStyle:true}},
             tooltip:{callbacks:{label:c=>' '+c.label+': $'+c.parsed.toLocaleString()}}}}});
@@ -5085,7 +5085,7 @@ function buildSnapshot(){
       const gsum=pieRows.reduce((t,r)=>t+r[1],0)||1;
       el('snp_out_tbl').innerHTML=`<table class="snp-t snp-lg"><thead><tr><th>Cash out since ${dd(start)}</th><th class="n">Amount</th><th class="n">%</th></tr></thead><tbody>${pieRows.map((r,ix)=>`<tr><td><span class="dot" style="background:${cols[ix]};"></span>${esc(r[0])}</td><td class="n">${fC(r[1])}</td><td class="n" style="color:var(--text3);">${Math.round(r[1]/gsum*100)}%</td></tr>`).join('')}</tbody><tfoot><tr><td>Total cash out</td><td class="n">${fC(grand)}</td><td></td></tr></tfoot></table>`;
       try{ destroyChart('snpOut'); const cv=el('snp_out_pie');
-        if(cv && typeof Chart!=='undefined') charts['snpOut']=new Chart(cv,{type:'doughnut',data:{labels:pieRows.map(r=>r[0]),datasets:[{data:pieRows.map(r=>Math.round(r[1])),backgroundColor:cols,borderWidth:2,borderColor:'#161b27',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'52%',animation:{duration:400},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': $'+c.parsed.toLocaleString()+' ('+Math.round(c.parsed/gsum*100)+'%)'}}}}});
+        if(cv && typeof Chart!=='undefined') charts['snpOut']=new Chart(cv,{type:'doughnut',data:{labels:pieRows.map(r=>r[0]),datasets:[{data:pieRows.map(r=>Math.round(r[1])),backgroundColor:cols,borderWidth:2,borderColor:'#10244f',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'52%',animation:{duration:400},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.label+': $'+c.parsed.toLocaleString()+' ('+Math.round(c.parsed/gsum*100)+'%)'}}}}});
       }catch(e){ console.warn('pie failed',e); }
       // months matrix
       const now2=new Date(); const ms=[2,1,0].map(k=>new Date(now2.getFullYear(),now2.getMonth()-k,1));
