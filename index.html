@@ -978,6 +978,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   <div id="snp_mon_panel" class="co-panel" style="margin-top:20px;display:none;">
     <div class="ytd-hd" style="margin-bottom:8px;"><div class="cf-sec-t" style="font-size:15px;">Safe payments by month</div></div>
     <div id="snp_out_mon"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:10px;">Advance project expenses (cash moved from the safe into project cash) are not counted as payments here; they only reduce total cash when project cash itself falls.</div>
   </div>
 </div>
 
@@ -1541,7 +1542,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v173 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v174 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -5069,7 +5070,7 @@ function buildSnapshot(){
       const ledBal=window._safeLedgerBal, dbSafe=window._db1Safe||0;
       const diff=(ledBal!=null)?dbSafe-ledBal:0;                    // ledger payments not yet in DB1's safe figure
       const projNow=window._db1Projects||0, projPrev=window._posPrev?window._posPrev.proj:window._cashPrevProj;
-      const projSpend=(projPrev!=null)?Math.max(0,projPrev-projNow):0;
+      const projSpend=(projPrev!=null)?Math.max(0,projPrev-projNow+(SP.advance||0)):0;   // advances moved from safe into project cash are added back before measuring project spending
       const bank=totalOut-(safePay-Math.max(0,diff))-projSpend;
       const grand=totalOut+Math.max(0,diff);
       const rowsA=Object.keys(cats).sort((a,b)=>cats[b]-cats[a]).map(k=>[k,cats[k],'var(--coral)']);
@@ -5089,7 +5090,7 @@ function buildSnapshot(){
       // months matrix
       const now2=new Date(); const ms=[2,1,0].map(k=>new Date(now2.getFullYear(),now2.getMonth()-k,1));
       const mk=d=>d.getFullYear()*12+d.getMonth(); const mat={}; const tot=[0,0,0];
-      (window._safeLedger||[]).forEach(e=>{ if(!(e.cred>0)) return; const d=e.date||new Date(now2.getFullYear(),now2.getMonth(),1); const ix=ms.findIndex(m=>mk(m)===mk(d)); if(ix<0) return; const k=safeCategory(e); (mat[k]=mat[k]||[0,0,0])[ix]+=e.cred; tot[ix]+=e.cred; });
+      (window._safeLedger||[]).forEach(e=>{ if(!(e.cred>0) || /advance project/i.test(e.cat)) return; const d=e.date||new Date(now2.getFullYear(),now2.getMonth(),1); const ix=ms.findIndex(m=>mk(m)===mk(d)); if(ix<0) return; const k=safeCategory(e); (mat[k]=mat[k]||[0,0,0])[ix]+=e.cred; tot[ix]+=e.cred; });
       const mrows=Object.keys(mat).sort((a,b)=>(mat[b][1]+mat[b][2])-(mat[a][1]+mat[a][2])).map(k=>`<tr><td>${esc(k)}</td>${mat[k].map(v=>`<td class="n">${v?fC(v):'—'}</td>`).join('')}</tr>`).join('');
       const mh=ms.map((m,ix)=>`<th class="n">${m.toLocaleDateString('en-GB',{month:'short'})}${ix===2?' (to date)':''}</th>`).join('');
       { const mp=el('snp_mon_panel'); if(mp) mp.style.display='block'; }
@@ -5171,7 +5172,9 @@ function safePaymentsSince(prevSafe,start){
   const L=window._safeLedger||[]; if(!L.length) return null;
   let idx=-1; if(prevSafe!=null){ for(let k=L.length-1;k>=0;k--){ if(L[k].bal!=null && Math.abs(L[k].bal-prevSafe)<=1.5 && (L[k].cred||L[k].deb)){ idx=k; break; } } }
   const sel = idx>=0 ? L.slice(idx+1) : L.filter(e=>e.date && e.date>start);
-  return {basis: idx>=0?'balance':'date', pays:sel.filter(e=>e.cred>0), ins:sel.filter(e=>e.deb>0)};
+  // "Advance Project Expenses" are transfers to project cash, not cash out: they are left out of payments and only reduce total cash when project cash itself falls.
+  const isAdv=e=>/advance project/i.test(e.cat);
+  return {basis: idx>=0?'balance':'date', pays:sel.filter(e=>e.cred>0 && !isAdv(e)), advance:sel.filter(e=>e.cred>0 && isAdv(e)).reduce((t,e)=>t+e.cred,0), ins:sel.filter(e=>e.deb>0)};
 }
 
 function goTab(id,el){
