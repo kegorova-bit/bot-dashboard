@@ -405,6 +405,24 @@ table.ex-mt tfoot td{font-weight:700;background:rgba(15,184,184,.10);border-top:
 .ex-ok{color:var(--green)!important;}.ex-bad{color:var(--coral)!important;}
 @media (max-width:1100px){.ex-kpis,.ex-take{grid-template-columns:repeat(2,minmax(0,1fr));}.ex-2,.ex-eq{grid-template-columns:1fr;}}
 @media (max-width:640px){.ex-kpis,.ex-take{grid-template-columns:1fr;}.ex-ttl{font-size:22px;}}
+.ex-kv{font-size:42px!important;}
+.ex-kt{font-size:13px;color:var(--text2);font-family:var(--mono);min-height:18px;}
+.ex-kt b{color:var(--text);font-size:15px;}
+.ex-rw{display:grid;grid-template-columns:150px minmax(0,1fr) 110px 190px 230px;gap:22px;align-items:center;padding:22px 0;border-bottom:1px solid var(--border);}
+.ex-rw:last-child{border-bottom:0;}
+.ex-rw.hd{padding:14px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);font-weight:700;border-bottom:1px solid var(--border2);}
+.ex-rw .m{font-size:16px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.ex-rw .n{font-family:var(--mono);font-size:22px;font-weight:700;text-align:right;}
+.ex-rw .sd{font-family:var(--mono);font-size:18px;font-weight:700;text-align:right;}
+.ex-rw .sd small{display:block;font-family:var(--font);font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.3px;text-transform:uppercase;margin-top:3px;}
+.ex-bb{height:22px;background:var(--bg3);border-radius:6px;position:relative;}
+.ex-bb i{display:block;height:100%;border-radius:6px;}
+.ex-bb b{position:absolute;top:-6px;bottom:-6px;border-left:3px solid var(--amber);}
+.ex-bb em{position:absolute;top:-6px;bottom:-6px;border-left:2px solid var(--text2);}
+.ex-bl{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:7px;}
+details.ex-rc{margin-top:14px;font-size:12px;color:var(--text3);}
+details.ex-rc summary{cursor:pointer;color:var(--green);font-weight:600;}
+@media (max-width:1100px){.ex-rw{grid-template-columns:1fr 1fr;}.ex-rw.hd{display:none;}}
 </style>
 </head>
 <body>
@@ -454,15 +472,11 @@ table.ex-mt tfoot td{font-weight:700;background:rgba(15,184,184,.10);border-top:
     <div class="ex-top">
       <div><div class="ex-ttl">2026 Revenue &amp; Profitability</div><div class="ex-sub">YTD performance through the last confirmed month.</div></div>
       <div class="ex-ctl"><span class="ytd-chip" id="ex_chip">YTD 2026</span>
-        <div class="ex-seg" id="ex_seg"><button class="on" data-m="fy" onclick="exSetMode('fy')">Actuals vs Full-Year Target</button><button data-m="ytd" onclick="exSetMode('ytd')">Actuals vs YTD Forecast</button></div></div>
+        <div class="ex-seg" id="ex_seg"><button class="on" data-m="ytd" onclick="exSetMode('ytd')">Actuals vs YTD Forecast</button><button data-m="fy" onclick="exSetMode('fy')">Actuals vs Full-Year Target</button></div></div>
     </div>
     <div id="ex_banner"></div>
     <div class="ex-kpis" id="ex_kpis"></div>
-    <div class="ex-2">
-      <div class="ex-pan"><div class="ex-t">YTD Actuals vs Forecast</div><div class="ex-s">Actuals up to the last confirmed month against the forecast for the same months (BudgetF). Green = favourable, red = unfavourable.</div><table class="ex-t1" id="ex_t1"></table><div id="ex_rec" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--text3);line-height:1.7;"></div></div>
-      <div class="ex-pan"><div class="ex-t">Full-Year Target Achievement</div><div class="ex-s">YTD actual against the full-year target. Amber marker = expected pace (<span id="ex_pace_txt">—</span> of the year complete).</div><div class="ex-fy" id="ex_fy"></div>
-        <div class="ex-lg"><span><i style="background:var(--teal)"></i>Actual</span><span><u></u>Expected pace</span><span><i style="background:var(--bg3);border:1px solid var(--border2)"></i>Remaining</span></div></div>
-    </div>
+    <div class="ex-pan" id="ex_main"></div>
     <div class="ex-pan"><div class="ex-t">Where Revenue Comes From</div><div class="ex-s">YTD revenue by business line · monthly figures add up to the monthly revenue total.</div>
       <div class="ex-eq" style="margin-top:14px;"><div id="ex_mix"></div><div style="position:relative;height:250px;"><canvas id="ex_ch_split"></canvas></div></div>
       <div class="ex-lg" id="ex_split_lg"></div></div>
@@ -4932,7 +4946,7 @@ function buildColChart(){
 }
 
 // ── Executive View ─────────────────────────────────────────────────────────
-window._exMode = window._exMode || 'fy';
+window._exMode = window._exMode || 'ytd';
 function exSetMode(m){ window._exMode=m; document.querySelectorAll('#ex_seg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); buildExecView(); }
 function buildExecView(){
   const s26=window._s26; if(!s26||!document.getElementById('ex_kpis')) return;
@@ -4949,55 +4963,57 @@ function buildExecView(){
   const f1=v=>v==null?'—':v.toFixed(1)+'%';
   const mLast=nDone?MN[nDone-1]:'';
   document.getElementById('ex_chip').textContent=nDone?('YTD 2026 · Jan–'+mLast):'YTD 2026';
-  document.getElementById('ex_pace_txt').textContent=Math.round(pace*100)+'%';
   const col=(good)=>good?'var(--green)':'var(--coral)';
   const word=(good)=>good?'Favourable':'Unfavourable';
-  // Banner (data-derived)
-  const rv=rA-rF, pv=pA-pF;
-  const bn=document.getElementById('ex_banner');
-  const rBeh=rv<0, pBeh=pv<0;
-  let msg;
-  if(rBeh&&pBeh) msg=`Revenue is ${Math.abs(pc(rv,rF)).toFixed(1)}% behind YTD forecast; operating profit is ${Math.abs(pc(pv,pF)).toFixed(1)}% behind.`;
-  else if(!rBeh&&!pBeh) msg=`Revenue is ${pc(rv,rF).toFixed(1)}% ahead of YTD forecast; operating profit is ${pc(pv,pF).toFixed(1)}% ahead.`;
-  else msg=`Revenue is ${Math.abs(pc(rv,rF)).toFixed(1)}% ${rBeh?'behind':'ahead of'} YTD forecast; operating profit is ${Math.abs(pc(pv,pF)).toFixed(1)}% ${pBeh?'behind':'ahead of'}.`;
-  bn.innerHTML=`<div class="ex-banner ${(rBeh||pBeh)?'':'good'}">${msg}</div>`;
-  // KPI cards
-  const bar=(p,c,pm)=>`<div class="ex-bar"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:${c}"></i>${pm!=null?`<b style="left:${pm}%"></b>`:''}</div>`;
-  const kp=[];
-  if(mode==='fy'){
-    kp.push({k:'Revenue YTD',c:'var(--teal)',v:fC(rA),s:`${f1(pc(rA,fyR))} of full-year target`,b:bar(pc(rA,fyR),'var(--teal)',pace*100),f:`Gap to target: ${fC(fyR-rA)}`,fc:'var(--text2)'});
-    const under=eA<=fyE*pace;
-    kp.push({k:'Expenses YTD',c:'#63b3ed',v:fC(eA),s:`${f1(pc(eA,fyE))} of full-year expense budget used`,b:bar(pc(eA,fyE),'#63b3ed',pace*100),f:`${under?'Favourable — within':'Unfavourable — above'} expected pace`,fc:col(under)});
-    kp.push({k:'Operating Profit YTD',c:'var(--green)',v:fC(pA),s:`${f1(pc(pA,fyP))} of full-year target`,b:bar(pc(pA,fyP),pA>=0?'var(--green)':'var(--coral)',pace*100),f:`Gap to target: ${fC(fyP-pA)}`,fc:'var(--text2)'});
-  } else {
-    kp.push({k:'Revenue YTD',c:'var(--teal)',v:fC(rA),s:`${f1(pc(rA,rF))} of YTD forecast (${fC(rF)})`,b:bar(pc(rA,rF),'var(--teal)',null),f:`${word(rv>=0)}: ${fC(Math.abs(rv))} ${rv>=0?'ahead':'behind'}`,fc:col(rv>=0)});
-    const ev=eA-eF;
-    kp.push({k:'Expenses YTD',c:'#63b3ed',v:fC(eA),s:`${f1(pc(eA,eF))} of YTD forecast (${fC(eF)})`,b:bar(pc(eA,eF),'#63b3ed',null),f:`${word(ev<=0)}: ${fC(Math.abs(ev))} ${ev<=0?'underspend':'overspend'}`,fc:col(ev<=0)});
-    kp.push({k:'Operating Profit YTD',c:'var(--green)',v:fC(pA),s:`${f1(pc(pA,pF))} of YTD forecast (${fC(pF)})`,b:bar(pc(pA,pF),pA>=0?'var(--green)':'var(--coral)',null),f:`${word(pv>=0)}: ${fC(Math.abs(pv))} ${pv>=0?'ahead':'behind'}`,fc:col(pv>=0)});
-  }
   const mg=rA?pA/rA*100:null;
-  kp.push({k:'Operating Margin YTD',c:'#a78bfa',v:f1(mg),s:'Operating profit ÷ revenue',b:bar(mg==null?0:Math.max(0,mg),'#a78bfa',null),f:'No approved margin target in source data',fc:'var(--text3)'});
-  document.getElementById('ex_kpis').innerHTML=kp.map(x=>`<div class="ex-kpi" style="--kc:${x.c}"><div class="ex-kl">${x.k}</div><div class="ex-kv">${x.v}</div><div class="ex-ks">${x.s}</div>${x.b}<div class="ex-kf" style="color:${x.fc}">${x.f}</div></div>`).join('');
-  // YTD vs forecast table
-  const vr=(label,a,f,fav,isExp)=>{
-    const v=a-f, good=isExp?v<=0:v>=0, p=pc(v,f), w=Math.min(100,Math.abs(p||0));
-    const c=col(good);
-    return `<tr><td>${label}</td><td>${fC(a)}</td><td style="color:var(--text2)">${fC(f)}</td>
-      <td style="color:${c}">${fC(Math.abs(v))}<span class="ex-vw">${good?'Favourable':'Unfavourable'} · ${isExp?(v<=0?'under':'over'):(v>=0?'ahead':'behind')}</span></td>
-      <td style="color:${c}">${p==null?'—':Math.abs(p).toFixed(1)+'%'}</td>
-      <td><span class="ex-mb"><i style="width:${w}%;background:${c}"></i></span></td></tr>`;
-  };
-  document.getElementById('ex_t1').innerHTML=`<thead><tr><th>Metric</th><th>Actual YTD</th><th>Forecast YTD</th><th>Variance $</th><th>Variance %</th><th></th></tr></thead><tbody>${vr('Revenue',rA,rF)}${vr('Expenses',eA,eF,0,true)}${vr('Operating Profit',pA,pF)}</tbody>`;
-  document.getElementById('ex_rec').innerHTML=`<b style="color:var(--text2)">Reconciliation</b><br>Actual: ${fC(rA)} revenue − ${fC(eA)} expenses = ${fC(rA-eA)} operating profit ${Math.abs((rA-eA)-pA)<2?'<span class="ex-ok">✓ ties to reported</span>':'<span class="ex-bad">⚠ differs from reported '+fC(pA)+'</span>'}<br>Forecast: ${fC(rF)} − ${fC(eF)} = ${fC(rF-eF)} ${Math.abs((rF-eF)-pF)<2?'<span class="ex-ok">✓ ties</span>':'<span class="ex-bad">⚠ reported '+fC(pF)+'</span>'}<br>Months included: Jan–${mLast} (${nDone} completed)`;
-  // Full-year target achievement
-  const fy=(label,a,t,c)=>{
-    const p=pc(a,t), ahead=p!=null&&p>=pace*100;
-    return `<div><h4><span>${label}</span><span style="color:${col(ahead)};font-size:12px;">${ahead?'Ahead of':'Behind'} expected pace</span></h4>
-      <div class="ex-fs"><div>YTD actual<span>${fC(a)}</span></div><div>Full-year target<span>${fC(t)}</span></div><div>% achieved<span>${f1(p)}</span></div><div>Remaining to target<span>${fC(t-a)}</span></div></div>
-      <div class="ex-bar" style="height:12px;"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:${c}"></i><b style="left:${pace*100}%"></b></div>
-      <div style="font-size:11px;color:var(--text3);margin-top:6px;">Expected pace: ${(pace*100).toFixed(1)}% (${nDone} of 12 months complete)</div></div>`;
-  };
-  document.getElementById('ex_fy').innerHTML=fy('Revenue',rA,fyR,'var(--teal)')+fy('Operating Profit',pA,fyP,pA>=0?'var(--green)':'var(--coral)');
+  const rv=rA-rF, pv=pA-pF, ev=eA-eF;
+  const bn=document.getElementById('ex_banner');
+  const paceTxt=(pace*100).toFixed(1)+'%';
+  if(mode==='ytd'){
+    const rBeh=rv<0,pBeh=pv<0;
+    const ph=(v,f)=>`${Math.abs(pc(v,f)).toFixed(1)}% ${v<0?'behind':'ahead of'}`;
+    bn.innerHTML=`<div class="ex-banner ${(rBeh||pBeh)?'':'good'}">Revenue is ${ph(rv,rF)} YTD forecast; operating profit is ${ph(pv,pF)} forecast.</div>`;
+  } else {
+    const rOk=(pc(rA,fyR)||0)>=pace*100, pOk=(pc(pA,fyP)||0)>=pace*100;
+    const t=(rOk&&pOk)?'Revenue and operating profit are at or above expected full-year pace.':(!rOk&&!pOk)?'Revenue and operating profit remain below expected full-year pace.':(rOk?'Revenue is at or above expected full-year pace; operating profit remains below it.':'Operating profit is at or above expected full-year pace; revenue remains below it.');
+    bn.innerHTML=`<div class="ex-banner ${(rOk&&pOk)?'good':''}">${t} <span style="font-weight:500;color:var(--text2)">(${nDone} of 12 months complete · expected pace ${paceTxt})</span></div>`;
+  }
+  // KPI cards — actuals only; full-year target shown in $ on Revenue and Operating Profit
+  const kp=[
+    {k:'Revenue YTD',c:'var(--teal)',v:fC(rA),t:`Full-year target <b>${fC(fyR)}</b>`},
+    {k:'Expenses YTD',c:'#63b3ed',v:fC(eA),t:''},
+    {k:'Operating Profit YTD',c:'var(--green)',v:fC(pA),t:`Full-year target <b>${fC(fyP)}</b>`},
+    {k:'Operating Margin YTD',c:'#a78bfa',v:f1(mg),t:'Operating profit ÷ revenue'}];
+  document.getElementById('ex_kpis').innerHTML=kp.map(x=>`<div class="ex-kpi" style="--kc:${x.c}"><div class="ex-kl">${x.k}</div><div class="ex-kv">${x.v}</div><div class="ex-kt">${x.t||'&nbsp;'}</div></div>`).join('');
+  // Main panel
+  const recOk=Math.abs((rA-eA)-pA)<2&&Math.abs((rF-eF)-pF)<2;
+  const rec=`<details class="ex-rc"><summary>${recOk?'✓ Financial reconciliation: verified':'⚠ Financial reconciliation: differences found'}</summary><div style="margin-top:8px;line-height:1.7;">Actual: ${fC(rA)} revenue − ${fC(eA)} expenses = ${fC(rA-eA)} (reported operating profit ${fC(pA)})<br>Forecast: ${fC(rF)} − ${fC(eF)} = ${fC(rF-eF)} (reported ${fC(pF)})<br>Months included: Jan–${mLast} (${nDone} completed)</div></details>`;
+  const mx=document.getElementById('ex_main');
+  if(mode==='ytd'){
+    const row=(m,a,f,isExp,c0)=>{
+      const v=a-f,p=f?a/Math.abs(f)*100:0;
+      let c,txt;
+      if(isExp){c=v<=0?'var(--amber)':'var(--coral)';txt=v<=0?'below forecast':'above forecast';}
+      else{c=v>=0?'var(--green)':'var(--coral)';txt=v>=0?'ahead of forecast':'behind forecast';}
+      const fill=Math.min(100,p);
+      return `<div class="ex-rw"><div class="m" style="color:${c0}">${m}</div>
+        <div><div class="ex-bb"><i style="width:${fill}%;background:${c}"></i><em style="left:100%;margin-left:-2px"></em></div><div class="ex-bl"><span>0%</span><span>Forecast = 100%</span></div></div>
+        <div class="n" style="color:${c}">${p.toFixed(1)}%</div><div class="n">${fC(f)}</div>
+        <div class="sd" style="color:${c}">${fC(Math.abs(v))}<small>${txt}</small></div></div>`;};
+    mx.innerHTML=`<div class="ex-t">YTD Performance vs Forecast</div><div class="ex-s">Actual performance compared with forecast for the same completed months.</div>
+      <div class="ex-rw hd" style="margin-top:10px"><div>Metric</div><div>Actual as % of forecast</div><div style="text-align:right">Achievement</div><div style="text-align:right">Forecast YTD</div><div style="text-align:right">Variance</div></div>
+      ${row('Revenue',rA,rF,false,'var(--teal)')}${row('Expenses',eA,eF,true,'#63b3ed')}${row('Operating Profit',pA,pF,false,'var(--green)')}${rec}`;
+  } else {
+    const row=(m,a,t,isExp,c,c0)=>{
+      const p=t?a/Math.abs(t)*100:0;
+      return `<div class="ex-rw"><div class="m" style="color:${c0}">${m}</div>
+        <div><div class="ex-bb"><i style="width:${Math.max(0,Math.min(100,p))}%;background:${c}"></i><b style="left:${pace*100}%"></b></div><div class="ex-bl"><span>${isExp?'Budget used':'Achieved'} ${p.toFixed(1)}%</span><span style="color:var(--amber)">Expected pace ${paceTxt}</span></div></div>
+        <div class="n" style="color:${c}">${p.toFixed(1)}%</div><div class="n">${fC(t)}</div>
+        <div class="sd">${fC(t-a)}<small>${isExp?'remaining budget':'remaining to target'}</small></div></div>`;};
+    mx.innerHTML=`<div class="ex-t">Progress Against Full-Year Plan</div><div class="ex-s">YTD actual achievement versus annual targets and expected reporting-period pace.</div>
+      <div class="ex-rw hd" style="margin-top:10px"><div>Metric</div><div>Progress vs expected pace</div><div style="text-align:right">% of plan</div><div style="text-align:right">Full-year plan</div><div style="text-align:right">Remaining</div></div>
+      ${row('Revenue',rA,fyR,false,'var(--teal)','var(--teal)')}${row('Expenses',eA,fyE,true,'#63b3ed','#63b3ed')}${row('Operating Profit',pA,fyP,false,pA>=0?'var(--green)':'var(--coral)','var(--green)')}${rec}`;
+  }
   // Revenue composition
   const dc=S(done,'dcA'), hv=S(done,'haivoA'), gr=S(done,'gA'), other=rA-dc-hv-gr;
   const C={dc:'#22d3ee',hv:'#a78bfa',gr:'#7c9cc4',ot:'#64748b'};
@@ -5038,18 +5054,21 @@ function buildExecView(){
   const ytdv=(a,f,exp)=>vcell(a,f,exp);
   document.getElementById('ex_mt').innerHTML=head+`<tbody>${rows.map(mrow).join('')}</tbody>
     <tfoot><tr><td>YTD Total</td><td class="gl">${fC(rA)}</td><td>${fC(rF)}</td>${ytdv(rA,rF)}<td class="gl">${fC(eA)}</td><td>${fC(eF)}</td>${ytdv(eA,eF,true)}<td class="gl">${fC(pA)}</td><td>${fC(pF)}</td>${ytdv(pA,pF)}</tr></tfoot>`;
-  // Takeaways: rank by materiality of deviation
-  const cands=[
-    {w:Math.abs(pc(rv,rF)||0),t:`<b>Revenue</b> is ${Math.abs(pc(rv,rF)).toFixed(1)}% ${rv<0?'behind':'ahead of'} YTD forecast (${fC(Math.abs(rv))} ${rv<0?'below':'above'}).`,c:col(rv>=0)},
-    {w:Math.abs(pc(pv,pF)||0),t:`<b>Operating profit</b> is ${Math.abs(pc(pv,pF)).toFixed(1)}% ${pv<0?'behind':'ahead of'} forecast (${fC(Math.abs(pv))} ${pv<0?'below':'above'}).`,c:col(pv>=0)},
-    {w:Math.abs(pc(eA-eF,eF)||0),t:`<b>Expenses</b> are ${Math.abs(pc(eA-eF,eF)).toFixed(1)}% ${eA<=eF?'under':'over'} YTD forecast (${fC(Math.abs(eA-eF))}).`,c:col(eA<=eF)},
-    {w:Math.abs((pc(rA,fyR)||0)-pace*100),t:`<b>Revenue</b> has reached ${f1(pc(rA,fyR))} of the full-year target against an expected pace of ${(pace*100).toFixed(0)}%.`,c:col((pc(rA,fyR)||0)>=pace*100)},
-    {w:Math.abs((pc(pA,fyP)||0)-pace*100),t:`<b>Operating profit</b> has reached ${f1(pc(pA,fyP))} of the full-year target against an expected pace of ${(pace*100).toFixed(0)}%.`,c:col((pc(pA,fyP)||0)>=pace*100)},
-    {w:0,t:`<b>Operating margin</b> is ${f1(mg)} YTD.`,c:'var(--amber)'}
-  ];
+  // Takeaways: rank by materiality, specific to the selected view
   const top=items.slice().sort((a,b)=>b.v-a.v)[0];
-  cands.push({w:0,t:`<b>${top.l}</b> contributes ${sh(top.v).toFixed(1)}% of YTD revenue.`,c:C[top.k]});
-  const pick=cands.slice(0,5).sort((a,b)=>b.w-a.w).slice(0,2).concat(cands.slice(5));
+  const cMix={w:0,t:`<b>${top.l}</b> contributes ${sh(top.v).toFixed(1)}% of YTD revenue.`,c:C[top.k]};
+  const cMg={w:0,t:`<b>Operating margin</b> is ${f1(mg)} YTD.`,c:'var(--amber)'};
+  const gp=(a,t)=>(pc(a,t)||0)-pace*100;
+  const cands=mode==='ytd'?[
+    {w:Math.abs(pc(rv,rF)||0),t:`<b>Revenue</b> is ${Math.abs(pc(rv,rF)).toFixed(1)}% ${rv<0?'behind':'ahead of'} YTD forecast (${fC(Math.abs(rv))}).`,c:col(rv>=0)},
+    {w:Math.abs(pc(pv,pF)||0),t:`<b>Operating profit</b> is ${Math.abs(pc(pv,pF)).toFixed(1)}% ${pv<0?'behind':'ahead of'} forecast (${fC(Math.abs(pv))}).`,c:col(pv>=0)},
+    {w:Math.abs(pc(ev,eF)||0),t:`<b>Expenses</b> are ${Math.abs(pc(ev,eF)).toFixed(1)}% ${ev<=0?'below':'above'} YTD forecast (${fC(Math.abs(ev))}).`,c:ev<=0?'var(--amber)':'var(--coral)'}
+  ]:[
+    {w:Math.abs(gp(rA,fyR)),t:`<b>Revenue</b> has reached ${f1(pc(rA,fyR))} of the full-year target against an expected pace of ${paceTxt}.`,c:col(gp(rA,fyR)>=0)},
+    {w:Math.abs(gp(pA,fyP)),t:`<b>Operating profit</b> has reached ${f1(pc(pA,fyP))} of the full-year target against an expected pace of ${paceTxt}.`,c:col(gp(pA,fyP)>=0)},
+    {w:Math.abs(gp(eA,fyE)),t:`<b>Expenses</b> have used ${f1(pc(eA,fyE))} of the full-year budget against an expected pace of ${paceTxt}.`,c:'#63b3ed'}
+  ];
+  const pick=cands.sort((a,b)=>b.w-a.w).slice(0,2).concat([cMg,cMix]);
   document.getElementById('ex_take').innerHTML=pick.slice(0,4).map(x=>`<div class="ex-tk" style="--tc:${x.c}">${x.t}</div>`).join('');
 }
 
