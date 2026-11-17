@@ -420,6 +420,7 @@ table.ex-mt tfoot td{font-weight:700;background:rgba(15,184,184,.10);border-top:
 .ex-bb b{position:absolute;top:-6px;bottom:-6px;border-left:3px solid var(--amber);}
 .ex-bb em{position:absolute;top:-6px;bottom:-6px;border-left:2px solid var(--text2);}
 .ex-bl{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:7px;}
+.ex-pl{display:inline-block;white-space:nowrap;margin-top:6px;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid;}
 details.ex-rc{margin-top:14px;font-size:12px;color:var(--text3);}
 details.ex-rc summary{cursor:pointer;color:var(--green);font-weight:600;}
 @media (max-width:1100px){.ex-rw{grid-template-columns:1fr 1fr;}.ex-rw.hd{display:none;}}
@@ -1646,7 +1647,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v177 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v179 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -4969,15 +4970,14 @@ function buildExecView(){
   const rv=rA-rF, pv=pA-pF, ev=eA-eF;
   const bn=document.getElementById('ex_banner');
   const paceTxt=(pace*100).toFixed(1)+'%';
-  if(mode==='ytd'){
-    const rBeh=rv<0,pBeh=pv<0;
-    const ph=(v,f)=>`${Math.abs(pc(v,f)).toFixed(1)}% ${v<0?'behind':'ahead of'}`;
-    bn.innerHTML=`<div class="ex-banner ${(rBeh||pBeh)?'':'good'}">Revenue is ${ph(rv,rF)} YTD forecast; operating profit is ${ph(pv,pF)} forecast.</div>`;
-  } else {
-    const rOk=(pc(rA,fyR)||0)>=pace*100, pOk=(pc(pA,fyP)||0)>=pace*100;
-    const t=(rOk&&pOk)?'Revenue and operating profit are at or above expected full-year pace.':(!rOk&&!pOk)?'Revenue and operating profit remain below expected full-year pace.':(rOk?'Revenue is at or above expected full-year pace; operating profit remains below it.':'Operating profit is at or above expected full-year pace; revenue remains below it.');
-    bn.innerHTML=`<div class="ex-banner ${(rOk&&pOk)?'good':''}">${t} <span style="font-weight:500;color:var(--text2)">(${nDone} of 12 months complete · expected pace ${paceTxt})</span></div>`;
-  }
+  // One shared sentence pattern for both views; only the benchmark differs (YTD forecast vs expected full-year pace)
+  const bmR = mode==='ytd'?rF:fyR*pace, bmP = mode==='ytd'?pF:fyP*pace, bmE = mode==='ytd'?eF:fyE*pace;
+  const bmName = mode==='ytd'?'YTD forecast':'expected full-year pace';
+  const dR=rA-bmR, dP=pA-bmP, dE=eA-bmE;
+  const rel=(d,bm)=>bm?Math.abs(d/Math.abs(bm)*100).toFixed(1)+'%':'—';
+  const ph=(d,bm)=>`${rel(d,bm)} ${d<0?'behind':'ahead of'}`;
+  const both=(dR<0)===(dP<0);
+  bn.innerHTML=`<div class="ex-banner ${(dR<0||dP<0)?'':'good'}">Revenue is ${ph(dR,bmR)} ${bmName}; operating profit is ${ph(dP,bmP)}${both?'.':' '+bmName+'.'}${mode==='fy'?` <span style="font-weight:500;color:var(--text2)">(${nDone} of 12 months complete · expected pace ${paceTxt})</span>`:''}</div>`;
   // KPI cards — actuals only; full-year target shown in $ on Revenue and Operating Profit
   const kp=[
     {k:'Revenue YTD',c:'var(--teal)',v:fC(rA),t:`Full-year target <b>${fC(fyR)}</b>`},
@@ -4996,9 +4996,10 @@ function buildExecView(){
       if(isExp){c=v<=0?'var(--amber)':'var(--coral)';txt=v<=0?'below forecast':'above forecast';}
       else{c=v>=0?'var(--green)':'var(--coral)';txt=v>=0?'ahead of forecast':'behind forecast';}
       const fill=Math.min(100,p);
+      const pill=isExp?(v<=0?'Under':'Over'):(v>=0?'Ahead':'Behind');
       return `<div class="ex-rw"><div class="m" style="color:${c0}">${m}</div>
-        <div><div class="ex-bb"><i style="width:${fill}%;background:${c}"></i><em style="left:100%;margin-left:-2px"></em></div><div class="ex-bl"><span>0%</span><span>Forecast = 100%</span></div></div>
-        <div class="n" style="color:${c}">${p.toFixed(1)}%</div><div class="n">${fC(f)}</div>
+        <div><div class="ex-bb"><i style="width:${fill}%;background:${c0}"></i><em style="left:100%;margin-left:-2px"></em></div><div class="ex-bl"><span>0%</span><span>Forecast = 100%</span></div></div>
+        <div class="n">${p.toFixed(1)}%<br><span class="ex-pl" style="color:${c};border-color:${c}">${pill}</span></div><div class="n">${fC(f)}</div>
         <div class="sd" style="color:${c}">${fC(Math.abs(v))}<small>${txt}</small></div></div>`;};
     mx.innerHTML=`<div class="ex-t">YTD Performance vs Forecast</div><div class="ex-s">Actual performance compared with forecast for the same completed months.</div>
       <div class="ex-rw hd" style="margin-top:10px"><div>Metric</div><div>Actual as % of forecast</div><div style="text-align:right">Achievement</div><div style="text-align:right">Forecast YTD</div><div style="text-align:right">Variance</div></div>
@@ -5006,9 +5007,12 @@ function buildExecView(){
   } else {
     const row=(m,a,t,isExp,c,c0)=>{
       const p=t?a/Math.abs(t)*100:0;
+      const ahead=p>=pace*100;
+      const sc=isExp?(ahead?'var(--coral)':'var(--amber)'):(ahead?'var(--green)':'var(--coral)');
+      const pill=isExp?(ahead?'Over pace':'Under pace'):(ahead?'Ahead of pace':'Behind pace');
       return `<div class="ex-rw"><div class="m" style="color:${c0}">${m}</div>
         <div><div class="ex-bb"><i style="width:${Math.max(0,Math.min(100,p))}%;background:${c}"></i><b style="left:${pace*100}%"></b></div><div class="ex-bl"><span>${isExp?'Budget used':'Achieved'} ${p.toFixed(1)}%</span><span style="color:var(--amber)">Expected pace ${paceTxt}</span></div></div>
-        <div class="n" style="color:${c}">${p.toFixed(1)}%</div><div class="n">${fC(t)}</div>
+        <div class="n">${p.toFixed(1)}%<br><span class="ex-pl" style="color:${sc};border-color:${sc}">${pill}</span></div><div class="n">${fC(t)}</div>
         <div class="sd">${fC(t-a)}<small>${isExp?'remaining budget':'remaining to target'}</small></div></div>`;};
     mx.innerHTML=`<div class="ex-t">Progress Against Full-Year Plan</div><div class="ex-s">YTD actual achievement versus annual targets and expected reporting-period pace.</div>
       <div class="ex-rw hd" style="margin-top:10px"><div>Metric</div><div>Progress vs expected pace</div><div style="text-align:right">% of plan</div><div style="text-align:right">Full-year plan</div><div style="text-align:right">Remaining</div></div>
@@ -5058,15 +5062,10 @@ function buildExecView(){
   const top=items.slice().sort((a,b)=>b.v-a.v)[0];
   const cMix={w:0,t:`<b>${top.l}</b> contributes ${sh(top.v).toFixed(1)}% of YTD revenue.`,c:C[top.k]};
   const cMg={w:0,t:`<b>Operating margin</b> is ${f1(mg)} YTD.`,c:'var(--amber)'};
-  const gp=(a,t)=>(pc(a,t)||0)-pace*100;
-  const cands=mode==='ytd'?[
-    {w:Math.abs(pc(rv,rF)||0),t:`<b>Revenue</b> is ${Math.abs(pc(rv,rF)).toFixed(1)}% ${rv<0?'behind':'ahead of'} YTD forecast (${fC(Math.abs(rv))}).`,c:col(rv>=0)},
-    {w:Math.abs(pc(pv,pF)||0),t:`<b>Operating profit</b> is ${Math.abs(pc(pv,pF)).toFixed(1)}% ${pv<0?'behind':'ahead of'} forecast (${fC(Math.abs(pv))}).`,c:col(pv>=0)},
-    {w:Math.abs(pc(ev,eF)||0),t:`<b>Expenses</b> are ${Math.abs(pc(ev,eF)).toFixed(1)}% ${ev<=0?'below':'above'} YTD forecast (${fC(Math.abs(ev))}).`,c:ev<=0?'var(--amber)':'var(--coral)'}
-  ]:[
-    {w:Math.abs(gp(rA,fyR)),t:`<b>Revenue</b> has reached ${f1(pc(rA,fyR))} of the full-year target against an expected pace of ${paceTxt}.`,c:col(gp(rA,fyR)>=0)},
-    {w:Math.abs(gp(pA,fyP)),t:`<b>Operating profit</b> has reached ${f1(pc(pA,fyP))} of the full-year target against an expected pace of ${paceTxt}.`,c:col(gp(pA,fyP)>=0)},
-    {w:Math.abs(gp(eA,fyE)),t:`<b>Expenses</b> have used ${f1(pc(eA,fyE))} of the full-year budget against an expected pace of ${paceTxt}.`,c:'#63b3ed'}
+  const cands=[
+    {w:Math.abs(dR/Math.abs(bmR||1)),t:`<b>Revenue</b> is ${ph(dR,bmR)} ${bmName} (${fC(Math.abs(dR))}).`,c:col(dR>=0)},
+    {w:Math.abs(dP/Math.abs(bmP||1)),t:`<b>Operating profit</b> is ${ph(dP,bmP)} ${bmName} (${fC(Math.abs(dP))}).`,c:col(dP>=0)},
+    {w:Math.abs(dE/Math.abs(bmE||1)),t:`<b>Expenses</b> are ${rel(dE,bmE)} ${dE<=0?'below':'above'} ${bmName} (${fC(Math.abs(dE))}).`,c:dE<=0?'var(--amber)':'var(--coral)'}
   ];
   const pick=cands.sort((a,b)=>b.w-a.w).slice(0,2).concat([cMg,cMix]);
   document.getElementById('ex_take').innerHTML=pick.slice(0,4).map(x=>`<div class="ex-tk" style="--tc:${x.c}">${x.t}</div>`).join('');
