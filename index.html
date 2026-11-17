@@ -1646,7 +1646,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v176 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v177 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -5263,7 +5263,7 @@ function buildSnapshot(){
     if(sum){
       sum.innerHTML=pipeBannerHtml()||none('Pipeline not loaded yet.');
       const lst=(arr,f,tot)=>arr.length?tbl('<th>Customer / project</th><th class="n">'+f[0]+'</th><th class="n">Value</th>',
-        arr.slice().sort((a,b)=>(b.a||b.toA||0)-(a.a||a.toA||0)).slice(0,N).map(x=>`<tr>${nm({cust:x.c,proj:x.p})}<td class="n">${f[1](x)}</td><td class="n">${fC(x.a!=null?x.a:x.toA)}</td></tr>`).join('')+more(arr,N)):none('None in this period.');
+        arr.slice().sort((a,b)=>(b.a||b.toA||0)-(a.a||a.toA||0)).map(x=>`<tr>${nm({cust:x.c,proj:x.p})}<td class="n">${f[1](x)}</td><td class="n">${fC(x.a!=null?x.a:x.toA)}</td></tr>`).join('')+`<tr><td style="font-weight:700;border-top:1px solid var(--border2);">Total (${arr.length})</td><td class="n" style="border-top:1px solid var(--border2);"></td><td class="n" style="font-weight:700;border-top:1px solid var(--border2);">${fC(arr.reduce((t,x)=>t+(x.a!=null?x.a:x.toA||0),0))}</td></tr>`):none('None in this period.');
       const bd=b=>`<span class="badge ${b==='High'?'bh':b==='Medium'?'bm':'bl'}" style="font-size:11px;">${b}</span>`;
       const off=D.started||D.empty;
       el('snp_pipe_new').innerHTML  = off?none('Tracking starts today.'):lst(D.newItems,['Probability',x=>bd(x.s)]);
