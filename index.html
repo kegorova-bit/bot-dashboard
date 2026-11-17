@@ -342,6 +342,69 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   .sub-tab:hover{border-color:var(--teal);color:var(--teal);}
   .sub-tab.active{background:var(--teal);border-color:var(--teal);color:#0a0f1a;font-weight:700;}
 
+/* ── Executive View (2026 Revenue & Profitability) ── */
+.ex-wrap{display:flex;flex-direction:column;gap:18px;margin-bottom:24px;}
+.ex-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.ex-ttl{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.3px;line-height:1.1;}
+.ex-sub{font-size:14px;color:var(--text3);margin-top:5px;}
+.ex-ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.ex-seg{display:inline-flex;border:1px solid var(--border2);border-radius:10px;overflow:hidden;background:var(--bg2);}
+.ex-seg button{padding:9px 14px;font-size:12px;font-weight:700;color:var(--text2);background:transparent;border:0;cursor:pointer;font-family:var(--font);}
+.ex-seg button.on{background:var(--teal);color:#0a0f1a;}
+.ex-banner{border:1px solid rgba(255,107,107,.45);border-left:4px solid var(--coral);background:rgba(255,107,107,.08);border-radius:10px;padding:11px 16px;font-size:14px;font-weight:600;color:var(--text);}
+.ex-banner.good{border-color:rgba(46,204,143,.45);border-left-color:var(--green);background:rgba(46,204,143,.08);}
+.ex-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+.ex-kpi{border:1px solid var(--border2);border-top:3px solid var(--kc);background:var(--bg2);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:9px;min-width:0;}
+.ex-kl{font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text2);display:flex;justify-content:space-between;gap:8px;}
+.ex-kl em{font-style:normal;font-weight:600;letter-spacing:0;text-transform:none;color:var(--text3);font-size:11px;}
+.ex-kv{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1.1;color:var(--text);}
+.ex-ks{font-size:13px;color:var(--text2);line-height:1.35;min-height:35px;}
+.ex-bar{height:9px;background:var(--bg3);border-radius:5px;position:relative;margin:2px 0;}
+.ex-bar i{display:block;height:100%;border-radius:5px;background:var(--kc);}
+.ex-bar b{position:absolute;top:-4px;bottom:-4px;width:0;border-left:3px solid var(--amber);}
+.ex-kf{font-size:13px;font-weight:700;font-family:var(--mono);min-height:18px;}
+.ex-pan{border:1px solid var(--border2);background:var(--bg2);border-radius:16px;padding:20px 22px;min-width:0;}
+.ex-t{font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text);}
+.ex-s{font-size:12px;color:var(--text3);margin-top:4px;line-height:1.45;}
+.ex-2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;}
+.ex-eq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;}
+.ex-take{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:12px;}
+.ex-tk{border-left:3px solid var(--tc);padding:2px 0 2px 12px;font-size:13px;line-height:1.45;color:var(--text2);}
+.ex-tk b{color:var(--text);}
+table.ex-t1{width:100%;border-collapse:collapse;margin-top:12px;}
+table.ex-t1 th{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:700;text-align:right;padding:6px 10px;border-bottom:1px solid var(--border2);}
+table.ex-t1 th:first-child,table.ex-t1 td:first-child{text-align:left;}
+table.ex-t1 td{padding:13px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);font-size:14px;text-align:right;color:var(--text);white-space:nowrap;}
+table.ex-t1 td:first-child{font-family:var(--font);font-weight:700;font-size:14px;}
+.ex-vw{display:block;font-family:var(--font);font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-top:2px;}
+.ex-mb{width:150px;height:9px;background:var(--bg3);border-radius:5px;position:relative;display:inline-block;vertical-align:middle;}
+.ex-mb i{display:block;height:100%;border-radius:5px;}
+.ex-mb b{position:absolute;top:-3px;bottom:-3px;width:0;border-left:2px solid var(--amber);}
+.ex-fy{display:grid;gap:22px;margin-top:14px;}
+.ex-fy h4{margin:0 0 8px;font-size:14px;font-weight:700;color:var(--text);display:flex;justify-content:space-between;gap:10px;}
+.ex-fs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 16px;margin-bottom:10px;}
+.ex-fs div{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;}
+.ex-fs span{display:block;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--text);text-transform:none;letter-spacing:0;margin-top:2px;}
+.ex-lg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--text3);margin-top:8px;}
+.ex-lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+.ex-lg u{display:inline-block;width:0;height:12px;border-left:3px solid var(--amber);margin-right:5px;vertical-align:-2px;text-decoration:none;}
+.ex-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.ex-row:last-child{border-bottom:0;}
+.ex-row .nm{flex:1;font-size:14px;color:var(--text);}
+.ex-row .vl{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);}
+.ex-row .pl{font-family:var(--mono);font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid;min-width:62px;text-align:center;}
+table.ex-mt{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
+table.ex-mt th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text3);font-weight:700;padding:6px 10px;text-align:right;}
+table.ex-mt th.g{text-align:center;color:var(--text2);border-bottom:1px solid var(--border2);letter-spacing:.8px;}
+table.ex-mt th.gl,table.ex-mt td.gl{border-left:1px solid var(--border2);}
+table.ex-mt th:first-child,table.ex-mt td:first-child{text-align:left;}
+table.ex-mt td{padding:9px 10px;border-bottom:1px solid var(--border);font-family:var(--mono);text-align:right;color:var(--text);white-space:nowrap;}
+table.ex-mt td:first-child{font-family:var(--font);font-weight:600;}
+table.ex-mt tr.fc td{color:var(--text3);}
+table.ex-mt tfoot td{font-weight:700;background:rgba(15,184,184,.10);border-top:1px solid var(--teal);border-bottom:0;padding:12px 10px;}
+.ex-ok{color:var(--green)!important;}.ex-bad{color:var(--coral)!important;}
+@media (max-width:1100px){.ex-kpis,.ex-take{grid-template-columns:repeat(2,minmax(0,1fr));}.ex-2,.ex-eq{grid-template-columns:1fr;}}
+@media (max-width:640px){.ex-kpis,.ex-take{grid-template-columns:1fr;}.ex-ttl{font-size:22px;}}
 </style>
 </head>
 <body>
@@ -378,13 +441,40 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="page" id="page-revpnl">
   <!-- Sub-tab switcher -->
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
-    <button class="sub-tab active" id="st_fin26" onclick="switchSubTab('fin26',this)">📊 2026 Financials</button>
+    <button class="sub-tab active" id="st_exec" onclick="switchSubTab('exec',this)">🧭 Executive View</button>
+    <button class="sub-tab" id="st_fin26" onclick="switchSubTab('fin26',this)">📊 2026 Financials</button>
     <button class="sub-tab" id="st_ytd"   onclick="switchSubTab('ytd',this)">📈 YTD Analysis</button>
     <button class="sub-tab" id="st_exp"   onclick="switchSubTab('exp',this)">💸 Expenses</button>
     <button class="sub-tab" id="st_fin25" onclick="switchSubTab('fin25',this)">📋 2025 Financials</button>
   </div>
   <!-- 2026 Financials sub-view -->
-  <div id="sv-fin26" class="sub-view active">
+  <!-- Executive View sub-view -->
+  <div id="sv-exec" class="sub-view active">
+   <div class="ex-wrap">
+    <div class="ex-top">
+      <div><div class="ex-ttl">2026 Revenue &amp; Profitability</div><div class="ex-sub">YTD performance through the last confirmed month.</div></div>
+      <div class="ex-ctl"><span class="ytd-chip" id="ex_chip">YTD 2026</span>
+        <div class="ex-seg" id="ex_seg"><button class="on" data-m="fy" onclick="exSetMode('fy')">Actuals vs Full-Year Target</button><button data-m="ytd" onclick="exSetMode('ytd')">Actuals vs YTD Forecast</button></div></div>
+    </div>
+    <div id="ex_banner"></div>
+    <div class="ex-kpis" id="ex_kpis"></div>
+    <div class="ex-2">
+      <div class="ex-pan"><div class="ex-t">YTD Actuals vs Forecast</div><div class="ex-s">Actuals up to the last confirmed month against the forecast for the same months (BudgetF). Green = favourable, red = unfavourable.</div><table class="ex-t1" id="ex_t1"></table><div id="ex_rec" style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--text3);line-height:1.7;"></div></div>
+      <div class="ex-pan"><div class="ex-t">Full-Year Target Achievement</div><div class="ex-s">YTD actual against the full-year target. Amber marker = expected pace (<span id="ex_pace_txt">—</span> of the year complete).</div><div class="ex-fy" id="ex_fy"></div>
+        <div class="ex-lg"><span><i style="background:var(--teal)"></i>Actual</span><span><u></u>Expected pace</span><span><i style="background:var(--bg3);border:1px solid var(--border2)"></i>Remaining</span></div></div>
+    </div>
+    <div class="ex-pan"><div class="ex-t">Where Revenue Comes From</div><div class="ex-s">YTD revenue by business line · monthly figures add up to the monthly revenue total.</div>
+      <div class="ex-eq" style="margin-top:14px;"><div id="ex_mix"></div><div style="position:relative;height:250px;"><canvas id="ex_ch_split"></canvas></div></div>
+      <div class="ex-lg" id="ex_split_lg"></div></div>
+    <div class="ex-eq">
+      <div class="ex-pan"><div class="ex-t">Monthly Revenue — Actual vs Forecast</div><div class="ex-s">Solid teal = completed months · dashed blue outline = forecast.</div><div style="position:relative;height:270px;margin-top:10px;"><canvas id="ex_ch_rev"></canvas></div></div>
+      <div class="ex-pan"><div class="ex-t">Monthly Operating Profit — Actual vs Forecast</div><div class="ex-s">Green = profit, coral = loss (completed months) · dashed blue outline = forecast.</div><div style="position:relative;height:270px;margin-top:10px;"><canvas id="ex_ch_op"></canvas></div></div>
+    </div>
+    <div class="ex-pan"><div class="ex-t">Monthly Performance — Actual vs Forecast</div><div class="ex-s">Completed months show actual vs forecast; future months show forecast only.</div><div style="overflow-x:auto;"><table class="ex-mt" id="ex_mt"></table></div></div>
+    <div class="ex-pan"><div class="ex-t">Key Management Takeaways</div><div class="ex-take" id="ex_take"></div></div>
+   </div>
+  </div>
+  <div id="sv-fin26" class="sub-view" style="display:none;">
 
   <div class="slabel"><span>2026 Financials</span> — Revenue & Profitability</div>
   <div class="card accent mb">
@@ -1542,7 +1632,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v175 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v176 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -1973,6 +2063,7 @@ function buildVarTable(s26){
   buildYtdMiniCharts(s26, bf);
   buildExpMonthlyTable(s26, bf);
   buildYtdSplit(s26);
+  try{buildExecView();}catch(e){console.error('exec',e);}
 }
 
 // Actual vs Forecast chart — toggle-able by variable (Revenue / Expenses / Operating Profit).
@@ -4840,6 +4931,128 @@ function buildColChart(){
     }});
 }
 
+// ── Executive View ─────────────────────────────────────────────────────────
+window._exMode = window._exMode || 'fy';
+function exSetMode(m){ window._exMode=m; document.querySelectorAll('#ex_seg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m)); buildExecView(); }
+function buildExecView(){
+  const s26=window._s26; if(!s26||!document.getElementById('ex_kpis')) return;
+  const bf=getBudgetFMonthly();
+  const rows=s26.map((r0,i)=>bf?Object.assign({},r0,{rF:bf.rF[i],eF:bf.eF[i],pFp:bf.rF[i]+bf.eF[i]}):r0);
+  const done=rows.filter(r=>r.done), nDone=done.length;
+  const S=(a,k)=>a.reduce((s,r)=>s+(r[k]||0),0);
+  const rA=S(done,'rA'), eA=Math.abs(S(done,'eA')), pA=S(done,'pA');
+  const rF=S(done,'rF'), eF=Math.abs(S(done,'eF')), pF=S(done,'pFp');
+  // Full-year targets: same basis as the existing YTD Analysis tab (s26 static budget)
+  const fyR=S(s26,'rF'), fyE=Math.abs(S(s26,'eF')), fyP=S(s26,'pFp');
+  const pace=Math.min(1,nDone/12), mode=window._exMode;
+  const pc=(a,b)=>b?a/Math.abs(b)*100:null;
+  const f1=v=>v==null?'—':v.toFixed(1)+'%';
+  const mLast=nDone?MN[nDone-1]:'';
+  document.getElementById('ex_chip').textContent=nDone?('YTD 2026 · Jan–'+mLast):'YTD 2026';
+  document.getElementById('ex_pace_txt').textContent=Math.round(pace*100)+'%';
+  const col=(good)=>good?'var(--green)':'var(--coral)';
+  const word=(good)=>good?'Favourable':'Unfavourable';
+  // Banner (data-derived)
+  const rv=rA-rF, pv=pA-pF;
+  const bn=document.getElementById('ex_banner');
+  const rBeh=rv<0, pBeh=pv<0;
+  let msg;
+  if(rBeh&&pBeh) msg=`Revenue is ${Math.abs(pc(rv,rF)).toFixed(1)}% behind YTD forecast; operating profit is ${Math.abs(pc(pv,pF)).toFixed(1)}% behind.`;
+  else if(!rBeh&&!pBeh) msg=`Revenue is ${pc(rv,rF).toFixed(1)}% ahead of YTD forecast; operating profit is ${pc(pv,pF).toFixed(1)}% ahead.`;
+  else msg=`Revenue is ${Math.abs(pc(rv,rF)).toFixed(1)}% ${rBeh?'behind':'ahead of'} YTD forecast; operating profit is ${Math.abs(pc(pv,pF)).toFixed(1)}% ${pBeh?'behind':'ahead of'}.`;
+  bn.innerHTML=`<div class="ex-banner ${(rBeh||pBeh)?'':'good'}">${msg}</div>`;
+  // KPI cards
+  const bar=(p,c,pm)=>`<div class="ex-bar"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:${c}"></i>${pm!=null?`<b style="left:${pm}%"></b>`:''}</div>`;
+  const kp=[];
+  if(mode==='fy'){
+    kp.push({k:'Revenue YTD',c:'var(--teal)',v:fC(rA),s:`${f1(pc(rA,fyR))} of full-year target`,b:bar(pc(rA,fyR),'var(--teal)',pace*100),f:`Gap to target: ${fC(fyR-rA)}`,fc:'var(--text2)'});
+    const under=eA<=fyE*pace;
+    kp.push({k:'Expenses YTD',c:'#63b3ed',v:fC(eA),s:`${f1(pc(eA,fyE))} of full-year expense budget used`,b:bar(pc(eA,fyE),'#63b3ed',pace*100),f:`${under?'Favourable — within':'Unfavourable — above'} expected pace`,fc:col(under)});
+    kp.push({k:'Operating Profit YTD',c:'var(--green)',v:fC(pA),s:`${f1(pc(pA,fyP))} of full-year target`,b:bar(pc(pA,fyP),pA>=0?'var(--green)':'var(--coral)',pace*100),f:`Gap to target: ${fC(fyP-pA)}`,fc:'var(--text2)'});
+  } else {
+    kp.push({k:'Revenue YTD',c:'var(--teal)',v:fC(rA),s:`${f1(pc(rA,rF))} of YTD forecast (${fC(rF)})`,b:bar(pc(rA,rF),'var(--teal)',null),f:`${word(rv>=0)}: ${fC(Math.abs(rv))} ${rv>=0?'ahead':'behind'}`,fc:col(rv>=0)});
+    const ev=eA-eF;
+    kp.push({k:'Expenses YTD',c:'#63b3ed',v:fC(eA),s:`${f1(pc(eA,eF))} of YTD forecast (${fC(eF)})`,b:bar(pc(eA,eF),'#63b3ed',null),f:`${word(ev<=0)}: ${fC(Math.abs(ev))} ${ev<=0?'underspend':'overspend'}`,fc:col(ev<=0)});
+    kp.push({k:'Operating Profit YTD',c:'var(--green)',v:fC(pA),s:`${f1(pc(pA,pF))} of YTD forecast (${fC(pF)})`,b:bar(pc(pA,pF),pA>=0?'var(--green)':'var(--coral)',null),f:`${word(pv>=0)}: ${fC(Math.abs(pv))} ${pv>=0?'ahead':'behind'}`,fc:col(pv>=0)});
+  }
+  const mg=rA?pA/rA*100:null;
+  kp.push({k:'Operating Margin YTD',c:'#a78bfa',v:f1(mg),s:'Operating profit ÷ revenue',b:bar(mg==null?0:Math.max(0,mg),'#a78bfa',null),f:'No approved margin target in source data',fc:'var(--text3)'});
+  document.getElementById('ex_kpis').innerHTML=kp.map(x=>`<div class="ex-kpi" style="--kc:${x.c}"><div class="ex-kl">${x.k}</div><div class="ex-kv">${x.v}</div><div class="ex-ks">${x.s}</div>${x.b}<div class="ex-kf" style="color:${x.fc}">${x.f}</div></div>`).join('');
+  // YTD vs forecast table
+  const vr=(label,a,f,fav,isExp)=>{
+    const v=a-f, good=isExp?v<=0:v>=0, p=pc(v,f), w=Math.min(100,Math.abs(p||0));
+    const c=col(good);
+    return `<tr><td>${label}</td><td>${fC(a)}</td><td style="color:var(--text2)">${fC(f)}</td>
+      <td style="color:${c}">${fC(Math.abs(v))}<span class="ex-vw">${good?'Favourable':'Unfavourable'} · ${isExp?(v<=0?'under':'over'):(v>=0?'ahead':'behind')}</span></td>
+      <td style="color:${c}">${p==null?'—':Math.abs(p).toFixed(1)+'%'}</td>
+      <td><span class="ex-mb"><i style="width:${w}%;background:${c}"></i></span></td></tr>`;
+  };
+  document.getElementById('ex_t1').innerHTML=`<thead><tr><th>Metric</th><th>Actual YTD</th><th>Forecast YTD</th><th>Variance $</th><th>Variance %</th><th></th></tr></thead><tbody>${vr('Revenue',rA,rF)}${vr('Expenses',eA,eF,0,true)}${vr('Operating Profit',pA,pF)}</tbody>`;
+  document.getElementById('ex_rec').innerHTML=`<b style="color:var(--text2)">Reconciliation</b><br>Actual: ${fC(rA)} revenue − ${fC(eA)} expenses = ${fC(rA-eA)} operating profit ${Math.abs((rA-eA)-pA)<2?'<span class="ex-ok">✓ ties to reported</span>':'<span class="ex-bad">⚠ differs from reported '+fC(pA)+'</span>'}<br>Forecast: ${fC(rF)} − ${fC(eF)} = ${fC(rF-eF)} ${Math.abs((rF-eF)-pF)<2?'<span class="ex-ok">✓ ties</span>':'<span class="ex-bad">⚠ reported '+fC(pF)+'</span>'}<br>Months included: Jan–${mLast} (${nDone} completed)`;
+  // Full-year target achievement
+  const fy=(label,a,t,c)=>{
+    const p=pc(a,t), ahead=p!=null&&p>=pace*100;
+    return `<div><h4><span>${label}</span><span style="color:${col(ahead)};font-size:12px;">${ahead?'Ahead of':'Behind'} expected pace</span></h4>
+      <div class="ex-fs"><div>YTD actual<span>${fC(a)}</span></div><div>Full-year target<span>${fC(t)}</span></div><div>% achieved<span>${f1(p)}</span></div><div>Remaining to target<span>${fC(t-a)}</span></div></div>
+      <div class="ex-bar" style="height:12px;"><i style="width:${Math.max(0,Math.min(100,p||0))}%;background:${c}"></i><b style="left:${pace*100}%"></b></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px;">Expected pace: ${(pace*100).toFixed(1)}% (${nDone} of 12 months complete)</div></div>`;
+  };
+  document.getElementById('ex_fy').innerHTML=fy('Revenue',rA,fyR,'var(--teal)')+fy('Operating Profit',pA,fyP,pA>=0?'var(--green)':'var(--coral)');
+  // Revenue composition
+  const dc=S(done,'dcA'), hv=S(done,'haivoA'), gr=S(done,'gA'), other=rA-dc-hv-gr;
+  const C={dc:'#22d3ee',hv:'#a78bfa',gr:'#7c9cc4',ot:'#64748b'};
+  const items=[{k:'dc',l:'Data Collection',v:dc},{k:'hv',l:'HAIVO',v:hv},{k:'gr',l:'Grants',v:gr}];
+  if(Math.abs(other)>1) items.push({k:'ot',l:'Other / unallocated',v:other});
+  const sh=v=>rA?v/rA*100:0;
+  document.getElementById('ex_mix').innerHTML=`<div style="font-size:12px;color:var(--text3);">Total YTD revenue</div><div style="font-family:var(--mono);font-size:30px;font-weight:700;margin:2px 0 12px;">${fC(rA)}</div>
+    <div style="display:flex;height:16px;border-radius:8px;overflow:hidden;background:var(--bg3);margin-bottom:10px;">${items.filter(i=>i.v>0).map(i=>`<div title="${i.l}: ${fC(i.v)}" style="width:${sh(i.v)}%;background:${C[i.k]}"></div>`).join('')}</div>`
+    +items.map(i=>`<div class="ex-row"><span style="width:10px;height:10px;border-radius:50%;background:${C[i.k]}"></span><span class="nm">${i.l}</span><span class="vl">${fC(i.v)}</span><span class="pl" style="color:${C[i.k]};border-color:${C[i.k]}">${sh(i.v).toFixed(1)}%</span></div>`).join('');
+  document.getElementById('ex_split_lg').innerHTML=items.map(i=>`<span><i style="background:${C[i.k]}"></i>${i.l}</span>`).join('');
+  // Charts
+  const labels=rows.map((r,i)=>MN[i]+"'26");
+  const grid='rgba(148,163,184,.14)', tick='#8fa3c4';
+  const base=(extra)=>Object.assign({responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:tick,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fC(c.parsed.y)}`}}},scales:{x:{ticks:{color:tick},grid:{display:false},stacked:!!(extra&&extra.stk)},y:{ticks:{color:tick,callback:v=>fN?fN(v):v},grid:{color:grid},stacked:!!(extra&&extra.stk)}}},{});
+  ['ex_ch_split','ex_ch_rev','ex_ch_op'].forEach(id=>destroyChart(id));
+  const mon=k=>rows.map(r=>r.done?(r[k]||0):null);
+  const ds=[{label:'Data Collection',data:mon('dcA'),backgroundColor:C.dc},{label:'HAIVO',data:mon('haivoA'),backgroundColor:C.hv},{label:'Grants',data:mon('gA'),backgroundColor:C.gr}];
+  if(items.length>3) ds.push({label:'Other / unallocated',data:rows.map(r=>r.done?(r.rA-(r.dcA||0)-(r.haivoA||0)-(r.gA||0)):null),backgroundColor:C.ot});
+  charts['ex_ch_split']=new Chart(document.getElementById('ex_ch_split'),{type:'bar',data:{labels,datasets:ds},options:base({stk:1})});
+  const fcCol='rgba(99,150,220,.85)', fcFill='rgba(99,150,220,.12)';
+  charts['ex_ch_rev']=new Chart(document.getElementById('ex_ch_rev'),{type:'bar',data:{labels,datasets:[
+    {label:'Actual',data:rows.map(r=>r.done?r.rA:null),backgroundColor:'#22d3ee',borderRadius:3},
+    {label:'Forecast',data:rows.map(r=>r.rF),backgroundColor:fcFill,borderColor:fcCol,borderWidth:1.5,borderDash:[5,4],borderRadius:3}]},options:base()});
+  charts['ex_ch_op']=new Chart(document.getElementById('ex_ch_op'),{type:'bar',data:{labels,datasets:[
+    {label:'Actual',data:rows.map(r=>r.done?r.pA:null),backgroundColor:rows.map(r=>r.pA>=0?'#2ecc8f':'#ff6b6b'),borderRadius:3},
+    {label:'Forecast',data:rows.map(r=>r.pFp),backgroundColor:fcFill,borderColor:fcCol,borderWidth:1.5,borderDash:[5,4],borderRadius:3}]},options:base()});
+  // Monthly table
+  const vcell=(a,f,exp)=>{const v=a-f,good=exp?v<=0:v>=0,c=col(good),p=f?v/Math.abs(f)*100:null;return `<td style="color:${c}">${fC(Math.abs(v))} ${good?'▲':'▼'}</td><td style="color:${c}">${p==null?'—':Math.abs(p).toFixed(0)+'%'}</td>`;};
+  const mrow=(r,i)=>{
+    const d=r.done, cls=d?'':'fc', ea=Math.abs(r.eA||0), ef=Math.abs(r.eF||0);
+    return `<tr class="${cls}"><td>${MN[i]}'26${d?'':' <span style="font-size:10px;color:var(--text3)">(F)</span>'}</td>
+      <td class="gl">${d?fC(r.rA):'—'}</td><td>${fC(r.rF)}</td>${d?vcell(r.rA,r.rF):'<td>—</td><td>—</td>'}
+      <td class="gl">${d?fC(ea):'—'}</td><td>${fC(ef)}</td>${d?vcell(ea,ef,true):'<td>—</td><td>—</td>'}
+      <td class="gl" style="${d?'color:'+(r.pA>=0?'var(--green)':'var(--coral)'):''}">${d?fC(r.pA):'—'}</td><td>${fC(r.pFp)}</td>${d?vcell(r.pA,r.pFp):'<td>—</td><td>—</td>'}</tr>`;
+  };
+  const head=`<thead><tr><th></th><th class="g gl" colspan="4">REVENUE</th><th class="g gl" colspan="4">EXPENSES</th><th class="g gl" colspan="4">OPERATING PROFIT</th></tr>
+    <tr><th>Month</th>${['Actual','Forecast','Var $','Var %'].map((h,j)=>`<th class="${j==0?'gl':''}">${h}</th>`).join('').repeat(3)}</tr></thead>`;
+  const ytdv=(a,f,exp)=>vcell(a,f,exp);
+  document.getElementById('ex_mt').innerHTML=head+`<tbody>${rows.map(mrow).join('')}</tbody>
+    <tfoot><tr><td>YTD Total</td><td class="gl">${fC(rA)}</td><td>${fC(rF)}</td>${ytdv(rA,rF)}<td class="gl">${fC(eA)}</td><td>${fC(eF)}</td>${ytdv(eA,eF,true)}<td class="gl">${fC(pA)}</td><td>${fC(pF)}</td>${ytdv(pA,pF)}</tr></tfoot>`;
+  // Takeaways: rank by materiality of deviation
+  const cands=[
+    {w:Math.abs(pc(rv,rF)||0),t:`<b>Revenue</b> is ${Math.abs(pc(rv,rF)).toFixed(1)}% ${rv<0?'behind':'ahead of'} YTD forecast (${fC(Math.abs(rv))} ${rv<0?'below':'above'}).`,c:col(rv>=0)},
+    {w:Math.abs(pc(pv,pF)||0),t:`<b>Operating profit</b> is ${Math.abs(pc(pv,pF)).toFixed(1)}% ${pv<0?'behind':'ahead of'} forecast (${fC(Math.abs(pv))} ${pv<0?'below':'above'}).`,c:col(pv>=0)},
+    {w:Math.abs(pc(eA-eF,eF)||0),t:`<b>Expenses</b> are ${Math.abs(pc(eA-eF,eF)).toFixed(1)}% ${eA<=eF?'under':'over'} YTD forecast (${fC(Math.abs(eA-eF))}).`,c:col(eA<=eF)},
+    {w:Math.abs((pc(rA,fyR)||0)-pace*100),t:`<b>Revenue</b> has reached ${f1(pc(rA,fyR))} of the full-year target against an expected pace of ${(pace*100).toFixed(0)}%.`,c:col((pc(rA,fyR)||0)>=pace*100)},
+    {w:Math.abs((pc(pA,fyP)||0)-pace*100),t:`<b>Operating profit</b> has reached ${f1(pc(pA,fyP))} of the full-year target against an expected pace of ${(pace*100).toFixed(0)}%.`,c:col((pc(pA,fyP)||0)>=pace*100)},
+    {w:0,t:`<b>Operating margin</b> is ${f1(mg)} YTD.`,c:'var(--amber)'}
+  ];
+  const top=items.slice().sort((a,b)=>b.v-a.v)[0];
+  cands.push({w:0,t:`<b>${top.l}</b> contributes ${sh(top.v).toFixed(1)}% of YTD revenue.`,c:C[top.k]});
+  const pick=cands.slice(0,5).sort((a,b)=>b.w-a.w).slice(0,2).concat(cands.slice(5));
+  document.getElementById('ex_take').innerHTML=pick.slice(0,4).map(x=>`<div class="ex-tk" style="--tc:${x.c}">${x.t}</div>`).join('');
+}
+
 function switchSubTab(view, btn){
   // Hide all sub-views
   document.querySelectorAll('.sub-view').forEach(el=>el.style.display='none');
@@ -4850,6 +5063,7 @@ function switchSubTab(view, btn){
   if(btn) btn.classList.add('active');
   // Rebuild charts for the newly shown view
   setTimeout(()=>{
+    if(view==='exec'){ buildExecView(); }
     if(view==='fin26'){ buildSalesChart(); updateF(); }
     if(view==='fin25'){ /* charts already built */ }
     if(view==='ytd')  { buildYtdAnalysis(); }
@@ -5183,10 +5397,10 @@ function goTab(id,el){
   el.classList.add('active');
   document.getElementById('page-'+id).classList.add('active');
   if(id==='snap'){ try{ buildSnapshot(); }catch(e){ console.warn('Snapshot failed',e); } }
-  // If switching to revpnl, activate default sub-tab (fin26)
+  // If switching to revpnl, activate default sub-tab (exec)
   if(id==='revpnl'){
-    const defaultBtn=document.getElementById('st_fin26');
-    switchSubTab('fin26', defaultBtn);
+    const defaultBtn=document.getElementById('st_exec');
+    switchSubTab('exec', defaultBtn);
   }
   setTimeout(()=>{const activePage=document.querySelector('.page.active');Object.entries(charts).forEach(([k,c])=>{try{const canvas=c.canvas;if(canvas&&activePage&&activePage.contains(canvas))c.resize();}catch(e){}});},50);
 }
