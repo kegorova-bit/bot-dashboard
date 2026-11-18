@@ -422,9 +422,20 @@ table.ex-mt tfoot td{font-weight:700;background:rgba(15,184,184,.10);border-top:
 .ex-bl{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:7px;}
 .ex-pl{display:inline-block;white-space:nowrap;margin-top:6px;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid;}
 .ex-est{font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber);border-radius:999px;padding:1px 6px;margin-left:6px;vertical-align:1px;}
+.ex-rw.y4{grid-template-columns:150px minmax(0,1fr) 120px 220px;}
+.ex-bb.big{height:42px;margin-top:14px;}
+.ex-bb.big i{font-style:normal;display:flex;align-items:center;justify-content:flex-end;min-width:2px;}
+.ex-al{color:#fff;font-family:var(--mono);font-size:18px;font-weight:700;padding:0 14px;white-space:nowrap;}
+.ex-ab{position:absolute;left:0;top:-26px;color:var(--text);font-family:var(--mono);font-size:16px;font-weight:700;white-space:nowrap;}
+.ex-fl{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);}
+.ex-rw .n.sm{font-size:17px;color:var(--text2);}
+.ex-vp{display:block;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);margin-top:2px;}
+.ex-lg2{display:flex;gap:22px;flex-wrap:wrap;font-size:12px;color:var(--text3);margin:12px 0 6px;}
+.ex-lg2 i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px;}
+.ex-lg2 b{color:var(--text2);}
 details.ex-rc{margin-top:14px;font-size:12px;color:var(--text3);}
 details.ex-rc summary{cursor:pointer;color:var(--green);font-weight:600;}
-@media (max-width:1100px){.ex-rw{grid-template-columns:1fr 1fr;}.ex-rw.hd{display:none;}}
+@media (max-width:1100px){.ex-rw,.ex-rw.y4{grid-template-columns:1fr 1fr;}.ex-rw.hd{display:none;}}
 </style>
 </head>
 <body>
@@ -1648,7 +1659,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v180 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v181 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -4994,18 +5005,21 @@ function buildExecView(){
   const mx=document.getElementById('ex_main');
   if(mode==='ytd'){
     const row=(m,a,f,isExp,c0)=>{
-      const v=a-f,p=f?a/Math.abs(f)*100:0;
-      let c,txt;
-      if(isExp){c=v<=0?'var(--amber)':'var(--coral)';txt=v<=0?'below forecast':'above forecast';}
-      else{c=v>=0?'var(--green)':'var(--coral)';txt=v>=0?'ahead of forecast':'behind forecast';}
-      const fill=Math.min(100,p);
-      const pill=isExp?(v<=0?'Under':'Over'):(v>=0?'Ahead':'Behind');
-      return `<div class="ex-rw"><div class="m" style="color:${c0}">${m}</div>
-        <div><div class="ex-bb"><i style="width:${fill}%;background:${c0}"></i><em style="left:100%;margin-left:-2px"></em></div><div class="ex-bl"><span>0%</span><span>Forecast = 100%</span></div></div>
-        <div class="n">${p.toFixed(1)}%<br><span class="ex-pl" style="color:${c};border-color:${c}">${pill}</span></div><div class="n">${fC(f)}</div>
-        <div class="sd" style="color:${c}">${fC(Math.abs(v))}<small>${txt}</small></div></div>`;};
-    mx.innerHTML=`<div class="ex-t">YTD Performance vs Forecast</div><div class="ex-s">Actual performance compared with forecast for the same completed months.</div>
-      <div class="ex-rw hd" style="margin-top:10px"><div>Metric</div><div>Actual as % of forecast</div><div style="text-align:right">Achievement</div><div style="text-align:right">Forecast YTD</div><div style="text-align:right">Variance</div></div>
+      const gap=f-a, p=f?a/Math.abs(f)*100:0, vp=f?gap/Math.abs(f)*100:0;
+      let c,dir;
+      if(isExp){c=gap>=0?'var(--amber)':'var(--coral)';dir=gap>=0?'Below forecast':'Above forecast';}
+      else{c=gap<=0?'var(--green)':'var(--coral)';dir=gap<=0?'Above forecast':'Behind forecast';}
+      const pill=isExp?(gap>=0?'Under':'Over'):(gap<=0?'Ahead':'Behind');
+      const fill=Math.max(0,Math.min(100,p)), short=fill<24;
+      const aLbl=`<span class="ex-al">${fC(a)}</span>`;
+      return `<div class="ex-rw y4"><div class="m" style="color:${c0}">${m}</div>
+        <div><div class="ex-bb big">${short?`<span class="ex-ab">${fC(a)}</span>`:''}<i style="width:${fill}%;background:${c0}">${short?'':aLbl}</i><em style="left:100%;margin-left:-2px"></em></div>
+          <div class="ex-bl"><span>$0</span><span class="ex-fl">Forecast ${fC(f)}</span></div></div>
+        <div class="n sm">${p.toFixed(1)}%<br><span class="ex-pl" style="color:${c};border-color:${c}">${pill}</span></div>
+        <div class="sd" style="color:${c}">${fC(Math.abs(gap))}<small>${dir}</small><span class="ex-vp">${Math.abs(vp).toFixed(1)}% of forecast</span></div></div>`;};
+    mx.innerHTML=`<div class="ex-t">YTD Performance vs Forecast</div><div class="ex-s">Actual YTD financial performance compared with forecast for the same completed months.</div>
+      <div class="ex-lg2"><span><i style="background:var(--teal)"></i>Filled bar = Actual YTD</span><span><i style="background:var(--bg3);border:1px solid var(--border2)"></i>Full track = Forecast YTD</span><span><b>%</b> = Actual as a share of forecast</span><span><b>Variance</b> = Difference between actual and forecast</span></div>
+      <div class="ex-rw y4 hd"><div>Metric</div><div>Actual vs Forecast ($)</div><div style="text-align:right">Achievement</div><div style="text-align:right">Variance</div></div>
       ${row('Revenue',rA,rF,false,'var(--teal)')}${row('Expenses',eA,eF,true,'#63b3ed')}${row('Operating Profit',pA,pF,false,'var(--green)')}${rec}`;
   } else {
     const row=(m,a,t,isExp,c,c0)=>{
