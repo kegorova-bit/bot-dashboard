@@ -421,6 +421,7 @@ table.ex-mt tfoot td{font-weight:700;background:rgba(15,184,184,.10);border-top:
 .ex-bb em{position:absolute;top:-6px;bottom:-6px;border-left:2px solid var(--text2);}
 .ex-bl{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:7px;}
 .ex-pl{display:inline-block;white-space:nowrap;margin-top:6px;font-family:var(--font);font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid;}
+.ex-est{font-family:var(--font);font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--amber);border:1px solid var(--amber);border-radius:999px;padding:1px 6px;margin-left:6px;vertical-align:1px;}
 details.ex-rc{margin-top:14px;font-size:12px;color:var(--text3);}
 details.ex-rc summary{cursor:pointer;color:var(--green);font-weight:600;}
 @media (max-width:1100px){.ex-rw{grid-template-columns:1fr 1fr;}.ex-rw.hd{display:none;}}
@@ -485,7 +486,7 @@ details.ex-rc summary{cursor:pointer;color:var(--green);font-weight:600;}
       <div class="ex-pan"><div class="ex-t">Monthly Revenue — Actual vs Forecast</div><div class="ex-s">Solid teal = completed months · dashed blue outline = forecast.</div><div style="position:relative;height:270px;margin-top:10px;"><canvas id="ex_ch_rev"></canvas></div></div>
       <div class="ex-pan"><div class="ex-t">Monthly Operating Profit — Actual vs Forecast</div><div class="ex-s">Green = profit, coral = loss (completed months) · dashed blue outline = forecast.</div><div style="position:relative;height:270px;margin-top:10px;"><canvas id="ex_ch_op"></canvas></div></div>
     </div>
-    <div class="ex-pan"><div class="ex-t">Monthly Performance — Actual vs Forecast</div><div class="ex-s">Completed months show actual vs forecast; future months show forecast only.</div><div style="overflow-x:auto;"><table class="ex-mt" id="ex_mt"></table></div></div>
+    <div class="ex-pan"><div class="ex-t">Monthly Performance — Actual vs Forecast</div><div class="ex-s">Completed months show actual vs forecast; future months show forecast only.</div><div style="overflow-x:auto;"><table class="ex-mt" id="ex_mt"></table></div><div id="ex_mt_note" style="font-size:12px;color:var(--text3);margin-top:12px;line-height:1.5;"></div></div>
     <div class="ex-pan"><div class="ex-t">Key Management Takeaways</div><div class="ex-take" id="ex_take"></div></div>
    </div>
   </div>
@@ -1647,7 +1648,7 @@ async function loadAllData(){
     updateCfAsOf();
     setTimeout(buildScenChart,300); // after all data loaded
     setTimeout(updateRunwayCard,  50);  // after DB1 sets _db1Loans/_db1Taxes
-    document.getElementById('hDate').textContent='v179 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('hDate').textContent='v180 · Updated '+new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
     buildDSO();
     loadSafeData();   // non-critical: safe cash ledger + cash position (baseline for Last 2 Weeks)
   }catch(e){
@@ -4963,6 +4964,8 @@ function buildExecView(){
   const pc=(a,b)=>b?a/Math.abs(b)*100:null;
   const f1=v=>v==null?'—':v.toFixed(1)+'%';
   const mLast=nDone?MN[nDone-1]:'';
+  const estM=done.filter(r=>!r.eA_raw).map(r=>MN[rows.indexOf(r)]);   // expenses actual not yet posted in Staging → forecast shown
+  const estTxt=estM.join(', ');
   document.getElementById('ex_chip').textContent=nDone?('YTD 2026 · Jan–'+mLast):'YTD 2026';
   const col=(good)=>good?'var(--green)':'var(--coral)';
   const word=(good)=>good?'Favourable':'Unfavourable';
@@ -4981,8 +4984,8 @@ function buildExecView(){
   // KPI cards — actuals only; full-year target shown in $ on Revenue and Operating Profit
   const kp=[
     {k:'Revenue YTD',c:'var(--teal)',v:fC(rA),t:`Full-year target <b>${fC(fyR)}</b>`},
-    {k:'Expenses YTD',c:'#63b3ed',v:fC(eA),t:''},
-    {k:'Operating Profit YTD',c:'var(--green)',v:fC(pA),t:`Full-year target <b>${fC(fyP)}</b>`},
+    {k:'Expenses YTD',c:'#63b3ed',v:fC(eA),t:estM.length?`<span style="color:var(--amber);font-size:11px">Incl. ${estTxt} at forecast — actual pending</span>`:''},
+    {k:'Operating Profit YTD',c:'var(--green)',v:fC(pA),t:`Full-year target <b>${fC(fyP)}</b>`+(estM.length?`<br><span style="color:var(--amber);font-size:11px">Incl. ${estTxt} expenses at forecast</span>`:'')},
     {k:'Operating Margin YTD',c:'#a78bfa',v:f1(mg),t:'Operating profit ÷ revenue'}];
   document.getElementById('ex_kpis').innerHTML=kp.map(x=>`<div class="ex-kpi" style="--kc:${x.c}"><div class="ex-kl">${x.k}</div><div class="ex-kv">${x.v}</div><div class="ex-kt">${x.t||'&nbsp;'}</div></div>`).join('');
   // Main panel
@@ -5047,15 +5050,16 @@ function buildExecView(){
   // Monthly table
   const vcell=(a,f,exp)=>{const v=a-f,good=exp?v<=0:v>=0,c=col(good),p=f?v/Math.abs(f)*100:null;return `<td style="color:${c}">${fC(Math.abs(v))} ${good?'▲':'▼'}</td><td style="color:${c}">${p==null?'—':Math.abs(p).toFixed(0)+'%'}</td>`;};
   const mrow=(r,i)=>{
-    const d=r.done, cls=d?'':'fc', ea=Math.abs(r.eA||0), ef=Math.abs(r.eF||0);
+    const d=r.done, cls=d?'':'fc', ea=Math.abs(r.eA||0), ef=Math.abs(r.eF||0), est=d&&!r.eA_raw;
     return `<tr class="${cls}"><td>${MN[i]}'26${d?'':' <span style="font-size:10px;color:var(--text3)">(F)</span>'}</td>
       <td class="gl">${d?fC(r.rA):'—'}</td><td>${fC(r.rF)}</td>${d?vcell(r.rA,r.rF):'<td>—</td><td>—</td>'}
-      <td class="gl">${d?fC(ea):'—'}</td><td>${fC(ef)}</td>${d?vcell(ea,ef,true):'<td>—</td><td>—</td>'}
-      <td class="gl" style="${d?'color:'+(r.pA>=0?'var(--green)':'var(--coral)'):''}">${d?fC(r.pA):'—'}</td><td>${fC(r.pFp)}</td>${d?vcell(r.pA,r.pFp):'<td>—</td><td>—</td>'}</tr>`;
+      <td class="gl">${d?fC(ea)+(est?'<span class="ex-est">est.</span>':''):'—'}</td><td>${fC(ef)}</td>${d?(est?'<td>—</td><td>—</td>':vcell(ea,ef,true)):'<td>—</td><td>—</td>'}
+      <td class="gl" style="${d?'color:'+(r.pA>=0?'var(--green)':'var(--coral)'):''}">${d?fC(r.pA)+(est?'<span class="ex-est">est.</span>':''):'—'}</td><td>${fC(r.pFp)}</td>${d?vcell(r.pA,r.pFp):'<td>—</td><td>—</td>'}</tr>`;
   };
   const head=`<thead><tr><th></th><th class="g gl" colspan="4">REVENUE</th><th class="g gl" colspan="4">EXPENSES</th><th class="g gl" colspan="4">OPERATING PROFIT</th></tr>
     <tr><th>Month</th>${['Actual','Forecast','Var $','Var %'].map((h,j)=>`<th class="${j==0?'gl':''}">${h}</th>`).join('').repeat(3)}</tr></thead>`;
   const ytdv=(a,f,exp)=>vcell(a,f,exp);
+  document.getElementById('ex_mt_note').innerHTML=estM.length?`<span class="ex-est" style="margin-left:0">est.</span> ${estTxt}: expenses actual not yet entered in Staging (Expenses (A)); the forecast is shown until it is. Variance is not shown for these months, and YTD expenses and operating profit include the estimate.`:'';
   document.getElementById('ex_mt').innerHTML=head+`<tbody>${rows.map(mrow).join('')}</tbody>
     <tfoot><tr><td>YTD Total</td><td class="gl">${fC(rA)}</td><td>${fC(rF)}</td>${ytdv(rA,rF)}<td class="gl">${fC(eA)}</td><td>${fC(eF)}</td>${ytdv(eA,eF,true)}<td class="gl">${fC(pA)}</td><td>${fC(pF)}</td>${ytdv(pA,pF)}</tr></tfoot>`;
   // Takeaways: rank by materiality, specific to the selected view
